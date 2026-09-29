@@ -1,0 +1,197 @@
+name: karven
+
+# ---------------------------------------------------------------------------
+# Shared configuration for backend application services.
+# Every backend service uses the same image built from ./backend; only the
+# command differs. The root .env is loaded for secrets (copy .env.example to
+# .env and fill the passwords first; infra services refuse to start without
+# them), then in-network addresses OVERRIDE the host-side defaults from .env.
+# ---------------------------------------------------------------------------
+x-infra-deps: &infra-deps
+  postgres:
+    condition: service_healthy
+  neo4j:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  minio:
+    condition: service_healthy
+
+# Application services start only after the one-shot migrator succeeds.
+x-app-deps: &app-deps
+  <<: *infra-deps
+  migrator:
+    condition: service_completed_successfully
+
+x-backend-base: &backend-base
+  image: karven-backend:${BACKEND_IMAGE_TAG:-dev}
+  build:
+    context: ./backend
+  # Live reads ./.env; the isolated test stack points this at compose.test.env.
+  env_file:
+    - path: ${APP_ENV_FILE:-./.env}
+      required: false
+  environment:
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: "5432"
+    NEO4J_URI: bolt://neo4j:7687
+    REDIS_URL: redis://redis:6379/0
+    MINIO_ENDPOINT: http://minio:9000
+  depends_on: *infra-deps
+
+services:
+  # --------------------------- Infrastructure ------------------------------
+  postgres:
+    image: postgres:17
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-15432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?}
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # Real query, not a port check.
+      test: ["CMD-SHELL", "psql -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  neo4j:
+    image: neo4j:5-community
+    ports:
+      - "127.0.0.1:${NEO4J_HTTP_HOST_PORT:-17474}:7474" # HTTP browser
+      - "127.0.0.1:${NEO4J_BOLT_HOST_PORT:-17687}:7687" # Bolt
+    environment:
+      # Do NOT expose NEO4J_PASSWORD as its own variable: the image maps every
+      # NEO4J_* env var to a Neo4j setting, and strict validation rejects the
+      # resulting "password" setting. The healthcheck derives the password from
+      # NEO4J_AUTH instead.
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?}
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      # Real Cypher query, not a port check. NEO4J_AUTH is "neo4j/<password>";
+      # ${NEO4J_AUTH#*/} strips up to the first slash to recover the password.
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p \"$${NEO4J_AUTH#*/}\" 'RETURN 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 50s
+
+  redis:
+    image: redis:7
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-16379}:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      # PING must answer (exit 0 with PONG).
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  minio:
+    # The official minio/minio image no longer exists; this is Chainguard's
+    # maintained build, pinned by digest for reproducibility.
+    image: cgr.dev/chainguard/minio@sha256:71674988a1c7ddd5724928633199152b11e4ddefd6c6ce2d60772ff4a8f22ca9
+    ports:
+      - "127.0.0.1:${MINIO_API_HOST_PORT:-19000}:9000" # S3 API
+      - "127.0.0.1:${MINIO_CONSOLE_HOST_PORT:-19001}:9001" # console
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      # The image ships sh + mc but no curl/wget. `mc ready` performs an actual
+      # readiness call against the local server.
+      test:
+        [
+          "CMD-SHELL",
+          "MC_HOST_local=http://$$MINIO_ROOT_USER:$$MINIO_ROOT_PASSWORD@localhost:9000 mc ready local",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # --------------------------- Applications --------------------------------
+  api:
+    <<: *backend-base
+    depends_on: *app-deps
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-18000}:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  # Celery worker — implemented in a later task (code does not exist yet).
+  worker:
+    <<: *backend-base
+    depends_on: *app-deps
+    profiles: ["worker"]
+    command: ["python", "-c", "print('worker: not implemented yet'); raise SystemExit(1)"]
+
+  # Celery beat — implemented in a later task (code does not exist yet).
+  beat:
+    <<: *backend-base
+    depends_on: *app-deps
+    profiles: ["beat"]
+    command: ["python", "-c", "print('beat: not implemented yet'); raise SystemExit(1)"]
+
+  # Schema migrator: runs once (postgres -> neo4j -> minio) and exits 0.
+  # Application services wait for it via `service_completed_successfully`.
+  migrator:
+    <<: *backend-base
+    command: ["python", "-m", "app.migrator"]
+
+  frontend:
+    image: karven-frontend:dev
+    build:
+      context: ./frontend
+    ports:
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-13000}:3000"
+    environment:
+      # Windows bind mounts do not emit reliable inotify events.
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./frontend:/app
+      # Keep image-installed deps / build output out of the bind mount.
+      - /app/node_modules
+      - /app/.next
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+volumes:
+  postgres_data:
+  neo4j_data:
+  neo4j_logs:
+  redis_data:
+  minio_data:

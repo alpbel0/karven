@@ -1,0 +1,37 @@
+[project]
+name = "karven-backend"
+version = "0.1.0"
+description = "Karven backend API"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic-settings",
+    "sqlalchemy>=2",
+    "alembic>=1.20.0",
+    "psycopg[binary]>=3.3.6",
+    "neo4j>=6.3.1",
+    "boto3>=1.43.105",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "httpx",
+    "ruff",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-m 'not integration'"
+markers = [
+    "integration: requires the isolated docker test stack (backend/scripts/integration.py)",
+]
