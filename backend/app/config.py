@@ -1,10 +1,15 @@
 from pathlib import Path
+from typing import Annotated
 from urllib.parse import quote_plus
 
-from pydantic import SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+
+EVREN_BASE_URL_DEFAULT = "https://evren-llmapi.ssyz.org.tr/v1"
+OPENROUTER_BASE_URL_DEFAULT = "https://openrouter.ai/api/v1"
+TYPESAFE_BASE_URL_DEFAULT = "https://api.typesafe.ai/v1"
 
 
 def build_postgres_url(
@@ -35,11 +40,27 @@ class Settings(BaseSettings):
     app_env: str = "development"
 
     evren_api_key: SecretStr | None = None
-    evren_base_url: str | None = None
+    evren_base_url: str = EVREN_BASE_URL_DEFAULT
+    evren_model: str = "deepseek-v4.1-flash"
     openrouter_api_key: SecretStr | None = None
-    openrouter_base_url: str | None = None
+    openrouter_base_url: str = OPENROUTER_BASE_URL_DEFAULT
+    openrouter_model: str = "deepseek/deepseek-v4.1-flash"
     typesafe_api_key: SecretStr | None = None
-    typesafe_base_url: str | None = None
+    typesafe_base_url: str = TYPESAFE_BASE_URL_DEFAULT
+    jev_model: str = "jev-latest"
+
+    llm_request_timeout_s: float = 180.0
+    llm_max_tokens: int = 16000
+    llm_retry_waits_s: Annotated[list[int], NoDecode] = [15, 30, 60, 120]
+    llm_max_total_wait_s: float = 600.0
+    llm_transient_attempts: int = 2
+
+    @field_validator("llm_retry_waits_s", mode="before")
+    @classmethod
+    def _parse_retry_waits(cls, value: object) -> object:
+        if isinstance(value, str):
+            return [int(part) for part in value.split(",") if part.strip()]
+        return value
 
     postgres_host: str | None = None
     postgres_port: str | None = None

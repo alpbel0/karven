@@ -123,7 +123,7 @@ veritabanı, portlar ve imaj etiketi test öncesi ve sonrası birebir aynı kal�
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Kısmen canlıda doğrulandı (2026-09-30) — 429 bekleme ve şablon belirteci temizleme canlıda tetiklenemedi, yalnız birim testte
 **Bağımlılıklar:** Task 0.1
 
 **Referanslar:** `docs/DECISIONS.md` §4, §13
@@ -132,16 +132,16 @@ veritabanı, portlar ve imaj etiketi test öncesi ve sonrası birebir aynı kal�
 
 ### Checklist
 
-- [ ] Varsayılan model **DeepSeek v4.1 Flash**, sağlayıcı **EVREN**; EVREN
+- [x] Varsayılan model **DeepSeek v4.1 Flash**, sağlayıcı **EVREN**; EVREN
       başarısız olursa **OpenRouter** yedeğine geçiş.
-- [ ] Araç (tool) döngüsü: JSON şeması **yalnızca son turda** gönderilir; araç
+- [x] Araç (tool) döngüsü: JSON şeması **yalnızca son turda** gönderilir; araç
       turlarında gönderilmez.
 - [ ] JSON cevaplarında sağlayıcının sızdırdığı şablon belirteçleri
       (`<|im_end|>` gibi) temizlenir; başka her fazlalık hata olarak kalır.
 - [ ] Sağlayıcı hız sınırında (429) `Retry-After` dikkate alınarak uzun ve
       artan bekleme; toplam süre sınırlı; 400/401/404 hemen hata.
-- [ ] Jev (TypeSafe; kredi bitince OpenRouter'daki Jev) için istemci.
-- [ ] LLM çağrılarının ham kaydı (istek + cevap) MinIO'da saklanır; anahtarlar
+- [x] Jev (TypeSafe; kredi bitince OpenRouter'daki Jev) için istemci.
+- [x] LLM çağrılarının ham kaydı (istek + cevap) MinIO'da saklanır; anahtarlar
       maskelenir.
 
 **Kabul kriteri:** Sahte sağlayıcıyla birim testleri: şema yalnız son turda
@@ -152,7 +152,7 @@ beklemeyle başarıyla bitiyor, EVREN hatasında OpenRouter'a geçiliyor.
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-09-30, canlıda doğrulandı)
 **Bağımlılıklar:** Task 0.3, Task 0.5
 
 **Referanslar:** `docs/DECISIONS.md` §4
@@ -161,10 +161,10 @@ beklemeyle başarıyla bitiyor, EVREN hatasında OpenRouter'a geçiliyor.
 
 ### Checklist
 
-- [ ] Ajan prompt'ları veritabanında sürümlü tutulur; eski sürümler silinmez.
-- [ ] Her ajan için etkin sürüm seçilebilir; kod değişikliği gerekmeden yeni
+- [x] Ajan prompt'ları veritabanında sürümlü tutulur; eski sürümler silinmez.
+- [x] Her ajan için etkin sürüm seçilebilir; kod değişikliği gerekmeden yeni
       sürüm eklenip etkinleştirilebilir (admin ekranı Task 5.5'te).
-- [ ] Her LLM çağrısının kaydında hangi prompt sürümünün kullanıldığı yazar.
+- [x] Her LLM çağrısının kaydında hangi prompt sürümünün kullanıldığı yazar.
 
 **Kabul kriteri:** Bir ajana yeni prompt sürümü eklenip etkinleştirildiğinde
 sonraki çağrı yeni sürümü kullanıyor; eski sürüm veritabanında duruyor.

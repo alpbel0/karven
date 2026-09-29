@@ -11,6 +11,7 @@ from sqlalchemy import Engine, create_engine, pool
 
 from app.config import settings
 from app.db.base import Base
+from app.prompts import models as prompts_models  # noqa: F401  (register on Base.metadata)
 
 config = context.config
 

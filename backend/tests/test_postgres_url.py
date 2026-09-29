@@ -2,6 +2,7 @@ from pydantic import SecretStr
 
 from app.config import build_postgres_url
 from app.db.base import Base
+from app.prompts import models as prompts_models  # noqa: F401  (register on Base.metadata)
 
 
 def test_build_postgres_url_encodes_credentials() -> None:
@@ -22,5 +23,5 @@ def test_build_postgres_url_without_password() -> None:
     assert url == "postgresql+psycopg://karven:@localhost:5432/karven"
 
 
-def test_base_metadata_starts_empty() -> None:
-    assert list(Base.metadata.tables) == []
+def test_prompt_tables_registered_on_base() -> None:
+    assert {"prompt_versions", "active_prompts"} <= set(Base.metadata.tables)
