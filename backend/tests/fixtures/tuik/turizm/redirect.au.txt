@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rs>
+
+<sid>7</sid>
+<r><c>redirect</c>
+<d>http://rapory.tuik.gov.tr/01-10-2026-02:20:31-44344671316619359491858522039.html</d>
+<d>_blank</d>
+</r>
+</rs>

@@ -22,7 +22,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import extract, select
 from sqlalchemy.orm import Session
 
 from app.connectors.base import (
@@ -35,6 +35,7 @@ from app.connectors.base import (
     ingest_series,
     resolve_external_code,
     upsert_dataset,
+    upsert_discovered_codes,
     upsert_institution,
 )
 from app.connectors.tuik.bi_trade import (
@@ -54,6 +55,7 @@ from app.connectors.tuik.client import Databrowser2Client
 from app.connectors.tuik.connector import TuikConnector
 from app.connectors.tuik.nsiws import build_nsiws_client
 from app.connectors.tuik.parsers import DataflowInfo
+from app.connectors.tuik.secim import SecimConnector
 from app.connectors.tuik.siniflama import (
     ClassificationData,
     CorrespondenceItemRow,
@@ -71,8 +73,24 @@ from app.connectors.tuik.siniflama import (
 )
 from app.connectors.tuik.turcat import TurcatClient, TurcatConnector, ingest_sector
 from app.connectors.tuik.turcat_parsers import SECTORS
+from app.connectors.tuik.turizm import HEADLINES as TURIZM_HEADLINES
+from app.connectors.tuik.turizm import PAGES as TURIZM_PAGES
+from app.connectors.tuik.turizm import TurizmConnector, distinct_series_count
+from app.connectors.tuik.yayin import (
+    DocumentLoad,
+    YayinClient,
+    crawl_yayin,
+    load_documents,
+)
 from app.data.errors import SeriesDefinitionError, SeriesNotFoundError
-from app.data.models import Dataset, DatasetDimension, DimensionCode, Institution
+from app.data.models import (
+    Dataset,
+    DatasetDimension,
+    DimensionCode,
+    Institution,
+    Observation,
+    Series,
+)
 from app.data.observations import record_observations
 
 logger = logging.getLogger("app.connectors.tuik")
@@ -171,6 +189,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="skip the correspondence tables",
     )
 
+    yayin = subparsers.add_parser(
+        "yayin", help="sync the TÜİK Biruni publication catalogue (documents; no files)"
+    )
+    yayin.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and parse every page but write nothing (no DB, no MinIO)",
+    )
+    yayin.add_argument(
+        "--max-pages", type=int, default=None, dest="max_pages", help="fetch at most N pages"
+    )
+
     siniflama_link = subparsers.add_parser(
         "siniflama-link-dimensions",
         help="link databrowser2 dimensions to classification versions by normalized code/label",
@@ -217,6 +248,90 @@ def build_parser() -> argparse.ArgumentParser:
     )
     bi_headlines.add_argument(
         "--only", default=None, help="only this headline: " + ", ".join(HEADLINE_BY_NAME)
+    )
+
+    turizm_catalog = subparsers.add_parser(
+        "turizm-catalog",
+        help="sync the turizmapp tourism datasets with full code lists (no values)",
+    )
+    turizm_catalog.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="walk every form but write nothing (no DB, no MinIO)",
+    )
+    turizm_catalog.add_argument(
+        "--page", default=None, choices=list(TURIZM_PAGES), help="only this page"
+    )
+
+    turizm_headlines = subparsers.add_parser(
+        "turizm-headlines",
+        help="load the preconfigured turizmapp headline series (via inges... records)",
+    )
+    turizm_headlines.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="generate and interpret everything but write nothing (no DB, no MinIO)",
+    )
+    turizm_headlines.add_argument(
+        "--only", default=None, help="only this headline: " + ", ".join(TURIZM_HEADLINES)
+    )
+    turizm_headlines.add_argument(
+        "--years", type=int, default=None, help="keep only the newest N years"
+    )
+
+    turizm_discover = subparsers.add_parser(
+        "turizm-discover",
+        help="light pass filling report-only income/expenditure category codes",
+    )
+    turizm_discover.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="generate and interpret the newest report per variable but write nothing",
+    )
+    turizm_discover.add_argument(
+        "--page", default=None, choices=list(TURIZM_PAGES), help="only this page"
+    )
+
+    secim_catalog = subparsers.add_parser(
+        "secim-catalog",
+        help="sync the secimdagitimapp election datasets with full code lists (no values)",
+    )
+    secim_catalog.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="walk every table form but write nothing (no DB, no MinIO)",
+    )
+    secim_catalog.add_argument(
+        "--table", type=int, default=None, help="only this table index (0..9)"
+    )
+
+    secim_discover = subparsers.add_parser(
+        "secim-discover",
+        help="generate the smallest report per table to learn report-only party codes",
+    )
+    secim_discover.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="generate and interpret the report per table but write nothing",
+    )
+    secim_discover.add_argument(
+        "--table", type=int, default=None, help="only this table index (0..9)"
+    )
+    secim_discover.add_argument(
+        "--elections",
+        type=int,
+        default=None,
+        help="newest N elections per table (default 1)",
+    )
+    secim_discover.add_argument(
+        "--refresh",
+        action="store_true",
+        help="re-generate reports that are already loaded (only changed values are added)",
     )
 
     return parser
@@ -689,6 +804,60 @@ def _run_siniflama(args: argparse.Namespace, dry_run: bool) -> int:
             return _cmd_siniflama(session, client, args)
     finally:
         client.close()
+
+
+def _run_yayin(args: argparse.Namespace, dry_run: bool) -> int:
+    """Crawl the Biruni publication catalogue into the ``documents`` table."""
+    from collections import Counter
+
+    started = time.monotonic()
+    client = YayinClient(store=None if dry_run else MinioObjectStore())
+    try:
+        crawl = crawl_yayin(client, max_pages=getattr(args, "max_pages", None))
+    except ConnectorError as exc:
+        _print_error("yayin", exc)
+        return 1
+    finally:
+        client.close()
+
+    types = Counter(item.doc_type for item in crawl.items)
+    type_summary = ", ".join(f"{name or '-'}={count}" for name, count in types.most_common())
+    print(f"yayin: {len(crawl.items)} items parsed, totalSize={crawl.total_size}")
+    print(
+        f"pages={crawl.pages}/{crawl.page_count} pageSize={crawl.page_size} "
+        f"stalls={crawl.stalls} retries={crawl.retries}"
+    )
+    print(f"doc_types: {type_summary or '-'}")
+
+    model = " (dry-run)" if dry_run else ""
+    outcome = DocumentLoad(inserted=0, updated=0, unchanged=0, removed=0)
+    if dry_run:
+        pass
+    else:
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            institution = upsert_institution(
+                session, TuikConnector.institution_code, TuikConnector.institution_name
+            )
+            session.flush()
+            outcome = load_documents(
+                session, crawl.items, institution_id=institution.id, complete=crawl.complete
+            )
+            session.commit()
+    runtime = time.monotonic() - started
+    if not crawl.complete:
+        print(
+            f"incomplete crawl ({crawl.pages}/{crawl.page_count} pages, "
+            f"{len(crawl.items)}/{crawl.total_size} items): no removals marked"
+        )
+    print(
+        f"yayin{model}: pages={crawl.pages} items={len(crawl.items)} total_size={crawl.total_size} "
+        f"inserted={outcome.inserted} updated={outcome.updated} unchanged={outcome.unchanged} "
+        f"removed={outcome.removed} stalls={crawl.stalls} retries={crawl.retries} "
+        f"runtime={runtime:.1f}s"
+    )
+    return 0
 
 
 def _cmd_cip_catalog(
@@ -1461,14 +1630,800 @@ def _run_bi(args: argparse.Namespace, dry_run: bool) -> int:
         connector.close()
 
 
+def _is_turizm_command(args: argparse.Namespace) -> bool:
+    if args.command in ("turizm-catalog", "turizm-headlines", "turizm-discover"):
+        return True
+    if args.command != "fetch":
+        return False
+    dataset = getattr(args, "dataset", None) or ""
+    series = getattr(args, "series", None) or ""
+    return dataset.startswith("TUIK_TURIZM_") or series.startswith("TUIK_TURIZM_")
+
+
+def _build_turizm_connector(dry_run: bool) -> TurizmConnector:
+    if dry_run:
+        return TurizmConnector(store=None)
+    return TurizmConnector(store=MinioObjectStore())
+
+
+def _cmd_turizm_catalog(
+    session: Session | None, connector: TurizmConnector, args: argparse.Namespace
+) -> int:
+    started = time.monotonic()
+    dry_run = session is None
+    page = getattr(args, "page", None)
+    institution_id: int | None = None
+    if not dry_run:
+        assert session is not None
+        institution = upsert_institution(
+            session, connector.institution_code, connector.institution_name
+        )
+        session.commit()
+        institution_id = institution.id
+
+    ok = dimensions = codes = 0
+    outcomes: Counter[str] = Counter()
+    failures: list[tuple[str, ConnectorError]] = []
+    for meta in connector.list_datasets():
+        if page and meta.attributes.get("page") != page:
+            continue
+        dimensions += len(meta.dimensions)
+        codes += sum(len(dimension.codes) for dimension in meta.dimensions)
+        if dry_run:
+            outcomes["found"] += 1
+            print(
+                f"{meta.external_code}: freq={meta.attributes.get('default_frequency')} "
+                f"dims={len(meta.dimensions)} "
+                f"codes={sum(len(d.codes) for d in meta.dimensions)}"
+            )
+            ok += 1
+            continue
+        assert session is not None and institution_id is not None
+        try:
+            outcome, _ = upsert_dataset(session, institution_id, meta)
+            session.commit()
+        except Exception as exc:  # noqa: BLE001 - one dataset must not abort the run
+            session.rollback()
+            failures.append(_unexpected(meta.external_code, exc))
+            continue
+        outcomes[outcome] += 1
+        ok += 1
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    print(f"turizm-catalog{mode}: {ok} datasets ok, {len(failures)} failed")
+    if dry_run:
+        print(f"datasets: found={outcomes['found']} (dry-run, nothing written)")
+    else:
+        print(
+            "datasets: "
+            f"inserted={outcomes['inserted']} updated={outcomes['updated']} "
+            f"unchanged={outcomes['unchanged']}"
+        )
+    print(f"dimensions={dimensions} codes={codes} runtime={runtime:.1f}s")
+    _print_failures(failures)
+    return 0
+
+
+def _plan_key(plan) -> str:
+    variable = plan.variable or "-"
+    return f"{plan.dataset_code}:{variable}:{plan.year}"
+
+
+def _turizm_report_loaded(session: Session, connector: TurizmConnector, plan) -> bool:
+    """True when the report's dataset/period already has observations.
+
+    Simple resume: a report is treated as loaded when any observation exists for
+    its dataset and year (and its variable/direction when the plan carries one).
+    Re-running an interrupted load therefore skips the reports it already wrote.
+    """
+    dataset = _load_dataset(session, connector, plan.dataset_code)
+    if dataset is None:
+        return False
+    query = (
+        select(Observation.id)
+        .join(Series, Observation.series_id == Series.id)
+        .where(
+            Series.dataset_id == dataset.id,
+            extract("year", Observation.period) == int(plan.year),
+        )
+    )
+    if plan.variable is not None:
+        query = query.where(Series.dimension_codes["VARIABLE"].astext == plan.variable)
+    if plan.direction_code is not None:
+        query = query.where(Series.dimension_codes["DIRECTION"].astext == plan.direction_code)
+    return session.scalar(query.limit(1)) is not None
+
+
+def _record_report(
+    session: Session, connector: Any, plan: Any, series, institution_id: int
+) -> tuple[int, dict[str, int]]:
+    """Write one report: catalog dataset, discovered codes, series, observations.
+
+    Shared by ``turizm-discover``/``turizm-headlines`` and ``secim-discover``:
+    both connectors expose ``dataset_meta(dataset_code)`` and report series
+    carrying ``codes``, ``points`` and ``raw_object_keys``.
+    """
+    if not series:
+        return 0, {}
+    dataset = _load_dataset(session, connector, plan.dataset_code)
+    if dataset is None:
+        _, dataset = upsert_dataset(
+            session, institution_id, connector.dataset_meta(plan.dataset_code)
+        )
+        session.flush()
+    # Register every series' codes, not a merged dict: merging kept only the last
+    # value per dimension, so all other report categories stayed uncatalogued
+    # (found live 2026-10-01: 22/22 discovery reports failed).
+    added: dict[str, int] = {}
+    for entry in series:
+        for dimension_code, count in upsert_discovered_codes(session, dataset, entry.codes).items():
+            added[dimension_code] = added.get(dimension_code, 0) + count
+    inserted = 0
+    for entry in series:
+        inserted += _record_headline(session, dataset, entry)
+    return inserted, added
+
+
+def _record_turizm_report(
+    session: Session, connector: TurizmConnector, plan, series, institution_id: int
+) -> tuple[int, dict[str, int]]:
+    """Backward-compatible alias for :func:`_record_report`."""
+    return _record_report(session, connector, plan, series, institution_id)
+
+
+def _cmd_turizm_headlines(
+    session: Session | None, connector: TurizmConnector, args: argparse.Namespace
+) -> int:
+    started = time.monotonic()
+    dry_run = session is None
+    only = getattr(args, "only", None)
+    if only is not None and only not in TURIZM_HEADLINES:
+        print(
+            f"turizm-headlines: unknown --only {only!r}; choose from {sorted(TURIZM_HEADLINES)}",
+            file=sys.stderr,
+        )
+        return 1
+    names = [only] if only else list(TURIZM_HEADLINES)
+    years = getattr(args, "years", None)
+
+    institution_id: int | None = None
+    if not dry_run:
+        assert session is not None
+        institution = upsert_institution(
+            session, connector.institution_code, connector.institution_name
+        )
+        session.commit()
+        institution_id = institution.id
+
+    total_series = total_distinct = total_points = total_inserted = total_skipped = 0
+    failures: list[tuple[str, ConnectorError]] = []
+    for name in names:
+        try:
+            plans = connector.headline_plans(name, years=years)
+        except ConnectorError as exc:
+            failures.append((name, exc))
+            continue
+        except Exception as exc:  # noqa: BLE001 - one headline must not abort the rest
+            failures.append(_unexpected(name, exc))
+            continue
+        for plan in plans:
+            key = f"{name}:{_plan_key(plan)}"
+            if not dry_run:
+                assert session is not None
+                if _turizm_report_loaded(session, connector, plan):
+                    total_skipped += 1
+                    logger.info("turizm-headlines: %s already loaded, skipped", key)
+                    continue
+        try:
+            series = connector.build_report(plan)
+        except ConnectorError as exc:
+            # Keep the kind: an election the table does not offer is ``not_found``.
+            failures.append((key, exc))
+            continue
+        except Exception as exc:  # noqa: BLE001 - one report must not abort the rest
+            failures.append(_unexpected(key, exc))
+            continue
+            points = sum(len(entry.points) for entry in series)
+            distinct = distinct_series_count(series)
+            total_series += len(series)
+            total_distinct += distinct
+            total_points += points
+            if dry_run:
+                if series:
+                    print(f"{key}: series={len(series)} distinct={distinct} points={points}")
+                continue
+            assert session is not None and institution_id is not None
+            try:
+                inserted, _added = _record_turizm_report(
+                    session, connector, plan, series, institution_id
+                )
+                session.commit()
+            except Exception as exc:  # noqa: BLE001 - one report must not abort the rest
+                session.rollback()
+                failures.append(_unexpected(key, exc))
+                continue
+            total_inserted += inserted
+            if series:
+                print(
+                    f"{key}: series={len(series)} distinct={distinct} "
+                    f"points={points} inserted={inserted}"
+                )
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    print(
+        f"turizm-headlines{mode}: series={total_series} distinct={total_distinct} "
+        f"points={total_points} inserted={total_inserted} skipped={total_skipped} "
+        f"runtime={runtime:.1f}s"
+    )
+    _print_failures([(key, ConnectorError(exc.kind, exc.message)) for key, exc in failures])
+    return 0
+
+
+def _cmd_turizm_discover(
+    session: Session | None, connector: TurizmConnector, args: argparse.Namespace
+) -> int:
+    """Fill report-only category codes with one newest report per variable."""
+    started = time.monotonic()
+    dry_run = session is None
+    page = getattr(args, "page", None)
+
+    institution_id: int | None = None
+    if not dry_run:
+        assert session is not None
+        institution = upsert_institution(
+            session, connector.institution_code, connector.institution_name
+        )
+        session.commit()
+        institution_id = institution.id
+
+    failures: list[tuple[str, ConnectorError]] = []
+    try:
+        plans = connector.discovery_plans(page=page)
+    except Exception as exc:  # noqa: BLE001 - the walk is one failure, not many
+        failures.append(_unexpected("turizm-discover", exc))
+        plans = []
+
+    families = {plan.dataset_code for plan in plans}
+    reports = total_points = total_inserted = total_skipped = 0
+    added: dict[str, dict[str, int]] = {}
+    for plan in plans:
+        key = _plan_key(plan)
+        if not dry_run:
+            assert session is not None
+            if _turizm_report_loaded(session, connector, plan):
+                total_skipped += 1
+                logger.info("turizm-discover: %s already loaded, skipped", key)
+                continue
+        try:
+            series = connector.build_report(plan)
+        except Exception as exc:  # noqa: BLE001 - one report must not abort the rest
+            failures.append(_unexpected(key, exc))
+            continue
+        if not series:
+            continue
+        reports += 1
+        total_points += sum(len(entry.points) for entry in series)
+        if dry_run:
+            continue
+        assert session is not None and institution_id is not None
+        try:
+            inserted, codes_added = _record_turizm_report(
+                session, connector, plan, series, institution_id
+            )
+            session.commit()
+        except Exception as exc:  # noqa: BLE001 - one report must not abort the rest
+            session.rollback()
+            failures.append(_unexpected(key, exc))
+            continue
+        total_inserted += inserted
+        if codes_added:
+            bucket = added.setdefault(plan.dataset_code, {})
+            for dimension, count in codes_added.items():
+                bucket[dimension] = bucket.get(dimension, 0) + count
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    print(
+        f"turizm-discover{mode}: families={len(families)} reports={reports} "
+        f"points={total_points} inserted={total_inserted} skipped={total_skipped} "
+        f"runtime={runtime:.1f}s"
+    )
+    for dataset_code in sorted(added):
+        parts = ", ".join(
+            f"{dimension}=+{count}" for dimension, count in sorted(added[dataset_code].items())
+        )
+        print(f"codes {dataset_code}: {parts}")
+    _print_failures(failures)
+    return 0
+
+
+def _dry_run_turizm_fetch(connector: TurizmConnector, args: argparse.Namespace) -> int:
+    try:
+        start = date.fromisoformat(args.start)
+    except ValueError:
+        print(f"fetch: invalid --start {args.start!r} (want YYYY-MM-DD)", file=sys.stderr)
+        return 1
+    if args.series:
+        dataset_code, separator, key = args.series.partition(":")
+        if not separator or not key:
+            _print_error("fetch", ValueError(f"bad --series {args.series!r}"))
+            return 1
+        parts = key.split(".")
+        codes = {}
+    elif args.dataset:
+        dataset_code = args.dataset
+        parts = None
+        try:
+            codes = _parse_codes(args.code)
+        except ValueError as exc:
+            _print_error("fetch", exc)
+            return 1
+    else:
+        print(
+            "fetch: pass --series EXTERNAL_CODE or --dataset TUIK_TURIZM_… --code DIM=CODE",
+            file=sys.stderr,
+        )
+        return 1
+
+    try:
+        meta = connector.dataset_meta(dataset_code)
+        order = [
+            dimension.code
+            for dimension in sorted(meta.dimensions, key=lambda dim: dim.position)
+            if dimension.role != ROLE_TIME
+        ]
+        if parts is not None:
+            if len(parts) != len(order):
+                _print_error(
+                    "fetch", ValueError(f"expected {len(order)} codes {order}, got {parts!r}")
+                )
+                return 1
+            codes = dict(zip(order, parts, strict=True))
+        result = connector.fetch_series(dataset_code, codes, order=order, start=start)
+    except ConnectorError as exc:
+        _print_error("fetch", exc)
+        return 1
+    print(
+        f"fetch {dataset_code}: points={len(result.points)} "
+        f"channel={result.channel} (dry-run, nothing written)"
+    )
+    if result.points:
+        print(f"periods: {result.points[0][0].isoformat()}..{result.points[-1][0].isoformat()}")
+    return 0
+
+
+def _cmd_turizm_fetch(
+    session: Session, connector: TurizmConnector, args: argparse.Namespace
+) -> int:
+    try:
+        start = date.fromisoformat(args.start)
+    except ValueError:
+        print(f"fetch: invalid --start {args.start!r} (want YYYY-MM-DD)", file=sys.stderr)
+        return 1
+    try:
+        if args.series:
+            dataset_code = args.series.partition(":")[0]
+            dataset = _load_dataset(session, connector, dataset_code)
+            if dataset is None:
+                print(f"fetch: no catalogued dataset for {dataset_code!r}", file=sys.stderr)
+                return 1
+            codes = resolve_external_code(dataset, args.series)
+            if codes is None:
+                print(
+                    f"fetch: {args.series!r} does not match dataset {dataset_code!r}",
+                    file=sys.stderr,
+                )
+                return 1
+        elif args.dataset:
+            dataset = _load_dataset(session, connector, args.dataset)
+            if dataset is None:
+                print(f"fetch: no catalogued dataset {args.dataset!r}", file=sys.stderr)
+                return 1
+            codes = _parse_codes(args.code)
+        else:
+            print(
+                "fetch: pass --series EXTERNAL_CODE or --dataset TUIK_TURIZM_… --code DIM=CODE",
+                file=sys.stderr,
+            )
+            return 1
+    except ValueError as exc:
+        _print_error("fetch", exc)
+        return 1
+
+    try:
+        result = ingest_series(session, connector, dataset=dataset, codes=codes, start=start)
+    except (ConnectorError, SeriesDefinitionError, SeriesNotFoundError) as exc:
+        _print_error("fetch", exc)
+        return 1
+    session.commit()
+    print(
+        f"fetch {result.series_id}: inserted={result.inserted} unchanged={result.unchanged} "
+        f"points={result.point_count}"
+    )
+    if result.period_start is not None:
+        print(f"periods: {result.period_start.isoformat()}..{result.period_end.isoformat()}")
+    return 0
+
+
+def _run_turizm(args: argparse.Namespace, dry_run: bool) -> int:
+    connector = _build_turizm_connector(dry_run)
+    try:
+        if args.command == "turizm-catalog":
+            if dry_run:
+                return _cmd_turizm_catalog(None, connector, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_turizm_catalog(session, connector, args)
+        if args.command == "turizm-headlines":
+            if dry_run:
+                return _cmd_turizm_headlines(None, connector, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_turizm_headlines(session, connector, args)
+        if args.command == "turizm-discover":
+            if dry_run:
+                return _cmd_turizm_discover(None, connector, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_turizm_discover(session, connector, args)
+        if dry_run:
+            return _dry_run_turizm_fetch(connector, args)
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            return _cmd_turizm_fetch(session, connector, args)
+    finally:
+        connector.close()
+
+
+# --- secimdagitimapp (election results) ------------------------------------
+
+
+def _is_secim_command(args: argparse.Namespace) -> bool:
+    if args.command in ("secim-catalog", "secim-discover"):
+        return True
+    if args.command != "fetch":
+        return False
+    dataset = getattr(args, "dataset", None) or ""
+    series = getattr(args, "series", None) or ""
+    return dataset.startswith("TUIK_SECIM_") or series.startswith("TUIK_SECIM_")
+
+
+def _build_secim_connector(dry_run: bool) -> SecimConnector:
+    if dry_run:
+        return SecimConnector(store=None)
+    return SecimConnector(store=MinioObjectStore())
+
+
+def _cmd_secim_catalog(
+    session: Session | None, connector: SecimConnector, args: argparse.Namespace
+) -> int:
+    started = time.monotonic()
+    dry_run = session is None
+    table = getattr(args, "table", None)
+    institution_id: int | None = None
+    if not dry_run:
+        assert session is not None
+        institution = upsert_institution(
+            session, connector.institution_code, connector.institution_name
+        )
+        session.commit()
+        institution_id = institution.id
+
+    ok = dimensions = codes = 0
+    outcomes: Counter[str] = Counter()
+    failures: list[tuple[str, ConnectorError]] = []
+    for meta in connector.list_datasets(table=table):
+        dimensions += len(meta.dimensions)
+        codes += sum(len(dimension.codes) for dimension in meta.dimensions)
+        if dry_run:
+            outcomes["found"] += 1
+            print(
+                f"{meta.external_code}: table={meta.attributes.get('table_index')} "
+                f"freq={meta.attributes.get('default_frequency')} "
+                f"dims={len(meta.dimensions)} "
+                f"codes={sum(len(d.codes) for d in meta.dimensions)} "
+                f"elections={len(meta.attributes.get('elections', []))}"
+            )
+            ok += 1
+            continue
+        assert session is not None and institution_id is not None
+        try:
+            outcome, _ = upsert_dataset(session, institution_id, meta)
+            session.commit()
+        except Exception as exc:  # noqa: BLE001 - one dataset must not abort the run
+            session.rollback()
+            failures.append(_unexpected(meta.external_code, exc))
+            continue
+        outcomes[outcome] += 1
+        ok += 1
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    print(f"secim-catalog{mode}: {ok} datasets ok, {len(failures)} failed")
+    if dry_run:
+        print(f"datasets: found={outcomes['found']} (dry-run, nothing written)")
+    else:
+        print(
+            "datasets: "
+            f"inserted={outcomes['inserted']} updated={outcomes['updated']} "
+            f"unchanged={outcomes['unchanged']}"
+        )
+    print(f"dimensions={dimensions} codes={codes} runtime={runtime:.1f}s")
+    _print_failures(failures)
+    return 0
+
+
+def _secim_report_loaded(session: Session, connector: SecimConnector, plan) -> bool:
+    """True when the report's dataset already has an observation for its period."""
+    dataset = _load_dataset(session, connector, plan.dataset_code)
+    if dataset is None or plan.period is None:
+        return False
+    query = (
+        select(Observation.id)
+        .join(Series, Observation.series_id == Series.id)
+        .where(Series.dataset_id == dataset.id, Observation.period == plan.period)
+    )
+    return session.scalar(query.limit(1)) is not None
+
+
+def _secim_catalog_elections(session: Session, connector: SecimConnector) -> dict[str, list[str]]:
+    """Each catalogued dataset's offered election labels (from the last walk)."""
+    institution = session.scalar(
+        select(Institution).where(Institution.code == connector.institution_code)
+    )
+    if institution is None:
+        return {}
+    catalog: dict[str, list[str]] = {}
+    datasets = session.scalars(
+        select(Dataset).where(Dataset.institution_id == institution.id)
+    ).all()
+    for dataset in datasets:
+        elections = (dataset.attributes or {}).get("elections")
+        if elections:
+            catalog[dataset.external_code] = [str(label) for label in elections]
+    return catalog
+
+
+def _cmd_secim_discover(
+    session: Session | None, connector: SecimConnector, args: argparse.Namespace
+) -> int:
+    """Fill report-only party codes with the smallest report per table/election."""
+    started = time.monotonic()
+    dry_run = session is None
+    table = getattr(args, "table", None)
+    elections = getattr(args, "elections", None)
+    # Re-generate reports that are already loaded (e.g. after an interpreter fix);
+    # record_observations only appends changed values, nothing is deleted.
+    refresh = bool(getattr(args, "refresh", False))
+
+    institution_id: int | None = None
+    if not dry_run:
+        assert session is not None
+        institution = upsert_institution(
+            session, connector.institution_code, connector.institution_name
+        )
+        session.commit()
+        institution_id = institution.id
+
+    failures: list[tuple[str, ConnectorError]] = []
+    try:
+        catalog = _secim_catalog_elections(session, connector) if session is not None else None
+        plans = connector.discovery_plans(table=table, elections=elections, catalog=catalog)
+    except Exception as exc:  # noqa: BLE001 - the walk is one failure, not many
+        failures.append(_unexpected("secim-discover", exc))
+        plans = []
+
+    tables = {plan.spec.index for plan in plans}
+    reports = total_series = total_distinct = total_points = total_inserted = 0
+    total_skipped = 0
+    added: dict[str, dict[str, int]] = {}
+    for plan in plans:
+        key = f"{plan.dataset_code}:{plan.election}"
+        if not dry_run:
+            assert session is not None
+            if not refresh and _secim_report_loaded(session, connector, plan):
+                total_skipped += 1
+                logger.info("secim-discover: %s already loaded, skipped", key)
+                continue
+        try:
+            series = connector.build_report(plan)
+        except Exception as exc:  # noqa: BLE001 - one report must not abort the rest
+            failures.append(_unexpected(key, exc))
+            continue
+        if not series:
+            continue
+        reports += 1
+        distinct = distinct_series_count(series)
+        points = sum(len(entry.points) for entry in series)
+        total_series += len(series)
+        total_distinct += distinct
+        total_points += points
+        if dry_run:
+            print(f"{key}: series={len(series)} distinct={distinct} points={points}")
+            continue
+        assert session is not None and institution_id is not None
+        try:
+            inserted, codes_added = _record_report(session, connector, plan, series, institution_id)
+            session.commit()
+        except Exception as exc:  # noqa: BLE001 - one report must not abort the rest
+            session.rollback()
+            failures.append(_unexpected(key, exc))
+            continue
+        total_inserted += inserted
+        if codes_added:
+            bucket = added.setdefault(plan.dataset_code, {})
+            for dimension, count in codes_added.items():
+                bucket[dimension] = bucket.get(dimension, 0) + count
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    print(
+        f"secim-discover{mode}: tables={len(tables)} reports={reports} "
+        f"series={total_series} distinct={total_distinct} points={total_points} "
+        f"inserted={total_inserted} skipped={total_skipped} runtime={runtime:.1f}s"
+    )
+    for dataset_code in sorted(added):
+        parts = ", ".join(
+            f"{dimension}=+{count}" for dimension, count in sorted(added[dataset_code].items())
+        )
+        print(f"codes {dataset_code}: {parts}")
+    _print_failures(failures)
+    return 0
+
+
+def _dry_run_secim_fetch(connector: SecimConnector, args: argparse.Namespace) -> int:
+    try:
+        start = date.fromisoformat(args.start)
+    except ValueError:
+        print(f"fetch: invalid --start {args.start!r} (want YYYY-MM-DD)", file=sys.stderr)
+        return 1
+    if args.series:
+        dataset_code, separator, key = args.series.partition(":")
+        if not separator or not key:
+            _print_error("fetch", ValueError(f"bad --series {args.series!r}"))
+            return 1
+        parts = key.split(".")
+        codes = {}
+    elif args.dataset:
+        dataset_code = args.dataset
+        parts = None
+        try:
+            codes = _parse_codes(args.code)
+        except ValueError as exc:
+            _print_error("fetch", exc)
+            return 1
+    else:
+        print(
+            "fetch: pass --series EXTERNAL_CODE or --dataset TUIK_SECIM_… --code DIM=CODE",
+            file=sys.stderr,
+        )
+        return 1
+
+    try:
+        meta = connector.dataset_meta(dataset_code)
+        order = [
+            dimension.code
+            for dimension in sorted(meta.dimensions, key=lambda dim: dim.position)
+            if dimension.role != ROLE_TIME
+        ]
+        if parts is not None:
+            if len(parts) != len(order):
+                _print_error(
+                    "fetch", ValueError(f"expected {len(order)} codes {order}, got {parts!r}")
+                )
+                return 1
+            codes = dict(zip(order, parts, strict=True))
+        result = connector.fetch_series(dataset_code, codes, order=order, start=start)
+    except ConnectorError as exc:
+        _print_error("fetch", exc)
+        return 1
+    print(
+        f"fetch {dataset_code}: points={len(result.points)} "
+        f"channel={result.channel} (dry-run, nothing written)"
+    )
+    if result.points:
+        print(f"periods: {result.points[0][0].isoformat()}..{result.points[-1][0].isoformat()}")
+    return 0
+
+
+def _cmd_secim_fetch(session: Session, connector: SecimConnector, args: argparse.Namespace) -> int:
+    try:
+        start = date.fromisoformat(args.start)
+    except ValueError:
+        print(f"fetch: invalid --start {args.start!r} (want YYYY-MM-DD)", file=sys.stderr)
+        return 1
+    try:
+        if args.series:
+            dataset_code = args.series.partition(":")[0]
+            dataset = _load_dataset(session, connector, dataset_code)
+            if dataset is None:
+                print(f"fetch: no catalogued dataset for {dataset_code!r}", file=sys.stderr)
+                return 1
+            codes = resolve_external_code(dataset, args.series)
+            if codes is None:
+                print(
+                    f"fetch: {args.series!r} does not match dataset {dataset_code!r}",
+                    file=sys.stderr,
+                )
+                return 1
+        elif args.dataset:
+            dataset = _load_dataset(session, connector, args.dataset)
+            if dataset is None:
+                print(f"fetch: no catalogued dataset {args.dataset!r}", file=sys.stderr)
+                return 1
+            codes = _parse_codes(args.code)
+        else:
+            print(
+                "fetch: pass --series EXTERNAL_CODE or --dataset TUIK_SECIM_… --code DIM=CODE",
+                file=sys.stderr,
+            )
+            return 1
+    except ValueError as exc:
+        _print_error("fetch", exc)
+        return 1
+
+    try:
+        result = ingest_series(session, connector, dataset=dataset, codes=codes, start=start)
+    except (ConnectorError, SeriesDefinitionError, SeriesNotFoundError) as exc:
+        _print_error("fetch", exc)
+        return 1
+    session.commit()
+    print(
+        f"fetch {result.series_id}: inserted={result.inserted} unchanged={result.unchanged} "
+        f"points={result.point_count}"
+    )
+    if result.period_start is not None:
+        print(f"periods: {result.period_start.isoformat()}..{result.period_end.isoformat()}")
+    return 0
+
+
+def _run_secim(args: argparse.Namespace, dry_run: bool) -> int:
+    connector = _build_secim_connector(dry_run)
+    try:
+        if args.command == "secim-catalog":
+            if dry_run:
+                return _cmd_secim_catalog(None, connector, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_secim_catalog(session, connector, args)
+        if args.command == "secim-discover":
+            if dry_run:
+                return _cmd_secim_discover(None, connector, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_secim_discover(session, connector, args)
+        if dry_run:
+            return _dry_run_secim_fetch(connector, args)
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            return _cmd_secim_fetch(session, connector, args)
+    finally:
+        connector.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the CLI. Returns a process exit code."""
     args = build_parser().parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     dry_run = bool(getattr(args, "dry_run", False))
+    if _is_turizm_command(args):
+        return _run_turizm(args, dry_run)
+    if _is_secim_command(args):
+        return _run_secim(args, dry_run)
     if _is_bi_command(args):
         return _run_bi(args, dry_run)
+    if args.command == "yayin":
+        return _run_yayin(args, dry_run)
     if args.command in ("siniflama", "siniflama-link-dimensions"):
         return _run_siniflama(args, dry_run)
     if _is_cip_command(args):

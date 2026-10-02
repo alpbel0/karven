@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rs>
+
+<sid>3</sid>
+<r><c>addAft</c>
+<d>z_bp_0</d>
+<d><![CDATA[
+
+
+
+<div id="z_bp_73" z.type="zul.wnd.Wnd" z.autoz="true" class="modal" style="position:absolute;width:250pt;" z.onOK="true" z.onCancel="true" z.closable="true" z.mode="modal">
+<div>
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr id="z_bp_73!caption" class="title">
+<td class="lwt-modal"></td>
+<td class="mwt-modal">ZK</td>
+<td width="16" class="mwt-modal"><img id="z_bp_73!close" src="/turizmapp/zkau/web/zul/img/close-off.gif"/></td>
+<td class="rwt-modal"></td>
+</tr>
+</table>
+
+<div id="z_bp_73!cave" class="wc-modal" style="border-top:0;">
+<table id="z_bp_83" z.type="zul.box.Box" cellpadding="0" cellspacing="0">
+<tr valign="top" id="z_bp_83!cave">
+	<td id="z_bp_93!chdextr" class="hbox">
+
+<img id="z_bp_93" z.type="zul.widget.Img" src="/turizmapp/zkau/web/zul/img/exclamation.gif"/></td>
+	
+ <td id="z_bp_a3!chdextr" class="hbox">
+
+<span id="z_bp_a3">&nbsp;HATALI==&gt; Aylık, Dönemlik veya Yıllık seçiniz !!!</span></td>
+</tr>
+</table>
+
+<div id="z_bp_b3" class="hsep-bar">&nbsp;</div>
+
+<table id="z_bp_c3" z.type="zul.box.Box" style="margin-left:auto; margin-right:auto;" cellpadding="0" cellspacing="0">
+<tr valign="top" id="z_bp_c3!cave">
+	<td id="z_bp_d3!chdextr" width="45pt" class="hbox">
+
+<button type="button" id="z_bp_d3" z.type="zul.widget.Button" style="width:45pt;">
+OK
+</button>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+]]></d>
+</r>
+</rs>

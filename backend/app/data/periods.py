@@ -4,6 +4,8 @@ A series period is always the period *start* date: monthly Sep 2024 ->
 2024-09-01, quarterly Q3 2024 -> 2024-07-01, annual 2024 -> 2024-01-01. Daily
 observations keep the day and weekly observations keep the week start date the
 source reports, so those two frequencies have no alignment rule to enforce.
+``irregular`` covers sources with no fixed cadence (e.g. election results): its
+period is the real event date and is stored verbatim.
 """
 
 from __future__ import annotations
@@ -18,14 +20,15 @@ MONTHLY = "monthly"
 QUARTERLY = "quarterly"
 SEMIANNUAL = "semiannual"
 ANNUAL = "annual"
+IRREGULAR = "irregular"
 
-FREQUENCIES = (DAILY, WEEKLY, MONTHLY, QUARTERLY, SEMIANNUAL, ANNUAL)
+FREQUENCIES = (DAILY, WEEKLY, MONTHLY, QUARTERLY, SEMIANNUAL, ANNUAL, IRREGULAR)
 
 _FIRST_OF_QUARTER = (1, 4, 7, 10)
 _FIRST_OF_HALF = (1, 7)
 
 # Frequencies that store the source's period start verbatim (no alignment rule).
-_UNCHECKED = (DAILY, WEEKLY)
+_UNCHECKED = (DAILY, WEEKLY, IRREGULAR)
 
 _FREQUENCY_BY_INITIAL = {
     "D": DAILY,

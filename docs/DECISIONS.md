@@ -156,6 +156,16 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
 - **TÜİK/TCMB'de olmayan göstergeler** (ör. asgari ücret) **elle güncellenen
   bir tabloda** tutulur. Hangi göstergelerin gireceği ve nasıl girileceği Faz
   1'de kararlaştırılır.
+- **Kaynak kapsamı (2026-10-01):** her kaynak, sanki her şeyi çekilecekmiş gibi
+  **geniş araştırılır** ve belgelenir (`Desktop/KARVEN-ARAŞTIRMA/`); ama
+  bağlayıcıya **yalnızca projeye gereken kanallar** alınır. Bir veri sonradan
+  gerekirse araştırma notlarından nereden alınacağı bulunur ve o kanal o zaman
+  eklenir. TÜİK (Task 1.2) önceki "bütün kanallar" kuralıyla tamamlanır.
+- **Önce katalog (2026-10-01):** bağlanan bir kanalın **kataloğu eksiksiz**
+  doldurulur (veri setleri + bütün boyut kodları); gözlemler **talep üzerine**
+  çekilir. Kodlar yalnız rapor içinde görünüyorsa (ör. TÜİK turizm, seçim) kısa
+  bir **keşif** taramasıyla kataloğa eklenir. Toplu önceden yükleme yalnız
+  kullanıcı kararıyla yapılır (çekirdek seriler bu kararın parçasıdır).
 - **Veri kesilme uyarısı:** bir kaynaktan veri sessizce gelmemeye başlarsa ya
   da cevabın biçimi değişirse **admin panelinde uyarı** görünür (bildirim yok).
   Hangi durumda uyarı verileceği Faz 1'de kararlaştırılır.

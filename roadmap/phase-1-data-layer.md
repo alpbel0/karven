@@ -49,6 +49,12 @@ kanallarıyla** bağlanır. TÜİK'in 12 kanalı aşağıdaki alt tasklara böl�
 sırayla yapılır. Kapsam dışı yalnızca Mikro Veri Setleri (resmî kurumsal
 başvuru gerektirir).
 
+**Kapsam kararı güncellemesi (kullanıcı, 2026-10-01):** TÜİK bu kuralla
+tamamlanır (1.2h dahil). Sonraki kaynaklarda (Task 1.3 TCMB'den itibaren)
+araştırma geniş kalır, ama koda yalnız gereken kanallar alınır; diğerleri
+gerektiğinde eklenir. Bağlanan kanalda katalog eksiksiz, veri talep üzerine
+(`docs/DECISIONS.md` §5).
+
 **Ortak kurallar (bütün alt tasklar):**
 - Kaynaktan bağımsız ortak bağlayıcı arayüzü (1.2a'da tanımlanır): seri
   listesi, seri çekme, ortak hata türleri (`not_found`, `empty`, `timeout`,
@@ -161,13 +167,38 @@ alınabilir). Aylık yenileme Task 1.5'te zamanlanacak.
 
 ### Task 1.2f — ZK uygulamaları: turizmapp, Seçim Dağıtım, Biruni Yayın Sistemi
 
-**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+**Durum:** Tamamlandı (2026-10-02, canlıda doğrulandı) · **Bağımlılıklar:** Task 1.2a
 
-- [ ] turizmapp 3 konu.
-- [ ] Seçim Dağıtım 10 tablonun tamamı.
-- [ ] Yayın Sistemi kataloğu (seri olmayan içerik tablosu kullanıcıyla tasarlanır).
+- [x] turizmapp 3 konu.
+      2026-10-01: ortak eski-ZK motoru (`zk.py`, düz HTTP, oturum başına ≥2 sn
+      bekleme; kural oturum başına, IP başına değil). Bütün form yolları
+      katalogda (10 veri seti); gelir/gider kategorileri raporlardan keşfedilip
+      kataloğa eklendi (`discovered_from_report`). Sınır giriş-çıkış manşetleri
+      yüklü (1977/1996–2025, aylık); gelir/gider yalnız eski anket (2003–2012),
+      güncel turizm geliri TCMB ödemeler dengesinden (Task 1.3). Kural (kullanıcı,
+      2026-10-01): katalog eksiksiz doldurulur, veri ihtiyaç anında çekilir.
+- [x] Seçim Dağıtım 10 tablonun tamamı.
+      2026-10-02: 10 tablo katalogda (her tablonun gerçekten sunduğu seçimler,
+      seçim çevresi/ilçe/bölge/ülke/gümrük listeleri); parti ve aday adları
+      raporlardan keşfedildi (her tablo × her seçim için bir küçük rapor).
+      Dönem = seçim tarihi (`irregular` sıklık, migration 0012); tarih seçilen
+      seçimden alınır, asla tahmin edilmez (hatalı 94 kayıt yedeklenip
+      silindi, kullanıcı onayıyla). Sandık/mahalle düzeyi kodlar yalnız rapor
+      istendiğinde eklenir.
+- [x] Yayın Sistemi kataloğu (seri olmayan içerik tablosu kullanıcıyla tasarlanır).
+      2026-10-01: kaynaktan bağımsız `documents` tablosu (migration 0011), 634
+      yayın canlıda; yalnız katalog + bağlantı (dosyalar sonra, kullanıcı kararı).
 
 **Kabul kriteri:** Üç uygulamadan da canlıda veri alınıyor.
+
+**Not (2026-10-01, keşif):** Üç uygulama da tarayıcısız, düz HTTP (eski ZK AU
+protokolü: `dtid` + `cmd.0/uuid.0/data.0`) ile çalışıyor. TÜİK'in önündeki
+koruma çok hızlı ardışık istekleri sessizce bekletiyor (0,2 sn arayla asılı
+kalıyor, 2 sn arayla geçiyor) → adımlar arasında bekleme zorunlu. Turizm ve
+seçim birer rapor sihirbazı: kombinasyonlar katalogda gezilir, manşet
+raporları önceden, geri kalanı ilk istendiğinde üretilir (kullanıcı kararı).
+Seçimde önceki 9 başarısız tablo, sunucunun doldurduğu listeler ve zorunlu
+"mutlak/oransal" seçimi yüzündendi; Python'dan çalıştı.
 
 ### Task 1.2g — bi.tuik (Qlik) dış ticaret
 

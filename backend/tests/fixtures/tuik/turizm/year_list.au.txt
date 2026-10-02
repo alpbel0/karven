@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rs>
+
+<sid>3</sid>
+<r><c>outer</c>
+<d>z_ud_r</d>
+<d><![CDATA[
+
+
+<div id="z_ud_r" z.type="zul.sel.Libox" class="listbox" style="width:100px;height:130px;" z.size="0" z.multiple="true" z.selId="zk_n_a" z.onSelect="true">
+<div id="z_ud_r!head" class="listbox-head">
+	<table width="100%" border="0" cellpadding="0" cellspacing="0" style="table-layout:fixed">
+
+
+
+<tr id="z_ud_s" z.type="Lhrs" align="left">
+	<th id="z_ud_t" z.type="Lhr" style="color:#993300;font-family: verdana;font-size: 12px;font-weight: bold;background-color:#f7f7f7;" align="left">Yıl Seçimi:</th>
+</tr>
+
+	</table>
+	</div>
+	<div id="z_ud_r!body" class="listbox-body">
+	<table width="100%" border="0" cellpadding="0" cellspacing="0" id="z_ud_r!cave" class="listbox-btable">
+	<tr id="z_ud_73" z.type="Lit" class="item" z.focus="true">
+	<td id="z_ud_83" align="left">2025<a href="javascript:;" id="z_ud_73!sel" z.type="Lcfc"> </a></td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_93" z.type="Lit" class="item">
+	<td id="z_ud_a3" align="left">2024</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_b3" z.type="Lit" class="item">
+	<td id="z_ud_c3" align="left">2023</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_d3" z.type="Lit" class="item">
+	<td id="z_ud_e3" align="left">2022</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_f3" z.type="Lit" class="item">
+	<td id="z_ud_g3" align="left">2021</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_h3" z.type="Lit" class="item">
+	<td id="z_ud_i3" align="left">2020</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_j3" z.type="Lit" class="item">
+	<td id="z_ud_k3" align="left">2019</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_l3" z.type="Lit" class="item">
+	<td id="z_ud_m3" align="left">2018</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_n3" z.type="Lit" class="item">
+	<td id="z_ud_o3" align="left">2017</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_p3" z.type="Lit" class="item">
+	<td id="z_ud_q3" align="left">2016</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_r3" z.type="Lit" class="item">
+	<td id="z_ud_s3" align="left">2015</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_t3" z.type="Lit" class="item">
+	<td id="z_ud_u3" align="left">2014</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_v3" z.type="Lit" class="item">
+	<td id="z_ud_04" align="left">2013</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_14" z.type="Lit" class="item">
+	<td id="z_ud_24" align="left">2012</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_34" z.type="Lit" class="item">
+	<td id="z_ud_44" align="left">2011</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_54" z.type="Lit" class="item">
+	<td id="z_ud_64" align="left">2010</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_74" z.type="Lit" class="item">
+	<td id="z_ud_84" align="left">2009</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_94" z.type="Lit" class="item">
+	<td id="z_ud_a4" align="left">2008</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_b4" z.type="Lit" class="item">
+	<td id="z_ud_c4" align="left">2007</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_d4" z.type="Lit" class="item">
+	<td id="z_ud_e4" align="left">2006</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_f4" z.type="Lit" class="item">
+	<td id="z_ud_g4" align="left">2005</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_h4" z.type="Lit" class="item">
+	<td id="z_ud_i4" align="left">2004</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_j4" z.type="Lit" class="item">
+	<td id="z_ud_k4" align="left">2003</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_l4" z.type="Lit" class="item">
+	<td id="z_ud_m4" align="left">2002</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_n4" z.type="Lit" class="item">
+	<td id="z_ud_o4" align="left">2001</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_p4" z.type="Lit" class="item">
+	<td id="z_ud_q4" align="left">2000</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_r4" z.type="Lit" class="item">
+	<td id="z_ud_s4" align="left">1999</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_t4" z.type="Lit" class="item">
+	<td id="z_ud_u4" align="left">1998</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_v4" z.type="Lit" class="item">
+	<td id="z_ud_05" align="left">1997</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_15" z.type="Lit" class="item">
+	<td id="z_ud_25" align="left">1996</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_35" z.type="Lit" class="item">
+	<td id="z_ud_45" align="left">1995</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_55" z.type="Lit" class="item">
+	<td id="z_ud_65" align="left">1994</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_75" z.type="Lit" class="item">
+	<td id="z_ud_85" align="left">1993</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_95" z.type="Lit" class="item">
+	<td id="z_ud_a5" align="left">1992</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_b5" z.type="Lit" class="item">
+	<td id="z_ud_c5" align="left">1991</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_d5" z.type="Lit" class="item">
+	<td id="z_ud_e5" align="left">1990</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_f5" z.type="Lit" class="item">
+	<td id="z_ud_g5" align="left">1989</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_h5" z.type="Lit" class="item">
+	<td id="z_ud_i5" align="left">1988</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_j5" z.type="Lit" class="item">
+	<td id="z_ud_k5" align="left">1987</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_l5" z.type="Lit" class="item">
+	<td id="z_ud_m5" align="left">1986</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_n5" z.type="Lit" class="item">
+	<td id="z_ud_o5" align="left">1985</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_p5" z.type="Lit" class="item">
+	<td id="z_ud_q5" align="left">1984</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_r5" z.type="Lit" class="item">
+	<td id="z_ud_s5" align="left">1983</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_t5" z.type="Lit" class="item">
+	<td id="z_ud_u5" align="left">1982</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_v5" z.type="Lit" class="item">
+	<td id="z_ud_06" align="left">1981</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_16" z.type="Lit" class="item">
+	<td id="z_ud_26" align="left">1980</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_36" z.type="Lit" class="item">
+	<td id="z_ud_46" align="left">1979</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_56" z.type="Lit" class="item">
+	<td id="z_ud_66" align="left">1978</td>
+</tr>
+
+	
+
+
+
+<tr id="z_ud_76" z.type="Lit" class="item">
+	<td id="z_ud_86" align="left">1977</td>
+</tr>
+	</table>
+	</div>
+
+</div>
+]]></d>
+</r>
+<r><c>setAttr</c>
+<d>z_ud_31</d>
+<d>visibility</d>
+<d>true</d>
+</r>
+<r><c>setAttr</c>
+<d>z_ud_11</d>
+<d>visibility</d>
+<d>true</d>
+</r>
+<r><c>setAttr</c>
+<d>z_ud_01</d>
+<d>visibility</d>
+<d>true</d>
+</r>
+<r><c>setAttr</c>
+<d>z_ud_21</d>
+<d>visibility</d>
+<d>true</d>
+</r>
+<r><c>setAttr</c>
+<d>z_ud_41</d>
+<d>visibility</d>
+<d>true</d>
+</r>
+<r><c>setAttr</c>
+<d>z_ud_4</d>
+<d>z.chchg</d>
+<d>true</d>
+</r>
+</rs>

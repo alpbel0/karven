@@ -34,7 +34,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 _FREQUENCY_CHECK = (
-    "frequency IN ('daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual')"
+    "frequency IN ('daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual', 'irregular')"
 )
 _FETCH_JOB_STATUS_CHECK = "status IN ('requested', 'fetching', 'completed', 'failed')"
 _ACTIVE_JOB_PREDICATE = "status IN ('requested', 'fetching')"
@@ -593,4 +593,51 @@ class RegionCrosswalk(Base):
         CheckConstraint(_REGION_METHOD_CHECK, name="ck_region_crosswalk_method"),
         CheckConstraint(_REGION_LEVEL_CHECK, name="ck_region_crosswalk_level"),
         Index("ix_region_crosswalk_to", "to_scheme", "to_code"),
+    )
+
+
+class Document(Base):
+    """A source-independent published document (publication, bulletin, report).
+
+    One row is catalogue metadata plus a link: the file itself is not downloaded.
+    ``source`` names the origin (``tuik_yayin`` today; TÜİK bulletins and TCMB
+    reports will reuse the table) and ``external_id`` is the source's own id, so
+    a row is identified by ``(source, external_id)``. ``doc_type`` is the
+    source's own type label stored verbatim (e.g. ``Mikro Veri Seti``,
+    ``Bülten``, ``Rapor``); ``year`` is only filled when the source gives a real
+    year and ``published_at`` only when it gives a real date (never invented).
+    ``attributes`` keeps every raw label/field. Rows are never deleted: one that
+    disappears gets ``attributes['removed_at']`` and a reappearing row clears it.
+    """
+
+    __tablename__ = "documents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    institution_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("institutions.id", name="fk_documents_institution"), nullable=True
+    )
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    external_id: Mapped[str] = mapped_column(Text, nullable=False)
+    doc_type: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    subject: Mapped[str | None] = mapped_column(Text, nullable=True)
+    year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    published_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    language: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'tr'"), default="tr"
+    )
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("source", "external_id", name="uq_documents_source_external_id"),
+        Index("ix_documents_source_doc_type", "source", "doc_type"),
+        Index("ix_documents_year", "year"),
     )

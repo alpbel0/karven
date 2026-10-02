@@ -137,6 +137,46 @@ class Settings(BaseSettings):
     tuik_bi_max_retries: int = 3
     tuik_bi_retry_backoff_s: float = 2.0
 
+    # TÜİK Turizm İstatistikleri (biruni.tuik.gov.tr/turizmapp), a legacy ZK
+    # "DHTML" AU application (cikis/giris/sinir). Measured live 2026-10-01: the
+    # front silently stalls requests closer than ~2 s apart (0.2 s hangs until
+    # the timeout), so requests are spaced at least ``pause_s``. Timeouts are
+    # generous because a wide report can take a while to render.
+    tuik_turizm_base_url: str = "https://biruni.tuik.gov.tr/turizmapp"
+    tuik_turizm_request_timeout_s: float = 90.0
+    tuik_turizm_max_retries: int = 3
+    tuik_turizm_retry_backoff_s: float = 2.0
+    tuik_turizm_pause_s: float = 2.0
+    tuik_turizm_stall_s: float = 30.0
+    tuik_turizm_max_parallel_sessions: int = 1
+
+    # TÜİK Seçim İstatistikleri (biruni.tuik.gov.tr/secimdagitimapp), the legacy
+    # ZK "DHTML" application serving the parliamentary election results. Same old
+    # AU dialect as turizmapp: the front silently stalls requests closer than
+    # ~2 s, so they are spaced at least ``pause_s`` apart. Two parallel sessions
+    # are allowed (pacing is per session).
+    tuik_secim_base_url: str = "https://biruni.tuik.gov.tr/secimdagitimapp"
+    tuik_secim_request_timeout_s: float = 90.0
+    tuik_secim_max_retries: int = 3
+    tuik_secim_retry_backoff_s: float = 2.0
+    tuik_secim_pause_s: float = 2.0
+    tuik_secim_stall_s: float = 30.0
+    tuik_secim_max_parallel_sessions: int = 2
+
+    # TÜİK Biruni Yayın Sistemi (biruni.tuik.gov.tr/yayin), a ZK 7 AU catalogue
+    # of publications/reports/micro-data sets. Measured 2026-10-01: bootstrap
+    # ~50 KB / ~0.5 s, each AU page ~18 KB; the front protection silently stalls
+    # requests that arrive too fast, so requests are spaced at least ``pause_s``
+    # apart. Timeouts and retries follow the other TÜİK channels.
+    tuik_yayin_base_url: str = "https://biruni.tuik.gov.tr"
+    tuik_yayin_request_timeout_s: float = 30.0
+    tuik_yayin_max_retries: int = 3
+    tuik_yayin_retry_backoff_s: float = 2.0
+    tuik_yayin_pause_s: float = 1.0
+    # A request slower than this is reported as a stall (the silent-throttle
+    # symptom) even when it eventually returns.
+    tuik_yayin_stall_s: float = 20.0
+
     minio_endpoint: str | None = None
     minio_access_key: str | None = None
     minio_secret_key: SecretStr | None = None

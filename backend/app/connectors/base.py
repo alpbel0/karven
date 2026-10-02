@@ -57,6 +57,9 @@ INSERTED = "inserted"
 UPDATED = "updated"
 UNCHANGED = "unchanged"
 
+# Attribute marking a dimension code that only a generated report exposed.
+DISCOVERED_FROM_REPORT = "discovered_from_report"
+
 # Dimension roles (frozen by the schema check constraint).
 ROLE_TIME = "time"
 ROLE_GEO = "geo"
@@ -173,6 +176,18 @@ class SourceConnector(ABC):
         start: date = date(2000, 1, 1),
     ) -> FetchResult:
         """Fetch one series (dataset + one code per non-time dimension)."""
+
+    def register_discovered_codes(
+        self, session: Session, dataset: Dataset, codes: dict[str, str]
+    ) -> None:
+        """Persist codes that only a fetched report exposes (default no-op).
+
+        Connectors whose catalog walk cannot list every dimension code (e.g. the
+        TÜİK tourism income/expenditure reports) override this so an on-demand
+        ``fetch`` never hits ``SeriesDefinitionError`` before the series row is
+        created.
+        """
+        return None
 
 
 class ObjectStore(Protocol):
@@ -418,20 +433,83 @@ def _upsert_dimension_codes(
             row.parent_code = code_meta.parent_code
             row.is_default = code_meta.is_default
         # A code that reappears clears a previous ``removed_at`` marker, and any
-        # other attribute change is persisted.
+        # other attribute change is persisted. A report-discovered code keeps its
+        # marker even when the form lists it later.
         attributes = dict(code_meta.attributes)
         attributes.pop("removed_at", None)
+        if (row.attributes or {}).get(DISCOVERED_FROM_REPORT):
+            attributes.setdefault(DISCOVERED_FROM_REPORT, True)
+            attributes.setdefault("first_seen", row.attributes.get("first_seen"))
         if row.attributes != attributes:
             row.attributes = attributes
         count += 1
     for code, row in existing.items():
         if code in incoming or row.attributes.get("removed_at"):
             continue
+        # Codes learned from a generated report are not in the form lists the
+        # walk sees, so the walk must not mark them removed.
+        if (row.attributes or {}).get(DISCOVERED_FROM_REPORT):
+            continue
         attributes = dict(row.attributes)
         attributes["removed_at"] = now_iso
         row.attributes = attributes
     session.flush()
     return count
+
+
+def upsert_discovered_codes(
+    session: Session,
+    dataset: Dataset,
+    codes: dict[str, str],
+    *,
+    first_seen: date | None = None,
+) -> dict[str, int]:
+    """Add report-only codes to a dataset's dimension code lists.
+
+    A report may expose values for a catalogued dimension that its form options
+    never list (TÜİK tourism income/expenditure categories). Each such code is
+    stored with ``attributes['discovered_from_report']`` and
+    ``attributes['first_seen']`` so a later catalog walk, which cannot see it,
+    leaves it in place (see :func:`_upsert_dimension_codes`). Codes already
+    catalogued are untouched; a previously removed discovered code is revived.
+    Returns how many codes were added or revived per dimension.
+    """
+    seen = (first_seen or date.today()).isoformat()
+    dimensions = {dimension.code: dimension for dimension in _ordered_dimensions(dataset)}
+    added: dict[str, int] = {}
+    for dimension_code, value in codes.items():
+        dimension = dimensions.get(dimension_code)
+        if dimension is None or not value:
+            continue
+        row = next((code for code in dimension.codes if code.code == value), None)
+        if row is not None:
+            if not (row.attributes or {}).get("removed_at"):
+                continue
+            attributes = dict(row.attributes)
+            attributes.pop("removed_at", None)
+            attributes[DISCOVERED_FROM_REPORT] = True
+            attributes.setdefault("first_seen", seen)
+            row.attributes = attributes
+            added[dimension_code] = added.get(dimension_code, 0) + 1
+            continue
+        session.add(
+            DimensionCode(
+                dimension_id=dimension.id,
+                code=value,
+                label=value,
+                attributes={DISCOVERED_FROM_REPORT: True, "first_seen": seen},
+            )
+        )
+        added[dimension_code] = added.get(dimension_code, 0) + 1
+    if added:
+        session.flush()
+        # New rows were added through the foreign key, so the loaded relationships
+        # are stale; expire them so a same-transaction ``ensure_series`` sees the
+        # discovered codes.
+        for dimension in dimensions.values():
+            session.expire(dimension, ["codes"])
+        session.expire(dataset, ["dimensions"])
+    return added
 
 
 def sync_catalog(session: Session, connector: SourceConnector) -> CatalogSyncResult:
@@ -679,12 +757,17 @@ def ingest_series(
     call returns), and observations point at the raw payload via
     ``raw_object_key``. The series coverage window is widened when the fetched
     points extend it.
+
+    The fetch runs first so a connector can register report-only codes
+    (:meth:`SourceConnector.register_discovered_codes`) before ``ensure_series``
+    validates them; a failed fetch never pollutes the catalog.
     """
-    series = ensure_series(session, dataset, codes)
     order = [
         dimension.code for dimension in _ordered_dimensions(dataset) if dimension.role != ROLE_TIME
     ]
     fetched = connector.fetch_series(dataset.external_code, codes, order=order, start=start)
+    connector.register_discovered_codes(session, dataset, codes)
+    series = ensure_series(session, dataset, codes)
     fetched_at = datetime.now(UTC)
     raw_key = fetched.raw_object_keys[0] if fetched.raw_object_keys else None
     result = record_observations(
@@ -718,6 +801,7 @@ def ingest_series(
 
 
 __all__ = [
+    "DISCOVERED_FROM_REPORT",
     "EMPTY",
     "ERROR_KINDS",
     "FORMAT_CHANGED",
@@ -752,5 +836,6 @@ __all__ = [
     "store_raw",
     "sync_catalog",
     "upsert_dataset",
+    "upsert_discovered_codes",
     "upsert_institution",
 ]
