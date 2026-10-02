@@ -47,6 +47,8 @@ from app.connectors.tuik.parsers import (
     selectable_codes,
     series_metas_from_sdmx_json,
 )
+from app.connectors.tuik.veriportali import CHANNEL as VERIPORTALI_CHANNEL
+from app.connectors.tuik.veriportali import VeriPortaliClient
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +121,7 @@ class TuikConnector(SourceConnector):
         base_url: str = DEFAULT_BASE_URL,
         settings_obj: Settings | None = None,
         nsiws: NsiwsClient | None = None,
+        veriportali: VeriPortaliClient | None = None,
         known_dataflows: Iterable[DataflowInfo] = (),
     ) -> None:
         if client is None:
@@ -133,6 +136,7 @@ class TuikConnector(SourceConnector):
             )
         self._client = client
         self._nsiws = nsiws
+        self._veriportali = veriportali
         self._known = {info.dataflow_id: replace(info, listed=False) for info in known_dataflows}
         self._catalog: CatalogData | None = None
         self._catalog_raw_key: str | None = None
@@ -152,6 +156,8 @@ class TuikConnector(SourceConnector):
         self._client.close()
         if self._nsiws is not None:
             self._nsiws.close()
+        if self._veriportali is not None:
+            self._veriportali.close()
 
     def _ensure_catalog(self) -> CatalogData:
         if self._catalog is None:
@@ -731,28 +737,102 @@ class TuikConnector(SourceConnector):
         *,
         order: list[str] | None = None,
         start: date = date(2000, 1, 1),
+        channel: str | None = None,
     ) -> FetchResult:
-        """Fetch one series from databrowser2, backing off to nsiws on failure.
+        """Fetch one series through databrowser2, nsiws then veriportali.
 
-        Failure kinds that trigger the official nsiws channel: ``timeout``,
+        Failure kinds that trigger the next channel: ``timeout``,
         ``source_error``, ``throttled`` or ``not_found``. A parse/format error
-        (``format_changed``) or an empty result is not retried on nsiws.
+        (``format_changed``) or an empty result is not retried elsewhere. The
+        veriportali back-up is used only for datasets whose portal record says
+        ``downloadable``; otherwise the previous error is re-raised.
+
+        ``channel="veriportali"`` forces the portal channel directly (used by the
+        CLI ``fetch --channel veriportali`` check).
         """
+        if channel == VERIPORTALI_CHANNEL:
+            return self._fetch_veriportali(dataset_code, codes, order=order, start=start)
         try:
             return self._fetch_databrowser2(dataset_code, codes, order=order, start=start)
         except ConnectorError as exc:
-            if self._nsiws is None or exc.kind not in FALLBACK_KINDS:
+            if exc.kind not in FALLBACK_KINDS:
                 raise
-            # Fixed, greppable text: live monitors watch for this fallback.
+            if self._nsiws is not None:
+                # Fixed, greppable text: live monitors watch for this fallback.
+                logger.warning(
+                    "tuik databrowser2 failed (%s), falling back to nsiws: %s",
+                    exc.kind,
+                    dataset_code,
+                )
+                try:
+                    version = self.resolve(dataset_code).version
+                    return self._nsiws.fetch_series(
+                        dataset_code, codes, version=version, order=order, start=start
+                    )
+                except ConnectorError as nsiws_exc:
+                    if nsiws_exc.kind not in FALLBACK_KINDS:
+                        raise
+                    # Fixed, greppable text: live monitors watch for this fallback.
+                    logger.warning(
+                        "tuik nsiws failed, falling back to veriportali: %s", dataset_code
+                    )
+                    return self._veriportali_fallback(
+                        dataset_code,
+                        codes,
+                        order=order,
+                        start=start,
+                        previous=nsiws_exc,
+                    )
             logger.warning(
-                "tuik databrowser2 failed (%s), falling back to nsiws: %s",
-                exc.kind,
-                dataset_code,
+                "tuik nsiws not configured, falling back to veriportali: %s", dataset_code
             )
-            version = self.resolve(dataset_code).version
-            return self._nsiws.fetch_series(
-                dataset_code, codes, version=version, order=order, start=start
+            return self._veriportali_fallback(
+                dataset_code, codes, order=order, start=start, previous=exc
             )
+
+    def _veriportali_fallback(
+        self,
+        dataset_code: str,
+        codes: dict[str, str],
+        *,
+        order: list[str] | None,
+        start: date,
+        previous: ConnectorError,
+    ) -> FetchResult:
+        """Use the portal back-up only when its record says the dataflow is downloadable."""
+        try:
+            downloadable = self._veriportali is not None and self._veriportali.is_downloadable(
+                dataset_code, version=self.resolve(dataset_code).version
+            )
+        except ConnectorError:
+            downloadable = False
+        if not downloadable:
+            raise previous
+        return self._fetch_veriportali(dataset_code, codes, order=order, start=start)
+
+    def _fetch_veriportali(
+        self,
+        dataset_code: str,
+        codes: dict[str, str],
+        *,
+        order: list[str] | None = None,
+        start: date = date(2000, 1, 1),
+    ) -> FetchResult:
+        """Fetch one series from the whole-dataset portal JSON and select it locally."""
+        if self._veriportali is None:
+            raise ConnectorError(SOURCE_ERROR, "veriportali channel is not configured")
+        info = self.resolve(dataset_code)
+        resolved_order = order or self._dimension_order(info)
+        missing = [dim for dim in resolved_order if dim not in codes]
+        if missing:
+            raise ConnectorError(
+                FORMAT_CHANGED,
+                f"{dataset_code}: missing codes for dimensions {missing}",
+            )
+        key = {dim: codes[dim] for dim in resolved_order}
+        return self._veriportali.fetch_series(
+            dataset_code, key, order=resolved_order, start=start, version=info.version
+        )
 
     def _fetch_databrowser2(
         self,

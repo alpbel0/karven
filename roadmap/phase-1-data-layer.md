@@ -224,16 +224,56 @@ anlamı kanıtlanamadığı için alınmadı.
 
 ### Task 1.2h — WAF kanalları: Veri Portalı toplu indirme + basın bültenleri
 
-**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+**Durum:** Tamamlandı (2026-10-02, canlıda doğrulandı) · **Bağımlılıklar:** Task 1.2a
 
-- [ ] Tarayıcı otomasyonu: önce headless Playwright + gizleme; geçmezse
-      sanal ekranlı gerçek Chrome için ayrı Docker servisi.
-- [ ] Toplu indirme kataloğu (`updatedAt` dahil) ve veri seti dosyaları.
-- [ ] Basın bülteni metinleri (seri olmayan içerik tablosu kullanıcıyla tasarlanır).
-- [ ] Excel/PDF çıktıları.
+**Ölçüm (2026-10-02, `docs/source-profiles/tuik.md` §1.5):** Tarayıcı
+gerekmiyor. WAF yalnızca başlık kontrolü yapıyor (Chrome `User-Agent` +
+`X-Requested-With: XMLHttpRequest`); düz HTTP yeterli. Dosya indirmelerinde
+IP başına 5 sn'de 1 sınırı var; JSON API'lerde yavaşlatma yok.
 
-**Kabul kriteri:** Canlıda WAF aşılarak katalog, bir veri seti dosyası ve bir
-bülten metni alınıyor.
+**Kararlar (kullanıcı, 2026-10-02):**
+- Toplu indirme kataloğu (510 kayıt) mevcut TÜİK veri setlerine ek kanal
+  olarak girer: `updatedAt`, indirilebilir bayrağı; bizde olmayan 43 kayıt
+  (indirilemeyen; databrowser2'de var ama son katalog taramasından sonra
+  eklenmiş) Veri Portalı'nın ad/açıklamasıyla, boyutsuz eklenir.
+- Bültenler mevcut `documents` tablosuna girer.
+- Bültenlerde yalnız katalog (id, başlık, tarih, dönem; 2005'ten bugüne);
+  metin talep üzerine çekilir: ham JSON MinIO'ya, HTML'den arındırılmış düz
+  metin `documents.content_text` kolonuna (yeni migration).
+- Talep üzerine çekilen bültenin Excel/PDF bağlantıları ve `statisticalTables`
+  saklanır; bülten `statisticalTables`'taki veri setlerine yeni
+  `document_dataset_links` tablosuyla bağlanır (`catalog_links` yalnız veri
+  seti ↔ veri seti bağladığı için uygun değil).
+- Excel/PDF dosyaları indirilmez; bağlantı + meta bilgisi saklanır, veri
+  her zaman talep üzerine çekilir.
+
+- [x] Ortak HTTP istemcisi: Chrome UA + `X-Requested-With`; "Yönlendiriliyor"
+      sayfası yavaşlatma sayılır (bekle, tekrar dene); dosya indirmelerinde
+      istekler arası ≥5 sn.
+- [x] Toplu indirme kataloğu (`updatedAt`, indirilebilir bayrağı) kataloğa
+      işlendi; veri seti dosyası (CSV/JSON/XML, toplu ZIP) yedek kanal olarak
+      talep üzerine çekilebiliyor.
+- [x] Bülten kataloğu (2005–bugün) `documents` tablosunda; bülten metni talep
+      üzerine çekilebiliyor.
+- [x] Bültenlerin Excel/PDF bağlantıları meta bilgisiyle saklanıyor (dosya
+      indirilmiyor).
+
+**Kabul kriteri:** Canlıda Veri Portalı kataloğu, bülten kataloğu ve talep
+üzerine bir veri seti dosyası ile bir bülten metni alınıyor.
+
+**Canlı doğrulama (2026-10-02):** migration 0013 uygulandı. `veriportali-catalog`:
+510 kayıt → 508 TÜİK veri setine `attributes.veriportali` (41'i yeni, boyutsuz;
+iki sürümlü 2 kodda kataloğumuzdaki sürüm seçiliyor); ikinci çalıştırma 508
+unchanged, kod listelerine dokunulmadı (182.334 kod, kaldırma 0).
+`press-catalog`: 2005–2026, 6.723 bülten, id'siz satır 0; tekrar → 6.723
+unchanged; kısmi yıl aralığı kaldırma işaretlemiyor. `press-fetch 58290`: metin
+4.106 karakter, 10 Excel + 1 PDF bağlantısı, 10/10 veri seti bağı çözüldü;
+katalog yeniden yüklenince `attributes.press` korunuyor. Eski bültenlerde
+(2006, 2010 örnekleri) kaynak metin vermiyor (yalnız tablolar) →
+`content_text=''` ("çekildi, metin yok"; NULL = çekilmedi). `fetch --channel
+veriportali` gerçek yazma: DF_TUFE_SDMX_TT01 260 nokta, databrowser2 ile birebir
+aynı (260 unchanged). nsiws → veriportali sıçraması yalnız birim testte
+(sahte nesnelerle) doğrulandı; canlıda doğal bir arıza beklenmedi.
 
 ## Task 1.3 — TCMB bağlayıcısı
 
@@ -286,6 +326,13 @@ itibaren eksiksiz çekiliyor; seri listesi meta bilgisiyle kaydediliyor.
 
 **Kabul kriteri:** Kararlaştırılan çekirdek listenin tamamı yüklü ve güncelleme
 görevi yeni dönemi kendiliğinden ekliyor.
+
+**Not (2026-10-02, Task 1.2h ölçümü):** `www.tuik.gov.tr/Kurumsal/GetYillikHaberBulteniListesi?yil=Y`
+33 kurumun (TÜİK, TCMB, SPK…) ulusal veri takvimini veriyor; yaklaşan yayın
+tarihleri dahil (`yayindaOlmayanlarList`, o gün 1.001 kayıt). Yeni dönem
+kontrolü ve veri kesilme uyarısı için girdi olarak değerlendirilebilir (Task
+1.2c'deki açık "yeni dönem" maddesi de buraya bağlı). Ayrıntı:
+`docs/source-profiles/tuik.md` §1.5.
 
 ## Task 1.5 — Talep üzerine çekme (kod tarafı)
 

@@ -47,12 +47,11 @@ güvenilirlik profillerine sahip. En önemli, üretim-hazır bulgular:
    önceki dönem karşılaştırmalı temiz JSON. Geçmiş seri yok, ama "hızlı özet
    gösterge" ihtiyacı için TÜİK'te bulunan en yüksek kaliteli tek kaynak.
    Kanıt seviyesi A.
-4. **Basın bülteni API'si** (`data.tuik.gov.tr/api/tr/press/*`, ilişkili
-   `veriportali.tuik.gov.tr/tr/press/{id}`) gerçek (görünür, headless-olmayan)
-   bir tarayıcı oturumundan **%100 güvenilir** çalışıyor; yalnızca otomasyon/
-   headless fingerprint'e karşı WAF uyguluyor. Connector normal bir Chrome
-   User-Agent ile veya gerçek tarayıcı oturumuyla çalıştırılmalı. Kanıt
-   seviyesi A.
+4. **Veri Portalı API'leri** (`veriportali.tuik.gov.tr/api/tr/*`: basın
+   bültenleri, toplu indirme kataloğu ve dosyaları) **düz HTTP ile**
+   çalışıyor; tarayıcı gerekmiyor. WAF yalnızca başlık kontrolü yapıyor:
+   Chrome `User-Agent` + `X-Requested-With: XMLHttpRequest` (02.10.2026
+   ölçümü, §1.5). Kanıt seviyesi A.
 5. **MEDAS** (bölgesel/il düzeyi istatistikler, ZK Framework tabanlı) 92/92
    konu tam tarandı; **CİP GetMapData proxy** (token'sız, il/ilçe düzeyi
    regional data) `duzey` 1-4 çalışıyor, 5 hiç veri döndürmüyor.
@@ -318,6 +317,46 @@ doğrulanmış gerçek host/path). Ancak **canlı yeniden denendiğinde
 gerçek bir upstream değişikliği; connector şu an doğru ama şu anda
 işlevsiz bir URL'e işaret ediyor. Task 1.9'da bu kaynak yeniden
 araştırılmadan production'a alınmamalı.
+
+**ÇÖZÜLDÜ (02.10.2026, canlı ölçüm, Task 1.2h) — tarayıcı gerekmiyor:**
+Yukarıdaki "gerçek Chrome şart" ve "endpoint 404'e düştü" sonuçları yanlıştı.
+WAF yalnızca iki başlığa bakıyor:
+
+| İstek | Sonuç |
+|---|---|
+| Başlıksız (`python-httpx` UA) | 403 `Erişim engellendi` |
+| Chrome `User-Agent` | dosya uçları 200, JSON API'ler 404 `Sayfa bulunamadı` |
+| Chrome `User-Agent` + `X-Requested-With: XMLHttpRequest` | hepsi 200 |
+
+İkinci başlık portalın kendi axios istemcisinin varsayılanı (JS bundle'da
+`headers.common["X-Requested-With"]="XMLHttpRequest"`). 14.09'daki 404 bu
+başlığın eksikliğiydi. Düz `httpx` yeterli; Playwright/Xvfb gerekmez.
+
+Doğrulanan uçlar (hepsi düz HTTP):
+- `GET /api/tr/press` (170 kayıt, her bülten türünün güncel sayısı),
+  `/api/tr/press/latest` (50), `/api/tr/press/indicators` (6 kilit gösterge).
+- `GET /api/tr/press/{id}` → `id,date,number,title,period,content (HTML),
+  statisticalTables (databrowser2 `DF_` bağlantıları),tables (xls),reports
+  (pdf),metadatas,previousPresses (son 12)`. Olmayan id →
+  `{"isError":true,"message":"Bülten bulunamadı"}`.
+- Bülten id listesi: `www.tuik.gov.tr/Kurumsal/GetYillikHaberBulteniListesi?yil=Y`
+  (WAF yok) → `yayindaOlanlarList` / `yayindaOlmayanlarList`; 33 kurumun
+  ulusal veri takvimi (yaklaşan yayın tarihleri dahil). TÜİK: 2005–2026,
+  yılda ~200–400 bülten; 2006, 2010, 2014, 2018 örnek id'leri yeni API'de 200.
+- `GET /api/tr/dataflows` → 510 kayıt (342 indirilebilir), alanlar `id,name,
+  version,description,period,updatedAt,downloadable,category,footnotes`.
+  Canlı katalogdaki 465 `DF_` veri setinin tamamı burada; fazladan 43 kayıt
+  var, hiçbiri indirilebilir değil.
+- `GET /api/tr/dataflows/{id}/file/{csv|json|xml}`, `POST
+  /api/tr/dataflows/bulk-downloads` `{"dataflows":[…],"formats":["csv"]}` →
+  iş id → `GET …/bulk-downloads/{id}/file` (ZIP). `…/{id}/metadata` 404.
+- Bülten Excel/PDF dosyaları: `/api/tr/data/downloads?t=t|r&pid=…&p=…`.
+
+Hız (02.10.2026): `/api/tr/data/downloads` **IP başına 5 sn'de 1 dosya**
+(oturum/çerez fark etmez); daha sık → HTTP 200 `text/html` "Yönlendiriliyor…
+5 saniye sonra tekrar dosya indirebilirsiniz". JSON API'lerde 8 paralele
+kadar yavaşlatma görülmedi; sınır sunucu gecikmesi (bülten detayı ~150
+istek/dk), 1–2 paralel yeterli.
 
 ### 1.6 MEDAS + CİP GetMapData proxy (bölgesel istatistikler)
 
@@ -793,13 +832,9 @@ tutarsız davranışı hâlâ kesin sonuca bağlanamadı, §10).
 - **Önerilen birincil çekim yöntemi:** `databrowser2.tuik.gov.tr`'nin
   token'sız JSON-stat/export API'si (doğrudan HTTP, headless browser
   GEREKMİYOR — düz `POST` isteği).
-- **Basın bülteni verisi için:** headless olmayan/gerçek fingerprint'li bir
-  HTTP istemcisi veya gerçek Chrome User-Agent string'i şart (WAF, otomasyon
-  fingerprint'ine bakıyor). Önerilen sıralı deneme: (1) önce Playwright/
-  Puppeteer + stealth eklentisi ile **headless** dene (hafif, sunucuda kolay
-  ölçeklenir); (2) bu WAF'ı geçmezse sanal ekranlı (Xvfb) **headed** Chrome
-  container'ına düş (ağır ama kanıtlanmış çalışıyor, §1.5). Hangisinin
-  yeterli olduğu test edilmedi — bkz. §10.
+- **Veri Portalı (basın bülteni, toplu indirme) için:** düz HTTP istemcisi;
+  her istekte Chrome `User-Agent` + `X-Requested-With: XMLHttpRequest`.
+  Dosya indirmelerinde istekler arası ≥5 sn (§1.5, 02.10.2026 ölçümü).
 - **Kimlik doğrulama otomasyonu (yalnızca nsiws'e düşülürse gerekli):**
   Keycloak token endpoint'inden JWT alınmalı, ~5 dakikalık ömür nedeniyle
   her istekte veya kısa aralıkla yenilenmeli.
@@ -874,14 +909,8 @@ tutarsız davranışı hâlâ kesin sonuca bağlanamadı, §10).
   nsiws ile tam eşdeğer olup olmadığı test edilmedi.
 - Basın bülteni ID aralığının tam yapısı/artımlılığı — kasıtlı olarak tam
   arşiv taraması yapılmadı (kullanıcı talebiyle, sadece güven-örneklemi).
-- **Basın bülteni WAF'ının stealth-headless ile geçilip geçilemeyeceği hiç
-  test edilmedi.** Yalnızca iki uç nokta kanıtlandı: çıplak curl/headless →
-  403, gerçek görünür (headed) Chrome → 200. Playwright/Puppeteer +
-  stealth-eklentili headless modun (gerçekçi UA/`sec-ch-ua` header'larıyla)
-  bu WAF'ı geçip geçmediği test edilmedi. Bu, production connector'ının
-  hafif bir headless otomasyonla mı yoksa ağır, sanal-ekranlı (Xvfb) headed
-  bir Chrome container'ıyla mı çalışacağını belirleyecek — önce hafif yöntem
-  denenmeli, geçmezse ağır yönteme düşülmeli (bkz. §8).
+- ~~Basın bülteni WAF'ının headless ile geçilip geçilemeyeceği~~ —
+  **kapandı (02.10.2026):** tarayıcı gerekmiyor, başlık kontrolü (§1.5).
 - `ilgosterge` (il göstergeleri) uygulamasındaki "Düzey, gösterge ve zaman
   listelerinden en az birer kayıt seçili olmalıdır!" validasyon hatasının
   kök nedeni (gizli bir "Düzey" seçici) bulunamadı — hem Codex hem manuel

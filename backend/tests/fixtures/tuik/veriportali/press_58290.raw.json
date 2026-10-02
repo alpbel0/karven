@@ -1,0 +1,209 @@
+{
+ "data": {
+  "id": 58290,
+  "date": "2026-09-03T10:00:00",
+  "number": 58290,
+  "title": "Tüketici Fiyat Endeksi",
+  "period": "Ağustos 2026",
+  "contactEmail": "sektorelfiyat@tuik.gov.tr",
+  "content": "<span style=\"font-size:14pt\"><strong>Tüketici Fiyat Endeksi, Ağustos 2026</strong></span>\r\n<br>\r\n<br> \r\n<span style=\"font-size:12pt\"><strong>Tüketici fiyat endeksi (TÜFE) yıllık %31,51 arttı, aylık %1,84 arttı</strong></span>\r\n<br>\r\n<br> \r\nTÜFE'deki (2025=100) değişim 2026 yılı Ağustos ayında \r\nbir önceki aya göre %1,84 artış, \r\nbir önceki yılın Aralık ayına göre %22,07 artış, \r\nbir önceki yılın aynı ayına göre %31,51 artış ve \r\non iki aylık ortalamalara göre %31,79 artış olarak gerçekleşti.\r\n<br>\r\n<br>\r\n<strong>TÜFE değişim oranları (%), Ağustos 2026</strong>\r\n<br>\r\n<table class=\"bulten-table\">\r\n    <thead>\r\n        <tr>\r\n            <th></th>\r\n            <th class=\"text-right\">Ağustos 2026</th>\r\n            <th class=\"text-right\">Ağustos 2025</th>\r\n            <th class=\"text-right\">Ağustos 2024</th>\r\n        </tr>\r\n    </thead>\r\n    <tbody>\r\n        <tr>\r\n            <td class=\"text-left\">Bir önceki aya göre değişim oranı</td>\r\n            <td class=\"text-right\">1,84</td>\r\n            <td class=\"text-right\">2,04</td>\r\n            <td class=\"text-right\">2,47</td>\r\n        </tr>\r\n        <tr>\r\n            <td class=\"text-left\">Bir önceki yılın Aralık ayına göre değişim oranı</td><br>Test &amp; &#39;entity&#39; &nbsp;done.",
+  "isIncluded": true,
+  "isSdmx": true,
+  "relatedInstitutions": [],
+  "statisticalTables": [
+   {
+    "type": "dataflow",
+    "title": "Ana harcama gruplarına göre tüketici fiyat endeksi (TÜFE) ve değişim oranları",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT01,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "COICOP 2018 alt sınıflarına göre TÜFE aylık ve yıllık değişim oranları",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT02,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "TÜFE ana harcama gruplarının yıllık ve aylık değişim oranları ve genel endeks değişimine katkıları",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT03,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "Tüketici fiyat endeksi (TÜFE) mal ve hizmet sepeti ve ağırlıklar",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT04,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "Mevsim etkisinden arındırılmış TÜFE göstergeleri",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT05,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "Özel Kapsamlı TÜFE Göstergeleri",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT06,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "Tüketici fiyat endeksi seçilmiş maddelere ait ortalama fiyatlar",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT07,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "Ana grup ağırlıkları",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT08,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "Harcama gruplarına göre endeks sonuçları",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT09,1.0"
+   },
+   {
+    "type": "dataflow",
+    "title": "Tüketici fiyat endeksi ve değişim oranları",
+    "url": "https://databrowser2.tuik.gov.tr/#/tr/tuik/categories/6/6_5/TR,DF_TUFE_SDMX_TT10,1.0"
+   }
+  ],
+  "tables": [
+   {
+    "type": "xls",
+    "title": "Ana harcama gruplarına göre ağırlıklar, tüketici fiyat endeksi (TÜFE) ve değişim oranları",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=g587vnNVJTY9P7lK7OsQYsAm8aSMsjhdl8oIOmFEWJKZJFCAUeeiNHU%2FumbwP3QYQnbMXn8wk3ciY7v3hEH96MCmJESUO4aC9w2zeIDHlkk%2Fr6tUM9D%2FD7kUOpA8QB2t9m%2BT%2FsTR6zLoMys9DNQmusLYCTWoFzNUg8EsGg7shzNBkpbsc5yl1%2BcYdkgr2riAn%2BFrYxnVnyw2dj1MR5wOFw%3D%3D"
+   },
+   {
+    "type": "xls",
+    "title": "COICOP 2018 alt sınıflarına göre TÜFE aylık ve yıllık değişim oranları",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=mlzE5JPdtgJd99a4toJoazDgpZgVBtDyMy5Tf9ee30%2B8F%2BT6qa988VJO%2Bm2NrtxfFGL5p%2BHJXE8NlGJXHC0hTUhN0ZH8Evj4J%2FbaoQQ5ojo75GjxKk%2BTpuKXSTma63oUMma2hQYJAFc1oOL6v5g%2BYDcr6plCtfhG%2FnmqSIBNT%2Be%2B0dLgv8ouOeuMC%2BQVwnIp"
+   },
+   {
+    "type": "xls",
+    "title": "TÜFE ana harcama gruplarının yıllık ve aylık değişim oranları ve genel endeks değişimine katkıları",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=x5rVkiubJFmViYJ2et%2F36YEMB2dwkw5JjhVz7KoSLXY8kfSmneDdjJbEZcnV8U7%2FWLTV7OTLKi%2Bgwf5sORsey5Z00qkgs9Ov4Y9aKGv0HtlW7yvgTVuTTus06qx0ZS5nhif4ht63EEmpFiM8JF7QHS7HhRy0NyG%2FF7Yws%2BOGgWlw1%2FbjsahoaFOG0I67McHY7FEjLyOb%2Fv0eDoJtZaDXeyKLnanOECyigE%2BM2%2FXLIoI%3D"
+   },
+   {
+    "type": "xls",
+    "title": "Tüketici fiyat endeksi (TÜFE) mal ve hizmet sepeti ve ağırlıklar",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=1dfhzwM4OVv8V6oZt0cyrCWoG8f95SkB826BscKIdQ8AAQWHli2Zi%2FB0tNJblFVYxRxrSuu%2B%2BUuQb3iwLPg%2FyxYy6y7NRe7%2FrNxM1z0xs1J3eU0FCCKtCCn0BDZd8gNYEiVOekKXbzsoHL7PNKb9mFbDDUgaYcp%2BIgVJKTUG3Sk%3D"
+   },
+   {
+    "type": "xls",
+    "title": "Tüketici fiyat endeksi ve değişim oranları",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=XpHQ8xRD8RbhYh5RYEEVj02y9Jbomgxb2IAXWJnXISKnywOjWdUco6UBiVJlhimu9nBcWtm0MPuGbGeTcl3gFzfY%2FhUIk5XPkC7%2BNaTP9GLXk%2FXssABSF3ciaFRef%2FAzBpYEiqZ%2BvuCaalL53oG7Gw%3D%3D"
+   },
+   {
+    "type": "xls",
+    "title": "Mevsim etkisinden arındırılmış TÜFE göstergeleri",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=TA%2BjrwXC4zyyRrWug0m7s8h9C0o%2FhdPmQux7s2ybOcI%2FhYlIdfI9SFJFba4oLRWZLzx0pfo5MiPDFxvKa0q9Kt0%2F%2FzUJrBmQC0DC4CEv38DbR2FjvPsq%2B41Ify512jH5e%2F2QMqQSt2QMvRRb4AynYw%3D%3D"
+   },
+   {
+    "type": "xls",
+    "title": "Özel Kapsamlı TÜFE Göstergeleri",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=v4QDtCngNIEolqxR%2FQ%2BL5zvZ1VJFjt2oCOVHzrX4z4ubQLXKNhVGA0us3pPQ34q6utVQTaXTlpA8wHnHX541CA2fi1xCDbD1AQUhIo17MlYyKpvu0pKluQNqkLNfbRBF"
+   },
+   {
+    "type": "xls",
+    "title": "Tüketici fiyat endeksi seçilmiş maddelere ait ortalama fiyatlar",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=B9kXpUb3n3zG9VDUIZaq%2BBU5fS%2BcWYtpHFYuW1VeXCcFJYPQcXVLYLBMOHMqpHP%2BhYOliXZztb8A9DuQSFrptqZJNy%2FPCBN6%2BGlYzRAt4wwjcdTmPms5hl%2BXj4FGhtIpXlhN1s%2FCIwRyJmNqMgRSq%2FEcyNPhFKgZRWJWx%2Fc0%2F0w%3D"
+   },
+   {
+    "type": "xls",
+    "title": "Ana grup ağırlıkları ve ilgili sayısal bilgiler",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=2QyoMBlkzupfHty2kGf8wQf%2BDs2BzcxMCVGaV%2BH9zsJ1kRq%2F2lY1AluBP%2BHRQ3oeAtUSDWEX8w4auWRy1rCc5dfJMxx%2BnnwktuBcn45f1OT%2BY43m4iy44nrue4H0kkhOItpn%2F2Z6qdhvJn1O%2BMA2Xw%3D%3D"
+   },
+   {
+    "type": "xls",
+    "title": "Harcama gruplarına göre endeks sonuçları",
+    "url": "/api/tr/data/downloads?t=t&pid=58290&p=gpyPfHBYTvTIlhifA6BSfeVvDaFmaf0eP3zYWTFGJj3DPuDYgwvVAt4k2a%2FGdqU5Jlnz16Q7Sl9puzo0jY4bjR2gy0uOCCjhBDbayvRB9L%2FXolFzDJuYwM8xTM3%2Foqy%2FGwRFrbLCN99lBzEjp8P89g%3D%3D"
+   }
+  ],
+  "reports": [
+   {
+    "type": "pdf",
+    "title": "TÜFE metodoloji dokümanı",
+    "url": "/api/tr/data/downloads?t=r&pid=58290&p=tGWxM%2F8FCuYCpLI2lsV2N8jn0H5vRkTGM0NQOkDLMANl7bV5ZzHa15pxfCcHiSPrwXSjnE0DjUyjyFvquaKX7ZTGhUXxBCuTqMigfiMRbI0X002LjWeTitz%2BXEvBehKs"
+   }
+  ],
+  "metadatas": [
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "data": [
+     {
+      "title": "1. İletişim",
+      "detail": [
+       {
+        "title": "1.1. Kurum Adı",
+        "content": "<div style=\"text-align: justify;\">Türkiye İstatistik Kurumu (TÜİK)</div>"
+       },
+       {
+        "title": "1.5. İletişim Kurulacak Birimin Adresi",
+        "content": "<div style=\"text-align: justify;\">Devlet Mahallesi Necatibey Caddesi No:114 06420 Çankaya/Ankara</div>"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "previousPresses": [
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Temmuz 2026",
+    "url": "/tr/press/58297"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Haziran 2026",
+    "url": "/tr/press/58289"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Mayıs 2026",
+    "url": "/tr/press/58296"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Nisan 2026",
+    "url": "/tr/press/58288"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Mart 2026",
+    "url": "/tr/press/58295"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Şubat 2026",
+    "url": "/tr/press/58287"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Ocak 2026",
+    "url": "/tr/press/58293"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Aralık 2025",
+    "url": "/tr/press/58294"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Kasım 2025",
+    "url": "/tr/press/54186"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Ekim 2025",
+    "url": "/tr/press/54185"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Eylül 2025",
+    "url": "/tr/press/54184"
+   },
+   {
+    "title": "Tüketici Fiyat Endeksi",
+    "period": "Ağustos 2025",
+    "url": "/tr/press/54183"
+   }
+  ]
+ },
+ "isError": false,
+ "message": "ok"
+}

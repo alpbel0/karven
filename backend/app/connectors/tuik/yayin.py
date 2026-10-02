@@ -561,6 +561,7 @@ def _plan_document_changes(
     source: str,
     now: datetime,
     complete: bool,
+    preserved_attributes: Sequence[str] = (),
 ) -> tuple[list[dict[str, Any]], int, int, int, list[Document]]:
     """Decide which documents to upsert and which existing rows to mark removed.
 
@@ -568,7 +569,9 @@ def _plan_document_changes(
     An incoming item is keyed by ``external_id``. ``last_seen_at`` is bumped for
     every seen row, so an outcome of ``unchanged`` means the content did not
     change. Removals are only proposed when ``complete`` is True, so a partial
-    crawl never marks anything removed.
+    crawl never marks anything removed. ``preserved_attributes`` names keys written
+    by another path (e.g. an on-demand detail fetch) that survive a catalogue
+    upsert when the incoming item does not carry them.
     """
     existing_by_id = {row.external_id: row for row in existing}
     incoming_by_id = {item.external_id: item for item in incoming}
@@ -577,6 +580,10 @@ def _plan_document_changes(
     for external_id, item in incoming_by_id.items():
         attributes = _content_attributes(item.attributes)
         previous = existing_by_id.get(external_id)
+        if previous is not None:
+            for key in preserved_attributes:
+                if key not in attributes and key in (previous.attributes or {}):
+                    attributes[key] = previous.attributes[key]
         if previous is None:
             inserted += 1
         else:
@@ -631,6 +638,7 @@ def load_documents(
     source: str = SOURCE,
     complete: bool = True,
     now: datetime | None = None,
+    preserved_attributes: Sequence[str] = (),
 ) -> DocumentLoad:
     """Idempotently upsert documents (never delete); mark removals when complete."""
     now = now or datetime.now(UTC)
@@ -642,6 +650,7 @@ def load_documents(
         source=source,
         now=now,
         complete=complete,
+        preserved_attributes=preserved_attributes,
     )
     for start in range(0, len(upsert_rows), _BATCH):
         batch = upsert_rows[start : start + _BATCH]

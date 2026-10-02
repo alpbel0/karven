@@ -630,6 +630,9 @@ class Document(Base):
     attributes: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
     )
+    # Plain text of the document body, filled on demand (never during the
+    # catalogue walk). NULL until the source detail is fetched.
+    content_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -640,4 +643,47 @@ class Document(Base):
         UniqueConstraint("source", "external_id", name="uq_documents_source_external_id"),
         Index("ix_documents_source_doc_type", "source", "doc_type"),
         Index("ix_documents_year", "year"),
+    )
+
+
+class DocumentDatasetLink(Base):
+    """A dataset a published document's statistical table points at.
+
+    One row links a :class:`Document` to the dataset named in one of its
+    ``statisticalTables`` entries. ``dataset_code`` is always stored; ``dataset_id``
+    is resolved against the TÜİK datasets by code and left NULL when the dataset is
+    not catalogued (it is re-resolved on the next on-demand detail fetch). The row
+    is identified by ``(document_id, dataset_code)`` and never deleted.
+    """
+
+    __tablename__ = "document_dataset_links"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    document_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("documents.id", name="fk_document_dataset_links_document"),
+        nullable=False,
+    )
+    dataset_code: Mapped[str] = mapped_column(Text, nullable=False)
+    dataset_version: Mapped[str | None] = mapped_column(Text, nullable=True)
+    dataset_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("datasets.id", name="fk_document_dataset_links_dataset"),
+        nullable=True,
+    )
+    relation: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        server_default=text("'statistical_table'"),
+        default="statistical_table",
+    )
+    title: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("document_id", "dataset_code", name="uq_document_dataset_links_pair"),
+        Index("ix_document_dataset_links_dataset_id", "dataset_id"),
+        Index("ix_document_dataset_links_dataset_code", "dataset_code"),
     )

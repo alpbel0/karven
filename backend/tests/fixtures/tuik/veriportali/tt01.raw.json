@@ -1,0 +1,846 @@
+{
+ "meta": {
+  "schema": "https://raw.githubusercontent.com/sdmx-twg/sdmx-json/master/data-message/tools/schemas/1.0/sdmx-json-data-schema.json",
+  "id": "IREF391505",
+  "prepared": "2026-09-03T07:23:35Z",
+  "test": true,
+  "contentLanguages": [
+   "en",
+   "tr",
+   "en-US"
+  ],
+  "sender": {
+   "id": "SOME_NSI",
+   "name": "unknown",
+   "names": {
+    "en-US": "unknown"
+   }
+  }
+ },
+ "data": {
+  "dataSets": [
+   {
+    "series": {
+     "0:0:0:0:0:0:0:0:0:0": {
+      "observations": {
+       "0": [
+        "127.59"
+       ],
+       "1": [
+        "132.31"
+       ],
+       "2": [
+        "131.67"
+       ],
+       "3": [
+        "131.89"
+       ],
+       "4": [
+        "134.02"
+       ],
+       "5": [
+        "134.31"
+       ]
+      }
+     },
+     "0:0:0:0:0:0:0:0:1:0": {
+      "observations": {
+       "0": [
+        "123.16"
+       ],
+       "1": [
+        "123.43"
+       ],
+       "2": [
+        "123.41"
+       ],
+       "3": [
+        "127.68"
+       ],
+       "4": [
+        "130.15"
+       ],
+       "5": [
+        "139.12"
+       ]
+      }
+     }
+    }
+   }
+  ],
+  "structure": {
+   "name": "Ana harcama gruplarına göre tüketici fiyat endeksi (TÜFE) ve değişim oranları",
+   "names": {
+    "tr": "Ana harcama gruplarına göre tüketici fiyat endeksi (TÜFE) ve değişim oranları",
+    "en": "Consumer price index (CPI) and rates of change by main expenditure groups"
+   },
+   "description": "Ana harcama gruplarına göre tüketici fiyat endeksi (TÜFE) ve değişim oranları",
+   "descriptions": {
+    "tr": "Ana harcama gruplarına göre tüketici fiyat endeksi (TÜFE) ve değişim oranları",
+    "en": "Consumer price index (CPI) and rates of change by main expenditure groups"
+   },
+   "dimensions": {
+    "dataset": [],
+    "series": [
+     {
+      "id": "REF_AREA",
+      "name": "Coğrafi Kapsam",
+      "names": {
+       "tr": "Coğrafi Kapsam",
+       "en": "Reference area"
+      },
+      "keyPosition": 0,
+      "roles": [
+       "REF_AREA"
+      ],
+      "values": [
+       {
+        "id": "TR",
+        "order": 1086,
+        "name": "Türkiye",
+        "names": {
+         "tr": "Türkiye",
+         "en": "Türkiye"
+        },
+        "annotations": [
+         1
+        ]
+       }
+      ],
+      "annotations": [
+       2,
+       3,
+       4,
+       5,
+       6,
+       7,
+       8
+      ]
+     },
+     {
+      "id": "FREQ",
+      "name": "Gözlem Sıklığı",
+      "names": {
+       "tr": "Gözlem Sıklığı",
+       "en": "Frequency of observation"
+      },
+      "keyPosition": 1,
+      "roles": [
+       "FREQ"
+      ],
+      "values": [
+       {
+        "id": "M",
+        "order": 3,
+        "name": "Aylık",
+        "names": {
+         "tr": "Aylık",
+         "en": "Monthly"
+        }
+       }
+      ],
+      "annotations": [
+       9,
+       3,
+       4,
+       10,
+       6,
+       11,
+       12
+      ]
+     },
+     {
+      "id": "SINIFLAMA_DUZEYI",
+      "name": "Sınıflama Düzeyi",
+      "names": {
+       "tr": "Sınıflama Düzeyi",
+       "en": "Classification Level"
+      },
+      "keyPosition": 2,
+      "roles": [
+       "SINIFLAMA_DUZEYI"
+      ],
+      "values": [
+       {
+        "id": "2",
+        "order": 1,
+        "name": "Ana harcama grupları (2'li düzey)",
+        "names": {
+         "tr": "Ana harcama grupları (2'li düzey)",
+         "en": "Main expenditure groups (2 digit level)"
+        }
+       }
+      ]
+     },
+     {
+      "id": "DEGISIM",
+      "name": "Endeks-Değişim",
+      "names": {
+       "tr": "Endeks-Değişim",
+       "en": "Index-Change"
+      },
+      "keyPosition": 3,
+      "roles": [
+       "DEGISIM"
+      ],
+      "values": [
+       {
+        "id": "1",
+        "order": 0,
+        "name": "Endeks",
+        "names": {
+         "tr": "Endeks",
+         "en": "Index"
+        }
+       }
+      ]
+     },
+     {
+      "id": "OZEL_KAPSAM_TUFE",
+      "name": "Özel Kapsamlı TÜFE Göstergeleri",
+      "names": {
+       "tr": "Özel Kapsamlı TÜFE Göstergeleri",
+       "en": "Indicators for the CPIs having specified coverages"
+      },
+      "keyPosition": 4,
+      "roles": [
+       "OZEL_KAPSAM_TUFE"
+      ],
+      "values": [
+       {
+        "id": "_Z",
+        "order": 24,
+        "name": "Uygulanabilir değil",
+        "names": {
+         "tr": "Uygulanabilir değil",
+         "en": "Not applicable"
+        },
+        "annotations": [
+         13
+        ]
+       }
+      ]
+     },
+     {
+      "id": "BASE_PER",
+      "name": "Temel Dönem/Yıl",
+      "names": {
+       "tr": "Temel Dönem/Yıl",
+       "en": "Base period"
+      },
+      "keyPosition": 5,
+      "roles": [
+       "BASE_PER"
+      ],
+      "values": [
+       {
+        "id": "2025",
+        "order": 136,
+        "name": "2025",
+        "names": {
+         "tr": "2025",
+         "en": "2025"
+        }
+       }
+      ],
+      "annotations": [
+       14,
+       3,
+       15,
+       16,
+       6,
+       17
+      ]
+     },
+     {
+      "id": "YAYIM_DONEMI",
+      "name": "Revizyon Dönemi",
+      "names": {
+       "tr": "Revizyon Dönemi",
+       "en": "Revision Period"
+      },
+      "keyPosition": 6,
+      "roles": [
+       "YAYIM_DONEMI"
+      ],
+      "values": [
+       {
+        "id": "2026_01",
+        "order": 89,
+        "name": "Ocak 2026",
+        "names": {
+         "tr": "Ocak 2026",
+         "en": "January 2026"
+        },
+        "annotations": [
+         18
+        ]
+       }
+      ]
+     },
+     {
+      "id": "COICOP_1999",
+      "name": "COICOP 1999 (Amaca Göre Bireysel Tüketim Sınıflaması, 1999)",
+      "names": {
+       "tr": "COICOP 1999 (Amaca Göre Bireysel Tüketim Sınıflaması, 1999)",
+       "en": "COICOP 1999 (The Classification of Individual Consumption According to Purpose, 1999)"
+      },
+      "keyPosition": 7,
+      "roles": [
+       "COICOP_1999"
+      ],
+      "values": [
+       {
+        "id": "_Z",
+        "order": 313,
+        "name": "Uygulanabilir değil",
+        "names": {
+         "tr": "Uygulanabilir değil",
+         "en": "Not applicable"
+        }
+       }
+      ]
+     },
+     {
+      "id": "COICOP_2018",
+      "name": "COICOP 2018 (Amaca Göre Bireysel Tüketim Sınıflaması, 2018)",
+      "names": {
+       "tr": "COICOP 2018 (Amaca Göre Bireysel Tüketim Sınıflaması, 2018)",
+       "en": "COICOP 2018 (The Classification of Individual Consumption According to Purpose, 2018)"
+      },
+      "keyPosition": 8,
+      "roles": [
+       "COICOP_2018"
+      ],
+      "values": [
+       {
+        "id": "01",
+        "order": 1,
+        "name": "Gıda ve alkolsüz içecekler",
+        "names": {
+         "tr": "Gıda ve alkolsüz içecekler",
+         "en": "Food and non-alcoholic beverages"
+        },
+        "parent": "0"
+       },
+       {
+        "id": "02",
+        "order": 199,
+        "name": "Alkollü içecekler, tütün ve tütün ürünleri",
+        "names": {
+         "tr": "Alkollü içecekler, tütün ve tütün ürünleri",
+         "en": "Alcoholic beverages, tobacco"
+        },
+        "parent": "0"
+       }
+      ]
+     },
+     {
+      "id": "INDICATOR",
+      "name": "İstatistiksel Gösterge",
+      "names": {
+       "tr": "İstatistiksel Gösterge",
+       "en": "Statistical indicator"
+      },
+      "keyPosition": 9,
+      "roles": [
+       "INDICATOR"
+      ],
+      "values": [
+       {
+        "id": "F_TFE",
+        "order": 137,
+        "name": "Tüketici Fiyat Endeksi",
+        "names": {
+         "tr": "Tüketici Fiyat Endeksi",
+         "en": "Consumer Price Index"
+        }
+       }
+      ],
+      "annotations": [
+       19,
+       6
+      ]
+     }
+    ],
+    "observation": [
+     {
+      "id": "TIME_PERIOD",
+      "name": "Zaman",
+      "names": {
+       "tr": "Zaman",
+       "en": "Time period"
+      },
+      "keyPosition": 10,
+      "roles": [
+       "TIME_PERIOD"
+      ],
+      "values": [
+       {
+        "start": "2026-03-01T00:00:00",
+        "end": "2026-03-31T00:00:00",
+        "id": "2026-03"
+       },
+       {
+        "start": "2026-04-01T00:00:00",
+        "end": "2026-04-30T00:00:00",
+        "id": "2026-04"
+       },
+       {
+        "start": "2026-05-01T00:00:00",
+        "end": "2026-05-31T00:00:00",
+        "id": "2026-05"
+       },
+       {
+        "start": "2026-06-01T00:00:00",
+        "end": "2026-06-30T00:00:00",
+        "id": "2026-06"
+       },
+       {
+        "start": "2026-07-01T00:00:00",
+        "end": "2026-07-31T00:00:00",
+        "id": "2026-07"
+       },
+       {
+        "start": "2026-08-01T00:00:00",
+        "end": "2026-08-31T00:00:00",
+        "id": "2026-08"
+       }
+      ]
+     }
+    ]
+   },
+   "attributes": {
+    "dataSet": [],
+    "series": [],
+    "observation": [
+     {
+      "id": "UNIT_MEASURE",
+      "name": "Ölçü Birimi",
+      "names": {
+       "tr": "Ölçü Birimi",
+       "en": "Unit of measure"
+      },
+      "roles": [
+       "UNIT_MEASURE"
+      ],
+      "relationship": {
+       "primaryMeasure": "OBS_VALUE"
+      },
+      "values": [],
+      "annotations": [
+       20,
+       3,
+       4,
+       6,
+       21
+      ]
+     },
+     {
+      "id": "CONF_STATUS",
+      "name": "Gizlilik Durumu",
+      "names": {
+       "tr": "Gizlilik Durumu",
+       "en": "Confidentiality - status"
+      },
+      "roles": [
+       "CONF_STATUS"
+      ],
+      "relationship": {
+       "primaryMeasure": "OBS_VALUE"
+      },
+      "values": [],
+      "annotations": [
+       22,
+       3,
+       4,
+       23,
+       6,
+       24,
+       25
+      ]
+     },
+     {
+      "id": "TIME_FORMAT",
+      "name": "Zaman Formatı",
+      "names": {
+       "tr": "Zaman Formatı",
+       "en": "Time format"
+      },
+      "roles": [
+       "TIME_FORMAT"
+      ],
+      "relationship": {
+       "primaryMeasure": "OBS_VALUE"
+      },
+      "values": [],
+      "annotations": [
+       26,
+       3,
+       4,
+       6,
+       27,
+       28
+      ]
+     },
+     {
+      "id": "UNIT_MULT",
+      "name": "Birim Çarpanı",
+      "names": {
+       "tr": "Birim Çarpanı",
+       "en": "Unit multiplier"
+      },
+      "roles": [
+       "UNIT_MULT"
+      ],
+      "relationship": {
+       "primaryMeasure": "OBS_VALUE"
+      },
+      "values": [],
+      "annotations": [
+       29,
+       3,
+       4,
+       6,
+       30,
+       31
+      ]
+     },
+     {
+      "id": "OBS_STATUS",
+      "name": "Gözlem Durumu",
+      "names": {
+       "tr": "Gözlem Durumu",
+       "en": "Observation status"
+      },
+      "roles": [
+       "OBS_STATUS"
+      ],
+      "relationship": {
+       "primaryMeasure": "OBS_VALUE"
+      },
+      "values": [],
+      "annotations": [
+       32,
+       3,
+       33,
+       6,
+       34,
+       35
+      ]
+     },
+     {
+      "id": "DECIMALS",
+      "name": "Ondalık Basamak Sayısı",
+      "names": {
+       "tr": "Ondalık Basamak Sayısı",
+       "en": "Decimals"
+      },
+      "roles": [
+       "DECIMALS"
+      ],
+      "relationship": {
+       "primaryMeasure": "OBS_VALUE"
+      },
+      "values": [],
+      "annotations": [
+       36,
+       3,
+       4,
+       6,
+       37,
+       38
+      ]
+     }
+    ]
+   },
+   "annotations": [
+    {
+     "id": "HIDE_REVISION_PERIOD",
+     "title": "HIDE_REVISION_PERIOD",
+     "type": "HIDE_REVISION_PERIOD",
+     "text": "HIDE_REVISION_PERIOD",
+     "texts": {
+      "tr": "HIDE_REVISION_PERIOD",
+      "en": "HIDE_REVISION_PERIOD"
+     }
+    },
+    {
+     "id": "ORDER",
+     "title": "ORDER",
+     "type": "ORDER",
+     "text": "2",
+     "texts": {
+      "tr": "2",
+      "en": "2"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "The concept refers to the country, geographical or political group of countries or regions within a country. The concept is subject to a variety of hierarchies, as countries comprise territorial entities that are states (as understood by international law and practice), regions and other territorial entities that are not states but for which statistical data are produced internationally on a separate and independent basis.",
+     "texts": {
+      "en": "The concept refers to the country, geographical or political group of countries or regions within a country. The concept is subject to a variety of hierarchies, as countries comprise territorial entities that are states (as understood by international law and practice), regions and other territorial entities that are not states but for which statistical data are produced internationally on a separate and independent basis."
+     }
+    },
+    {
+     "type": "TYPE",
+     "text": "Cross-domain concept",
+     "texts": {
+      "en": "Cross-domain concept"
+     }
+    },
+    {
+     "type": "RECOMMENDED_REPRESENTATION",
+     "text": "Code list",
+     "texts": {
+      "en": "Code list"
+     }
+    },
+    {
+     "type": "RELATED_TERMS",
+     "text": "Counterpart reference area",
+     "texts": {
+      "en": "Counterpart reference area"
+     }
+    },
+    {
+     "type": "SOURCE",
+     "text": "SDMX (2016) (https://sdmx.org/)",
+     "texts": {
+      "en": "SDMX (2016) (https://sdmx.org/)"
+     }
+    },
+    {
+     "type": "OTHER_LINKS",
+     "text": "Code list CL_AREA (https://sdmx.org/?page_id=3215, See under \"Geographical area\")",
+     "texts": {
+      "en": "Code list CL_AREA (https://sdmx.org/?page_id=3215, See under \"Geographical area\")"
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_AREA",
+     "texts": {
+      "en": "CL_AREA"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "If a data series has a constant time interval between its observations, this interval determines the frequency of the series (e.g. monthly, quarterly, yearly). \"Frequency\" - also called \"periodicity\" - may refer to several stages in the production process, e.g. in data collection or in data dissemination. (e.g., a time series could be available at annual frequency but the underlying data are compiled monthly). Therefore, \"Frequency\" can be broken down into \"Frequency - data collection\" and \"Frequency - data dissemination\".",
+     "texts": {
+      "en": "If a data series has a constant time interval between its observations, this interval determines the frequency of the series (e.g. monthly, quarterly, yearly). \"Frequency\" - also called \"periodicity\" - may refer to several stages in the production process, e.g. in data collection or in data dissemination. (e.g., a time series could be available at annual frequency but the underlying data are compiled monthly). Therefore, \"Frequency\" can be broken down into \"Frequency - data collection\" and \"Frequency - data dissemination\"."
+     }
+    },
+    {
+     "type": "RELATED_TERMS",
+     "text": "Frequency of data collection; Frequency of dissemination",
+     "texts": {
+      "en": "Frequency of data collection; Frequency of dissemination"
+     }
+    },
+    {
+     "type": "OTHER_LINKS",
+     "text": "Code list CL_FREQ (https://sdmx.org/?page_id=3215)",
+     "texts": {
+      "en": "Code list CL_FREQ (https://sdmx.org/?page_id=3215)"
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_FREQ",
+     "texts": {
+      "en": "CL_FREQ"
+     }
+    },
+    {
+     "id": "ORDER",
+     "title": "ORDER",
+     "type": "ORDER",
+     "text": "9",
+     "texts": {
+      "en": "9"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "The base period refers to the period when the published index is 100, or to which weights or base data refer to. It can be one single year (e.g. 1995=100) but it may be as short as one day or as long as a specified number of years. \"Base period\" may include an indication of the value of the series in the base period (usually 1 or 100).",
+     "texts": {
+      "en": "The base period refers to the period when the published index is 100, or to which weights or base data refer to. It can be one single year (e.g. 1995=100) but it may be as short as one day or as long as a specified number of years. \"Base period\" may include an indication of the value of the series in the base period (usually 1 or 100)."
+     }
+    },
+    {
+     "type": "RECOMMENDED_REPRESENTATION",
+     "text": "Code list; DateTime; String",
+     "texts": {
+      "en": "Code list; DateTime; String"
+     }
+    },
+    {
+     "type": "RELATED_TERMS",
+     "text": "Base weight; Reference period",
+     "texts": {
+      "en": "Base weight; Reference period"
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_BASE_PER",
+     "texts": {
+      "en": "CL_BASE_PER"
+     }
+    },
+    {
+     "id": "ORDER",
+     "title": "ORDER",
+     "type": "ORDER",
+     "text": "92",
+     "texts": {
+      "tr": "92",
+      "en": "92"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "A simple aggregation such as the number of accidents, total income or women Members of Parliament, is not in itself an indicator, as it is not comparable between populations. However, if these values are standardised, e.g. number of accidents per thousand of population, average income, or women Members of Parliament as a percentage of the total, the result meets the criteria for an indicator.",
+     "texts": {
+      "en": "A simple aggregation such as the number of accidents, total income or women Members of Parliament, is not in itself an indicator, as it is not comparable between populations. However, if these values are standardised, e.g. number of accidents per thousand of population, average income, or women Members of Parliament as a percentage of the total, the result meets the criteria for an indicator."
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "The unit of measure is a quantity or increment by which something is counted or described, such as kg, mm, C, F, monetary units such as Euro or US dollar, simple number counts or index numbers. The unit of measure has a type (e.g. currency) and, in connection with the unit multiplier, provides the level of detail for the value of the variable. For data messages, the concept is usually represented by codes. For metadata messages the concept is usually represented by free text.",
+     "texts": {
+      "en": "The unit of measure is a quantity or increment by which something is counted or described, such as kg, mm, C, F, monetary units such as Euro or US dollar, simple number counts or index numbers. The unit of measure has a type (e.g. currency) and, in connection with the unit multiplier, provides the level of detail for the value of the variable. For data messages, the concept is usually represented by codes. For metadata messages the concept is usually represented by free text."
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_UNIT_MEASURE",
+     "texts": {
+      "en": "CL_UNIT_MEASURE"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "This concept is related to data and determines the exact status of the value. i.e. if a specific value is confidential or not. This concept is always coded, i.e. it takes its value from the respective code list.",
+     "texts": {
+      "en": "This concept is related to data and determines the exact status of the value. i.e. if a specific value is confidential or not. This concept is always coded, i.e. it takes its value from the respective code list."
+     }
+    },
+    {
+     "type": "RELATED_TERMS",
+     "text": "Confidentiality; Confidentiality - data treatment; Confidentiality - policy; Confidentiality - redistribution authorisation policy",
+     "texts": {
+      "en": "Confidentiality; Confidentiality - data treatment; Confidentiality - policy; Confidentiality - redistribution authorisation policy"
+     }
+    },
+    {
+     "type": "OTHER_LINKS",
+     "text": "Code list CL_CONF_STATUS (https://sdmx.org/?page_id=3215)",
+     "texts": {
+      "en": "Code list CL_CONF_STATUS (https://sdmx.org/?page_id=3215)"
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_CONF_STATUS",
+     "texts": {
+      "en": "CL_CONF_STATUS"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "The technical time format and its related code list are part of the technical standards for SDMX-EDI and SDMX-XML.",
+     "texts": {
+      "en": "The technical time format and its related code list are part of the technical standards for SDMX-EDI and SDMX-XML."
+     }
+    },
+    {
+     "type": "OTHER_LINKS",
+     "text": "Code list CL_TIME_FORMAT (https://sdmx.org/?page_id=3215)",
+     "texts": {
+      "en": "Code list CL_TIME_FORMAT (https://sdmx.org/?page_id=3215)"
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_TIME_FORMAT",
+     "texts": {
+      "en": "CL_TIME_FORMAT"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "In some databases, it is referred to as SCALE, MAGNITUDE or POWER, e.g. UNIT_MULT 6 means that observations are in millions.",
+     "texts": {
+      "en": "In some databases, it is referred to as SCALE, MAGNITUDE or POWER, e.g. UNIT_MULT 6 means that observations are in millions."
+     }
+    },
+    {
+     "type": "OTHER_LINKS",
+     "text": "Code list CL_UNIT_MULT (https://sdmx.org/?page_id=3215)",
+     "texts": {
+      "en": "Code list CL_UNIT_MULT (https://sdmx.org/?page_id=3215)"
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_UNIT_MULT",
+     "texts": {
+      "en": "CL_UNIT_MULT"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "This item is normally coded and uses codes providing information about the status of a value, with respect to events such as \"break\", \"estimated value\", \"forecast\", \"missing value\", or \"provisional value\". In some cases, there is more than one event that may have influenced the value (e.g. a break in methodology may be accompanied with the fact that an observation is an estimate).",
+     "texts": {
+      "en": "This item is normally coded and uses codes providing information about the status of a value, with respect to events such as \"break\", \"estimated value\", \"forecast\", \"missing value\", or \"provisional value\". In some cases, there is more than one event that may have influenced the value (e.g. a break in methodology may be accompanied with the fact that an observation is an estimate)."
+     }
+    },
+    {
+     "type": "RECOMMENDED_REPRESENTATION",
+     "text": "String",
+     "texts": {
+      "en": "String"
+     }
+    },
+    {
+     "type": "OTHER_LINKS",
+     "text": "Code list CL_OBS_STATUS (https://sdmx.org/?page_id=3215); Possible Ways of Implementing CL_OBS_STATUS Code List (https://sdmx.org/wp-content/uploads/CL_OBS_STATUS_implementation_20-10-2014.doc)",
+     "texts": {
+      "en": "Code list CL_OBS_STATUS (https://sdmx.org/?page_id=3215); Possible Ways of Implementing CL_OBS_STATUS Code List (https://sdmx.org/wp-content/uploads/CL_OBS_STATUS_implementation_20-10-2014.doc)"
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_OBS_STATUS",
+     "texts": {
+      "en": "CL_OBS_STATUS"
+     }
+    },
+    {
+     "type": "CONTEXT",
+     "text": "A decimal is a fraction that has a denominator of a power of ten, the power depending on or deciding the decimal place. It is indicated by a decimal point to the left of the numerator, the denominator being omitted. Zeros are inserted between the point and the numerator, if necessary, to obtain the correct decimal place. Examples of decimals are 0.04 = 4/100 or 0.126 = 126/1000.",
+     "texts": {
+      "en": "A decimal is a fraction that has a denominator of a power of ten, the power depending on or deciding the decimal place. It is indicated by a decimal point to the left of the numerator, the denominator being omitted. Zeros are inserted between the point and the numerator, if necessary, to obtain the correct decimal place. Examples of decimals are 0.04 = 4/100 or 0.126 = 126/1000."
+     }
+    },
+    {
+     "type": "OTHER_LINKS",
+     "text": "Code list CL_DECIMALS (https://sdmx.org/?page_id=3215)",
+     "texts": {
+      "en": "Code list CL_DECIMALS (https://sdmx.org/?page_id=3215)"
+     }
+    },
+    {
+     "type": "CODELIST_ID",
+     "text": "CL_DECIMALS",
+     "texts": {
+      "en": "CL_DECIMALS"
+     }
+    }
+   ]
+  }
+ },
+ "errors": []
+}

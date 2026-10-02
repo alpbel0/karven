@@ -307,12 +307,33 @@ def upsert_institution(session: Session, code: str, name: str) -> Institution:
 
 _DATASET_FIELDS = ("name", "description", "source_category", "obs_count", "attributes")
 
+# ``attributes`` keys owned by another channel. ``upsert_dataset`` overwrites the
+# whole attributes object, so a later run of a different channel (e.g. the
+# databrowser2 catalog) would wipe a key another channel wrote (today the
+# veriportali dataflow catalog merges into the same TÜİK datasets). A key here is
+# preserved when the incoming ``meta.attributes`` does not itself carry it.
+CHANNEL_OWNED_ATTRIBUTES = ("veriportali",)
+
+
+def _preserve_channel_attributes(dataset: Dataset, incoming: dict[str, Any]) -> dict[str, Any]:
+    """Merge in ``attributes`` keys owned by another channel, if the dataset has them."""
+    merged = dict(incoming)
+    existing = dataset.attributes or {}
+    for key in CHANNEL_OWNED_ATTRIBUTES:
+        if key not in merged and key in existing:
+            merged[key] = existing[key]
+    return merged
+
 
 def upsert_dataset(session: Session, institution_id: int, meta: DatasetMeta) -> tuple[str, Dataset]:
     """Upsert one dataset with its dimensions and code lists.
 
     Codes that disappear from the source are kept but marked with
     ``attributes['removed_at']``; they are never deleted. Coverage only widens.
+
+    ``attributes`` keys owned by another channel (:data:`CHANNEL_OWNED_ATTRIBUTES`)
+    survive when the incoming metadata does not carry them, so a databrowser2
+    catalog run never wipes the veriportali dataflow attributes.
     """
     dataset = session.scalar(
         sa.select(Dataset).where(
@@ -332,6 +353,8 @@ def upsert_dataset(session: Session, institution_id: int, meta: DatasetMeta) -> 
     changed = created
     for field_name in _DATASET_FIELDS:
         value = getattr(meta, field_name)
+        if field_name == "attributes":
+            value = _preserve_channel_attributes(dataset, value)
         if getattr(dataset, field_name) != value:
             setattr(dataset, field_name, value)
             changed = True
@@ -750,6 +773,7 @@ def ingest_series(
     dataset: Dataset,
     codes: dict[str, str],
     start: date = date(2000, 1, 1),
+    channel: str | None = None,
 ) -> IngestResult:
     """Fetch one series (dataset + codes) and append any changed observations.
 
@@ -761,11 +785,17 @@ def ingest_series(
     The fetch runs first so a connector can register report-only codes
     (:meth:`SourceConnector.register_discovered_codes`) before ``ensure_series``
     validates them; a failed fetch never pollutes the catalog.
+
+    ``channel`` forces one fetch channel on connectors that support it (TÜİK:
+    ``veriportali``); it is only passed through when set.
     """
     order = [
         dimension.code for dimension in _ordered_dimensions(dataset) if dimension.role != ROLE_TIME
     ]
-    fetched = connector.fetch_series(dataset.external_code, codes, order=order, start=start)
+    channel_kwargs: dict[str, Any] = {"channel": channel} if channel else {}
+    fetched = connector.fetch_series(
+        dataset.external_code, codes, order=order, start=start, **channel_kwargs
+    )
     connector.register_discovered_codes(session, dataset, codes)
     series = ensure_series(session, dataset, codes)
     fetched_at = datetime.now(UTC)
@@ -801,6 +831,7 @@ def ingest_series(
 
 
 __all__ = [
+    "CHANNEL_OWNED_ATTRIBUTES",
     "DISCOVERED_FROM_REPORT",
     "EMPTY",
     "ERROR_KINDS",

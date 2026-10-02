@@ -210,6 +210,40 @@ def test_sync_catalog_and_ingest_series_roundtrip() -> None:
     _assert_raw_object_exists(result.raw_object_key)
 
 
+class ChannelConnector(ListConnector):
+    """A connector that accepts a forced channel and records what it received."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.channels: list[str | None] = []
+
+    def fetch_series(
+        self, dataset_code, codes, *, order=None, start=date(2000, 1, 1), channel=None
+    ):
+        self.channels.append(channel)
+        return super().fetch_series(dataset_code, codes, order=order, start=start)
+
+
+def test_ingest_series_passes_a_forced_channel_only_when_set() -> None:
+    institution_code = _unique("conn")
+    connector = ChannelConnector(institution_code, [_dataset_meta("FAKE", ["M"])])
+    with SessionLocal() as session:
+        sync_catalog(session, connector)
+        session.commit()
+    with SessionLocal() as session:
+        dataset = session.scalar(
+            select(Dataset)
+            .join(Institution, Institution.id == Dataset.institution_id)
+            .where(Institution.code == institution_code, Dataset.external_code == "FAKE")
+        )
+        assert dataset is not None
+        codes = {"REF_AREA": "TR", "FREQ": "M"}
+        ingest_series(session, connector, dataset=dataset, codes=codes, channel="veriportali")
+        ingest_series(session, connector, dataset=dataset, codes=codes)
+        session.commit()
+    assert connector.channels == ["veriportali", None]
+
+
 def test_ensure_series_is_idempotent() -> None:
     institution_code = _unique("conn")
     connector = ListConnector(institution_code, [_dataset_meta("FAKE", ["M"])])

@@ -1,0 +1,92 @@
+[
+ {
+  "id": "DF_TUFE_SDMX_TT01+V1.0",
+  "name": "Ana harcama gruplarına göre tüketici fiyat endeksi (TÜFE) ve değişim oranları",
+  "version": "1.0",
+  "period": "Ağustos 2026",
+  "updatedAt": "2026-09-03T10:00:00",
+  "downloadable": true,
+  "category": {
+   "name": "Fiyat İstatistikleri",
+   "child": {
+    "name": "Tüketici Fiyat Endeksi",
+    "child": null
+   }
+  }
+ },
+ {
+  "id": "DF_SU_ATIKSU_ALICI_ORTAM_TUR_DESARJ_V1+V1.0",
+  "name": "Alıcı Ortamına Göre Deşarj Edilen Atıksu Miktarı",
+  "version": "1.0",
+  "description": "Endüstriyel sektörler, belediyeler ve köyler tarafından deşarj edilen atıksu miktarına ilişkin istatistikleri alıcı ortam bazında sunmaktadır.",
+  "period": "2024",
+  "updatedAt": "2026-06-01T22:00:00",
+  "downloadable": true,
+  "category": {
+   "name": "Çevre",
+   "child": {
+    "name": "Su ve Atıksu İstatistikleri",
+    "child": null
+   }
+  }
+ },
+ {
+  "id": "DF_OLUM_BEBEK_ANNEBABA_EGT_C+V1.0",
+  "name": "Anne ve Babanın Eğitim Durumuna Göre Bebek Ölümleri",
+  "version": "1.0",
+  "description": "Yıl, anne ve babanın eğitim durumuna göre bebek ölüm sayısıdır.",
+  "footnotes": [
+   "(*) Ölüm verileri güncel idari kayıtlarla revize edilmiştir.\n",
+   "- Bilgi yoktur."
+  ],
+  "downloadable": false,
+  "category": {
+   "name": "Nüfus ve Demografi",
+   "child": {
+    "name": "Hayati İstatistikler",
+    "child": {
+     "name": "Ölüm ve Ölüm Nedeni İstatistikleri",
+     "child": null
+    }
+   }
+  }
+ },
+ {
+  "id": "DF_BOSANMA_ANNEBABA_VEL_VER+V1.0",
+  "name": "Anne ve Babanın Velayetine Verilen Çocuk Sayısına Göre Boşanmalar",
+  "version": "1.0",
+  "description": "Yıllara göre anne ve babanın velayetine verilen çocuk sayısına göre boşanma sayısıdır.",
+  "footnotes": [
+   "(0) Çocuksuz ve velayet verilmeyen kişileri içermektedir.\n(*) Boşanma verileri güncel idari kayıtlarla revize edilmiştir."
+  ],
+  "downloadable": false,
+  "category": {
+   "name": "Nüfus ve Demografi",
+   "child": {
+    "name": "Hayati İstatistikler",
+    "child": {
+     "name": "Boşanma İstatistikleri",
+     "child": null
+    }
+   }
+  }
+ },
+ {
+  "id": "DF_TUFE_SDMX_TT08+V1.0",
+  "name": "Ana grup ağırlıkları",
+  "version": "1.0",
+  "period": "Ağustos 2026",
+  "footnotes": [
+   "2026 yılı itibarıyla TÜFE hesaplamalarında 2025=100 bazlı yeni seri kullanılmaya başlanmıştır. Aynı zamanda, endekste kullanılan sınıflama da güncellenmiş ve geriye dönük tüm hesaplamalar (ağırlıklar da dahil olmak üzere) COICOP-2018 sınıflamasına göre yeniden yapılmıştır. Sınıflama değişikliği, TÜFE’nin genel endeks seviyesini etkilememekte; ancak sınıflamanın yapısı gereği alt harcama gruplarında bazı değişikliklere yol açmaktadır."
+  ],
+  "updatedAt": "2026-09-03T10:00:00",
+  "downloadable": true,
+  "category": {
+   "name": "Fiyat İstatistikleri",
+   "child": {
+    "name": "Tüketici Fiyat Endeksi",
+    "child": null
+   }
+  }
+ }
+]

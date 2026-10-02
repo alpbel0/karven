@@ -757,6 +757,118 @@ def series_metas_from_sdmx_json(
     return metas, observed
 
 
+def _observation_value(raw: Any) -> Any:
+    """The observed value of one SDMX-JSON observation entry (a ``[value, ...]`` list)."""
+    if isinstance(raw, list):
+        return raw[0] if raw else None
+    return raw
+
+
+def points_from_sdmx_json(
+    payload: dict[str, Any], key: dict[str, str]
+) -> list[tuple[date, Decimal | None]]:
+    """Extract the points of one series from a complete SDMX-JSON data message.
+
+    ``key`` maps dimension id to code. Only those dimensions are matched, so a
+    dimension the source hides from a view (usually a constant in the downloaded
+    file) does not make the selection ambiguous. Returns ``[]`` when no series
+    matches; raises ``format_changed`` when a key dimension or code is absent
+    from the message or more than one series matches (refusing to guess).
+    """
+    if not isinstance(payload, dict):
+        raise ConnectorError(FORMAT_CHANGED, "SDMX-JSON payload is not an object")
+    data = payload.get("data")
+    if not isinstance(data, dict):
+        raise ConnectorError(FORMAT_CHANGED, "SDMX-JSON payload has no data object")
+    structure = data.get("structure") or {}
+    dimensions = structure.get("dimensions") or {}
+    raw_series_dims = dimensions.get("series") or []
+    if not isinstance(raw_series_dims, list):
+        raise ConnectorError(FORMAT_CHANGED, "SDMX-JSON series dimensions are not a list")
+    dims = [dim for dim in raw_series_dims if isinstance(dim, dict)]
+    ordered_dims = sorted(dims, key=lambda dim: int(dim.get("keyPosition") or 0))
+    dim_by_id = {str(dim.get("id")): dim for dim in dims}
+    missing = [dim_id for dim_id in key if dim_id not in dim_by_id]
+    if missing:
+        raise ConnectorError(
+            FORMAT_CHANGED, f"SDMX-JSON response is missing key dimensions {sorted(missing)}"
+        )
+    code_position: dict[str, dict[str, int]] = {}
+    for dim in dims:
+        dim_id = str(dim.get("id"))
+        code_position[dim_id] = {
+            str(value.get("id")): position
+            for position, value in enumerate(dim.get("values") or [])
+            if isinstance(value, dict)
+        }
+    target: dict[int, int] = {}
+    for dim_id, code in key.items():
+        position = code_position[dim_id].get(code)
+        if position is None:
+            raise ConnectorError(
+                FORMAT_CHANGED, f"SDMX-JSON dimension {dim_id!r} has no code {code!r}"
+            )
+        target[ordered_dims.index(dim_by_id[dim_id])] = position
+
+    raw_obs_dims = dimensions.get("observation") or []
+    obs_dims = [dim for dim in raw_obs_dims if isinstance(dim, dict)]
+    time_dim = next((dim for dim in obs_dims if dim.get("id") == "TIME_PERIOD"), None)
+    if time_dim is None and obs_dims:
+        time_dim = obs_dims[0]
+    time_values = (time_dim or {}).get("values")
+    if not isinstance(time_values, list):
+        time_values = []
+
+    matches: list[list[tuple[date, Decimal | None]]] = []
+    for data_set in data.get("dataSets") or []:
+        if not isinstance(data_set, dict):
+            continue
+        series = data_set.get("series") or {}
+        if not isinstance(series, dict):
+            raise ConnectorError(FORMAT_CHANGED, "SDMX-JSON dataSet.series is not an object")
+        for raw_key, entry in series.items():
+            positions = _sdmx_positions(str(raw_key))
+            if len(positions) != len(ordered_dims):
+                raise ConnectorError(
+                    FORMAT_CHANGED,
+                    f"SDMX-JSON series key {raw_key!r} has {len(positions)} positions, "
+                    f"expected {len(ordered_dims)}",
+                )
+            if any(positions[position] != code for position, code in target.items()):
+                continue
+            observations = (entry or {}).get("observations") or {}
+            if not isinstance(observations, dict):
+                raise ConnectorError(
+                    FORMAT_CHANGED, "SDMX-JSON series.observations is not an object"
+                )
+            points: list[tuple[date, Decimal | None]] = []
+            for raw_index, raw_value in observations.items():
+                try:
+                    index = int(raw_index)
+                except (TypeError, ValueError) as exc:
+                    raise ConnectorError(
+                        FORMAT_CHANGED, f"bad SDMX observation index {raw_index!r}"
+                    ) from exc
+                if index < 0 or index >= len(time_values):
+                    raise ConnectorError(
+                        FORMAT_CHANGED, f"SDMX observation index {index} out of time range"
+                    )
+                points.append(
+                    (_sdmx_period(time_values[index]), parse_value(_observation_value(raw_value)))
+                )
+            points.sort(key=lambda item: item[0])
+            matches.append(points)
+
+    if not matches:
+        return []
+    if len(matches) > 1:
+        raise ConnectorError(
+            FORMAT_CHANGED,
+            f"SDMX-JSON key is ambiguous: {len(matches)} series match {key}; refusing to guess",
+        )
+    return matches[0]
+
+
 @dataclass(frozen=True)
 class DataflowInfo:
     """One dataflow from the databrowser2 catalog tree."""

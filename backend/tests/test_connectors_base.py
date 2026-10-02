@@ -141,6 +141,21 @@ def test_store_raw_key_shape_and_payload() -> None:
     assert store.objects[key] == b"a,b\n1,2\n"
 
 
+def test_preserve_channel_attributes_keeps_other_channels_keys() -> None:
+    from app.connectors.base import _preserve_channel_attributes
+
+    portal = {"id": "DF_X+V1.0", "downloadable": True, "seen_at": "2026-10-02"}
+    dataset = Dataset(institution_id=1, external_code="DF_X", name="X")
+    dataset.attributes = {"channel": "veriportali", "veriportali": portal}
+    incoming = {"channel": "databrowser2", "version": "1.0"}
+    merged = _preserve_channel_attributes(dataset, incoming)
+    assert merged["channel"] == "databrowser2"
+    assert merged["veriportali"] == portal
+    # The incoming owner of the key always wins (the portal refresh path).
+    replaced = _preserve_channel_attributes(dataset, {"veriportali": {"id": "new"}})
+    assert replaced["veriportali"] == {"id": "new"}
+
+
 def test_store_raw_sanitizes_path_segments() -> None:
     store = InMemoryObjectStore()
     key = store_raw("tuik/x", "../catalog", "chan nel", b"{}", "json", store=store)

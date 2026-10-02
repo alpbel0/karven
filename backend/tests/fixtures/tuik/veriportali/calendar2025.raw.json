@@ -1,0 +1,93 @@
+{
+ "yayindaOlanlarList": [
+  {
+   "sorumluKisaAd": "TÜİK",
+   "sorumluKurum": "Türkiye İstatistik Kurumu",
+   "link": "https://data.tuik.gov.tr/Bulten/Index?p=Dış-Ticaret-İstatistikleri-Kasım-2025-53908&dil=1",
+   "dilId": 1,
+   "gTarih": "2025-12-31T10:00:00",
+   "donemi": "Kasım 2025",
+   "birimi": "ULUSLARARASI MAL TİCARETİ İSTATİSTİKLERİ GRUP BAŞKANLIĞI",
+   "adi": "Dış Ticaret İstatistikleri",
+   "id": 53908
+  },
+  {
+   "sorumluKisaAd": "TÜİK",
+   "sorumluKurum": "Türkiye İstatistik Kurumu",
+   "link": "https://data.tuik.gov.tr/Bulten/Index?p=Hizmet-Üretici-Fiyat-Endeksi-Kasım-2025-53982&dil=1",
+   "dilId": 1,
+   "gTarih": "2025-12-31T10:00:00",
+   "donemi": "Kasım 2025",
+   "birimi": "ÜRETİCİ FİYATLARI GRUP BAŞKANLIĞI",
+   "adi": "Hizmet Üretici Fiyat Endeksi",
+   "id": 53982
+  },
+  {
+   "sorumluKisaAd": "TÜİK",
+   "sorumluKurum": "Türkiye İstatistik Kurumu",
+   "link": "https://data.tuik.gov.tr/Bulten/Index?p=Yoksulluk-ve-Yaşam-Koşulları-İstatistikleri-2025-53994&dil=1",
+   "dilId": 1,
+   "gTarih": "2025-12-30T10:00:00",
+   "donemi": "2025",
+   "birimi": "GELİR VE YAŞAM KOŞULLARI İSTATİSTİKLERİ GRUP BAŞKANLIĞI",
+   "adi": "Yoksulluk ve Yaşam Koşulları İstatistikleri",
+   "id": 53994
+  },
+  {
+   "sorumluKisaAd": "TÜİK",
+   "sorumluKurum": "Türkiye İstatistik Kurumu",
+   "link": "https://data.tuik.gov.tr/Bulten/Index?p=İşgücü-İstatistikleri-Kasım-2025-54068&dil=1",
+   "dilId": 1,
+   "gTarih": "2025-12-30T10:00:00",
+   "donemi": "Kasım 2025",
+   "birimi": "İŞGÜCÜ İSTATİSTİKLERİ GRUP BAŞKANLIĞI",
+   "adi": "İşgücü İstatistikleri",
+   "id": 54068
+  },
+  {
+   "sorumluKisaAd": "TÜİK",
+   "sorumluKurum": "Türkiye İstatistik Kurumu",
+   "link": "https://data.tuik.gov.tr/Bulten/Index?p=Ekonomik-Güven-Endeksi-Aralık-2025-54108&dil=1",
+   "dilId": 1,
+   "gTarih": "2025-12-30T10:00:00",
+   "donemi": "Aralık 2025",
+   "birimi": "GÜVEN ENDEKSLERİ GRUP BAŞKANLIĞI",
+   "adi": "Ekonomik Güven Endeksi",
+   "id": 54108
+  },
+  {
+   "sorumluKisaAd": "TÜİK",
+   "sorumluKurum": "Türkiye İstatistik Kurumu",
+   "link": "https://data.tuik.gov.tr/Bulten/Index?p=Girişim-Özelliklerine-Göre-Uluslararası-Hizmet-Ticareti-İstatistikleri-2023-54052&dil=1",
+   "dilId": 1,
+   "gTarih": "2025-12-29T10:00:00",
+   "donemi": "2023",
+   "birimi": "ULUSLARARASI HİZMET TİCARETİ İSTATİSTİKLERİ GRUP BAŞKANLIĞI",
+   "adi": "Girişim Özelliklerine Göre Uluslararası Hizmet Ticareti İstatistikleri",
+   "id": 54052
+  },
+  {
+   "sorumluKisaAd": "SPK",
+   "sorumluKurum": "Sermaye Piyasası Kurulu",
+   "link": "https://www.spk.gov.tr/istatistikler/aylik.istatistik.bultenleri",
+   "dilId": 1,
+   "gTarih": "2025-12-31T19:00:00",
+   "donemi": "Ekim 2025",
+   "birimi": "Sermaye Piyasası Kurulu",
+   "adi": "Halka Açık Şirket İstatistikleri (Birinci el piyasa ve menkul kıymet ihraçları; menkul kıymet stokları, ikinci el piyasalar)",
+   "id": 57888
+  },
+  {
+   "sorumluKisaAd": "TÜİK",
+   "sorumluKurum": "Türkiye İstatistik Kurumu",
+   "link": "https://data.tuik.gov.tr/Bulten/Index?dil=1",
+   "dilId": 1,
+   "gTarih": "2025-12-31T10:00:00",
+   "donemi": "Kasım 2025",
+   "birimi": "ULUSLARARASI MAL TİCARETİ İSTATİSTİKLERİ GRUP BAŞKANLIĞI",
+   "adi": "Dış Ticaret İstatistikleri",
+   "id": 53908
+  }
+ ],
+ "yayindaOlmayanlarList": []
+}

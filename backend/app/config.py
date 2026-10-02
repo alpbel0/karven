@@ -177,6 +177,24 @@ class Settings(BaseSettings):
     # symptom) even when it eventually returns.
     tuik_yayin_stall_s: float = 20.0
 
+    # TÜİK Veri Portalı (veriportali.tuik.gov.tr). Measured live 2026-10-02:
+    # the WAF only inspects headers, so every JSON request must carry the browser
+    # User-Agent plus ``X-Requested-With: XMLHttpRequest`` (no UA -> 403; UA
+    # without XHR -> 404 text/plain on JSON paths). JSON APIs showed no
+    # throttling up to 8 parallel, so one worker with no fixed pause is enough;
+    # a 200 text/html "Yönlendiriliyor" page still means throttling.
+    tuik_veriportali_base_url: str = "https://veriportali.tuik.gov.tr"
+    tuik_veriportali_press_base_url: str = "https://www.tuik.gov.tr"
+    tuik_veriportali_user_agent: str = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+    )
+    tuik_veriportali_max_concurrency: int = 1
+    tuik_veriportali_request_timeout_s: float = 30.0
+    tuik_veriportali_max_retries: int = 3
+    tuik_veriportali_retry_backoff_s: float = 1.0
+    tuik_veriportali_throttle_wait_s: float = 5.0
+
     minio_endpoint: str | None = None
     minio_access_key: str | None = None
     minio_secret_key: SecretStr | None = None

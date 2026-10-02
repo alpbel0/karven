@@ -76,6 +76,18 @@ from app.connectors.tuik.turcat_parsers import SECTORS
 from app.connectors.tuik.turizm import HEADLINES as TURIZM_HEADLINES
 from app.connectors.tuik.turizm import PAGES as TURIZM_PAGES
 from app.connectors.tuik.turizm import TurizmConnector, distinct_series_count
+from app.connectors.tuik.veriportali import (
+    PRESS_FIRST_YEAR,
+    CalendarCrawl,
+    VeriPortaliClient,
+    covers_all_press_years,
+    fetch_press_release,
+    load_press_catalog,
+    parse_calendar,
+    parse_press_detail,
+    parse_press_types,
+    sync_veriportali_catalog,
+)
 from app.connectors.tuik.yayin import (
     DocumentLoad,
     YayinClient,
@@ -138,6 +150,60 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         dest="dry_run",
         help="fetch and parse but write nothing (no DB, no MinIO)",
+    )
+    fetch.add_argument(
+        "--channel",
+        default=None,
+        choices=["veriportali"],
+        help="force a fetch channel (veriportali) for checks",
+    )
+
+    veriportali_catalog = subparsers.add_parser(
+        "veriportali-catalog",
+        help="merge the Veri Portali dataflow catalogue onto the TÜİK datasets",
+    )
+    veriportali_catalog.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and parse the catalogue but write nothing (no DB, no MinIO)",
+    )
+
+    press_catalog = subparsers.add_parser(
+        "press-catalog",
+        help="sync the TÜİK press-release catalogue into documents (no bodies)",
+    )
+    press_catalog.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and parse every requested year but write nothing (no DB, no MinIO)",
+    )
+    press_catalog.add_argument(
+        "--from-year",
+        type=int,
+        default=PRESS_FIRST_YEAR,
+        dest="from_year",
+        help="first year (default 2005)",
+    )
+    press_catalog.add_argument(
+        "--to-year",
+        type=int,
+        default=date.today().year,
+        dest="to_year",
+        help="last year (default the current year)",
+    )
+
+    press_fetch = subparsers.add_parser(
+        "press-fetch",
+        help="fetch one press-release body, its text and its dataset links",
+    )
+    press_fetch.add_argument("--id", required=True, dest="press_id", help="press release id")
+    press_fetch.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and parse the detail but write nothing (no DB, no MinIO)",
     )
 
     find = subparsers.add_parser("find", help="search dataset names and code labels")
@@ -860,6 +926,191 @@ def _run_yayin(args: argparse.Namespace, dry_run: bool) -> int:
     return 0
 
 
+def _build_veriportali_client(dry_run: bool) -> VeriPortaliClient:
+    """Create the Veri Portalı client; a dry run never touches MinIO."""
+    return VeriPortaliClient(store=None if dry_run else MinioObjectStore())
+
+
+def _cmd_veriportali_catalog(
+    session: Session | None, client: VeriPortaliClient, args: argparse.Namespace
+) -> int:
+    """Merge the portal dataflow catalogue onto the TÜİK datasets."""
+    started = time.monotonic()
+    try:
+        records = client.dataflows()
+    except ConnectorError as exc:
+        _print_error("veriportali-catalog", exc)
+        return 1
+    total = len(records)
+    downloadable = sum(1 for record in records if record.downloadable)
+    with_updated_at = sum(1 for record in records if record.updated_at)
+    runtime = time.monotonic() - started
+    if session is None:
+        print(
+            f"veriportali-catalog (dry-run): dataflows={total} downloadable={downloadable} "
+            f"with_updated_at={with_updated_at} (nothing written) runtime={runtime:.1f}s"
+        )
+        return 0
+    institution = upsert_institution(
+        session, TuikConnector.institution_code, TuikConnector.institution_name
+    )
+    session.flush()
+    result = sync_veriportali_catalog(session, records, institution_id=institution.id)
+    session.commit()
+    print(
+        f"veriportali-catalog: dataflows={total} downloadable={downloadable} "
+        f"with_updated_at={with_updated_at}"
+    )
+    print(
+        f"datasets: created={result.created} updated={result.updated} "
+        f"unchanged={result.unchanged} removed={result.removed} runtime={runtime:.1f}s"
+    )
+    return 0
+
+
+def _cmd_press_catalog(
+    session: Session | None, client: VeriPortaliClient, args: argparse.Namespace
+) -> int:
+    """Crawl the yearly press calendar into the ``documents`` table."""
+    started = time.monotonic()
+    from_year = int(getattr(args, "from_year", PRESS_FIRST_YEAR))
+    to_year = int(getattr(args, "to_year", date.today().year))
+    if from_year > to_year:
+        print(
+            f"press-catalog: --from-year {from_year} is after --to-year {to_year}",
+            file=sys.stderr,
+        )
+        return 1
+    press_types = []
+    try:
+        press_types = parse_press_types(client.press_list().json())
+    except ConnectorError as exc:
+        logger.warning("press-catalog: press types unavailable (%s): %s", exc.kind, exc)
+
+    items = []
+    skipped = 0
+    failed: list[int] = []
+    for year in range(from_year, to_year + 1):
+        try:
+            payload = client.calendar(year).json()
+            year_items, year_skipped = parse_calendar(
+                payload, base_url=client.base_url, press_types=press_types
+            )
+        except ConnectorError as exc:
+            logger.warning("press-catalog: year %d failed (%s): %s", year, exc.kind, exc)
+            failed.append(year)
+            continue
+        items.extend(year_items)
+        skipped += year_skipped
+    crawl = CalendarCrawl(
+        items=items,
+        skipped_without_id=skipped,
+        failed_years=failed,
+        covers_all_years=covers_all_press_years(from_year, to_year),
+    )
+    runtime = time.monotonic() - started
+    if session is None:
+        print(
+            f"press-catalog (dry-run): years={from_year}..{to_year} tuik_rows={len(items)} "
+            f"skipped_without_id={skipped} failed_years={sorted(failed)} (nothing written) "
+            f"runtime={runtime:.1f}s"
+        )
+        return 0
+    institution = upsert_institution(
+        session, TuikConnector.institution_code, TuikConnector.institution_name
+    )
+    session.flush()
+    outcome = load_press_catalog(
+        session, items, institution_id=institution.id, complete=crawl.complete
+    )
+    session.commit()
+    print(
+        f"press-catalog: years={from_year}..{to_year} tuik_rows={len(items)} "
+        f"skipped_without_id={skipped} failed_years={sorted(failed)}"
+    )
+    if not crawl.covers_all_years:
+        print(f"partial year range (full = {PRESS_FIRST_YEAR}..this year): no removals marked")
+    elif not crawl.complete:
+        print("incomplete crawl: no removals marked")
+    print(
+        f"documents: inserted={outcome.inserted} updated={outcome.updated} "
+        f"unchanged={outcome.unchanged} removed={outcome.removed} runtime={runtime:.1f}s"
+    )
+    return 0
+
+
+def _cmd_press_fetch(
+    session: Session | None, client: VeriPortaliClient, args: argparse.Namespace
+) -> int:
+    """Fetch one press release: text, attributes and dataset links."""
+    started = time.monotonic()
+    press_id = str(args.press_id)
+    try:
+        if session is None:
+            response = client.press_detail(press_id)
+            detail = parse_press_detail(response.json(), base_url=client.base_url)
+            codes = [link.dataset_code for link in detail.links]
+            preview = detail.content_text[:200].replace("\n", " ")
+            print(
+                f"press-fetch (dry-run): id={press_id} title={detail.title!r} "
+                f"period={detail.period!r}"
+            )
+            print(
+                f"text_length={len(detail.content_text)} "
+                f"tables={len(detail.attributes['tables'])} "
+                f"reports={len(detail.attributes['reports'])} "
+                f"statistical_tables={len(detail.attributes['statistical_tables'])}"
+            )
+            print(f"dataset_codes={codes}")
+            print(f"first_200: {preview}")
+            print(f"runtime={time.monotonic() - started:.1f}s")
+            return 0
+        institution = upsert_institution(
+            session, TuikConnector.institution_code, TuikConnector.institution_name
+        )
+        session.flush()
+        result = fetch_press_release(
+            session, client, press_id, institution_id=institution.id, base_url=client.base_url
+        )
+        session.commit()
+    except ConnectorError as exc:
+        _print_error("press-fetch", exc)
+        return 1
+    print(
+        f"press-fetch: id={press_id} document={result.document_id} created={result.created} "
+        f"text_length={result.content_length} links={result.links_written} "
+        f"resolved={result.links_resolved} runtime={time.monotonic() - started:.1f}s"
+    )
+    return 0
+
+
+def _run_veriportali(args: argparse.Namespace, dry_run: bool) -> int:
+    client = _build_veriportali_client(dry_run)
+    try:
+        if args.command == "veriportali-catalog":
+            if dry_run:
+                return _cmd_veriportali_catalog(None, client, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_veriportali_catalog(session, client, args)
+        if args.command == "press-catalog":
+            if dry_run:
+                return _cmd_press_catalog(None, client, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_press_catalog(session, client, args)
+        if dry_run:
+            return _cmd_press_fetch(None, client, args)
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            return _cmd_press_fetch(session, client, args)
+    finally:
+        client.close()
+
+
 def _cmd_cip_catalog(
     session: Session | None, connector: CipConnector, args: argparse.Namespace
 ) -> int:
@@ -1097,7 +1348,13 @@ def _dry_run_fetch(connector: TuikConnector, args: argparse.Namespace) -> int:
                 )
                 return 1
             codes = dict(zip(order, parts, strict=True))
-        result = connector.fetch_series(dataset_code, codes, order=order, start=start)
+        channel = getattr(args, "channel", None)
+        if channel:
+            result = connector.fetch_series(
+                dataset_code, codes, order=order, start=start, channel=channel
+            )
+        else:
+            result = connector.fetch_series(dataset_code, codes, order=order, start=start)
     except ConnectorError as exc:
         _print_error("fetch", exc)
         return 1
@@ -1107,6 +1364,9 @@ def _dry_run_fetch(connector: TuikConnector, args: argparse.Namespace) -> int:
     )
     if result.points:
         print(f"periods: {result.points[0][0].isoformat()}..{result.points[-1][0].isoformat()}")
+    if getattr(args, "channel", None):
+        for period, value in result.points[-3:]:
+            print(f"  {period.isoformat()}={value}")
     return 0
 
 
@@ -1147,7 +1407,14 @@ def _cmd_fetch(session: Session, connector: TuikConnector, args: argparse.Namesp
         return 1
 
     try:
-        result = ingest_series(session, connector, dataset=dataset, codes=codes, start=start)
+        result = ingest_series(
+            session,
+            connector,
+            dataset=dataset,
+            codes=codes,
+            start=start,
+            channel=getattr(args, "channel", None),
+        )
     except (ConnectorError, SeriesDefinitionError, SeriesNotFoundError) as exc:
         _print_error("fetch", exc)
         return 1
@@ -2416,6 +2683,8 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     dry_run = bool(getattr(args, "dry_run", False))
+    if args.command in ("veriportali-catalog", "press-catalog", "press-fetch"):
+        return _run_veriportali(args, dry_run)
     if _is_turizm_command(args):
         return _run_turizm(args, dry_run)
     if _is_secim_command(args):
@@ -2465,11 +2734,15 @@ def _build_connector(
     except Exception:  # noqa: BLE001 - the backup must never stop the primary CLI
         logger.warning("tuik nsiws backup unavailable", exc_info=True)
         nsiws = None
+    veriportali = _build_veriportali_client(dry_run)
     if dry_run:
         return TuikConnector(
-            client=Databrowser2Client(store=None), nsiws=nsiws, known_dataflows=known or ()
+            client=Databrowser2Client(store=None),
+            nsiws=nsiws,
+            veriportali=veriportali,
+            known_dataflows=known or (),
         )
-    return TuikConnector(nsiws=nsiws, known_dataflows=known or ())
+    return TuikConnector(nsiws=nsiws, veriportali=veriportali, known_dataflows=known or ())
 
 
 if __name__ == "__main__":
