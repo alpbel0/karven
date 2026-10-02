@@ -1,6 +1,15 @@
 name: karven
 
 # ---------------------------------------------------------------------------
+# Phase profiles: only the services the current phase needs start by default.
+#   default (no profile) : postgres, minio, migrator, api  (now)
+#   graph                : neo4j                            (Phase 3 — graph agent)
+#   queue                : redis, worker, beat              (Task 1.5 / 1.7)
+#   web                  : frontend                         (Phase 4-5)
+# Enable a group via COMPOSE_PROFILES (e.g. COMPOSE_PROFILES=graph,queue) or
+# `docker compose --profile graph up -d`. Enabling `graph` also requires
+# NEO4J_ENABLED=true so the migrator applies graph migrations.
+# ---------------------------------------------------------------------------
 # Shared configuration for backend application services.
 # Every backend service uses the same image built from ./backend; only the
 # command differs. The root .env is loaded for secrets (copy .env.example to
@@ -10,12 +19,17 @@ name: karven
 x-infra-deps: &infra-deps
   postgres:
     condition: service_healthy
-  neo4j:
-    condition: service_healthy
-  redis:
-    condition: service_healthy
   minio:
     condition: service_healthy
+  # Profiled services: ignored unless the matching profile is enabled. When the
+  # profile IS enabled they are started and awaited normally (required: false
+  # only relaxes the "service must exist" requirement).
+  neo4j:
+    condition: service_healthy
+    required: false
+  redis:
+    condition: service_healthy
+    required: false
 
 # Application services start only after the one-shot migrator succeeds.
 x-app-deps: &app-deps
@@ -35,14 +49,21 @@ x-backend-base: &backend-base
     POSTGRES_HOST: postgres
     POSTGRES_PORT: "5432"
     NEO4J_URI: bolt://neo4j:7687
+    # App-level switch for graph migrations. Keep in sync with the `graph`
+    # profile: COMPOSE_PROFILES contains `graph` <=> NEO4J_ENABLED=true.
+    NEO4J_ENABLED: ${NEO4J_ENABLED:-false}
     REDIS_URL: redis://redis:6379/0
     MINIO_ENDPOINT: http://minio:9000
+  mem_limit: 1g
+  restart: unless-stopped
   depends_on: *infra-deps
 
 services:
   # --------------------------- Infrastructure ------------------------------
   postgres:
     image: postgres:17
+    mem_limit: 1g
+    restart: unless-stopped
     ports:
       - "127.0.0.1:${POSTGRES_HOST_PORT:-15432}:5432"
     environment:
@@ -61,6 +82,9 @@ services:
 
   neo4j:
     image: neo4j:5-community
+    profiles: ["graph"]
+    mem_limit: 2g
+    restart: unless-stopped
     ports:
       - "127.0.0.1:${NEO4J_HTTP_HOST_PORT:-17474}:7474" # HTTP browser
       - "127.0.0.1:${NEO4J_BOLT_HOST_PORT:-17687}:7687" # Bolt
@@ -70,20 +94,39 @@ services:
       # resulting "password" setting. The healthcheck derives the password from
       # NEO4J_AUTH instead.
       NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:?}
+      # Keep the JVM inside the 2g container limit: heap 1g + pagecache 512m
+      # (+ ~300m JVM overhead). The image maps NEO4J_* env vars to settings and
+      # doubles literal underscores, so `heap_max__size` -> `heap.max_size`.
+      NEO4J_server_memory_heap_max__size: 1g
+      NEO4J_server_memory_pagecache_size: 512m
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
     healthcheck:
-      # Real Cypher query, not a port check. NEO4J_AUTH is "neo4j/<password>";
-      # ${NEO4J_AUTH#*/} strips up to the first slash to recover the password.
-      test: ["CMD-SHELL", "cypher-shell -u neo4j -p \"$${NEO4J_AUTH#*/}\" 'RETURN 1'"]
-      interval: 5s
-      timeout: 5s
+      # Real Cypher query over the HTTP API. Do NOT use cypher-shell here: it
+      # starts a JVM per check; under load checks time out, Docker does not kill
+      # them, and they pile up (seen 2026-09-30: dozens of JVMs, 7 GB, 790% CPU).
+      # NEO4J_AUTH is "neo4j/<password>"; $${NEO4J_AUTH#*/} recovers the password.
+      test:
+        - CMD-SHELL
+        - >-
+          wget -qO- -T 8
+          --header='Content-Type: application/json'
+          --header="Authorization: Basic $$(printf 'neo4j:%s' "$${NEO4J_AUTH#*/}" | base64)"
+          --post-data='{"statements":[{"statement":"RETURN 1"}]}'
+          http://localhost:7474/db/neo4j/tx/commit
+          | grep -q '"errors":\[\]'
+      interval: 15s
+      timeout: 10s
       retries: 20
-      start_period: 50s
+      # A fresh volume on a busy host took 5.5 min to start (2026-09-30).
+      start_period: 300s
 
   redis:
     image: redis:7
+    profiles: ["queue"]
+    mem_limit: 256m
+    restart: unless-stopped
     ports:
       - "127.0.0.1:${REDIS_HOST_PORT:-16379}:6379"
     command: ["redis-server", "--appendonly", "yes"]
@@ -101,6 +144,8 @@ services:
     # The official minio/minio image no longer exists; this is Chainguard's
     # maintained build, pinned by digest for reproducibility.
     image: cgr.dev/chainguard/minio@sha256:71674988a1c7ddd5724928633199152b11e4ddefd6c6ce2d60772ff4a8f22ca9
+    mem_limit: 1g
+    restart: unless-stopped
     ports:
       - "127.0.0.1:${MINIO_API_HOST_PORT:-19000}:9000" # S3 API
       - "127.0.0.1:${MINIO_CONSOLE_HOST_PORT:-19001}:9001" # console
@@ -146,26 +191,32 @@ services:
   worker:
     <<: *backend-base
     depends_on: *app-deps
-    profiles: ["worker"]
+    profiles: ["queue"]
     command: ["python", "-c", "print('worker: not implemented yet'); raise SystemExit(1)"]
 
   # Celery beat — implemented in a later task (code does not exist yet).
   beat:
     <<: *backend-base
-    depends_on: *app-deps
-    profiles: ["beat"]
+    profiles: ["queue"]
+    mem_limit: 512m
     command: ["python", "-c", "print('beat: not implemented yet'); raise SystemExit(1)"]
+    depends_on: *app-deps
 
-  # Schema migrator: runs once (postgres -> neo4j -> minio) and exits 0.
-  # Application services wait for it via `service_completed_successfully`.
+  # Schema migrator: runs once (postgres -> neo4j if enabled -> minio) and
+  # exits 0. Application services wait for it via
+  # `service_completed_successfully`. One-shot: never restarted.
   migrator:
     <<: *backend-base
+    restart: "no"
     command: ["python", "-m", "app.migrator"]
 
   frontend:
     image: karven-frontend:dev
     build:
       context: ./frontend
+    profiles: ["web"]
+    mem_limit: 1536m
+    restart: unless-stopped
     ports:
       - "127.0.0.1:${FRONTEND_HOST_PORT:-13000}:3000"
     environment:
@@ -184,8 +235,9 @@ services:
           "-e",
           "fetch('http://localhost:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
-      interval: 5s
-      timeout: 5s
+      interval: 15s
+      # next dev renders on demand; node startup + render can exceed 5 s on a busy host.
+      timeout: 15s
       retries: 20
       start_period: 90s
 

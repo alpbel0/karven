@@ -57,8 +57,58 @@ All host ports bind to `127.0.0.1` only.
 | api | 18000 | 8000 |
 | frontend | 13000 | 3000 |
 
-`worker` and `beat` are behind compose profiles and do not start on a plain
-`docker compose up`. The one-shot `migrator` runs automatically before `api`.
+### Service profiles
+
+Only the services the current phase needs start by default. Every definition
+stays in `compose.yaml`; the rest are behind compose profiles:
+
+| Group | Services | Needed from |
+|---|---|---|
+| default (no profile) | postgres, minio, migrator, api | now |
+| `graph` | neo4j | Phase 3 (graph agent) |
+| `queue` | redis, worker, beat | Task 1.5 / 1.7 |
+| `web` | frontend | Phase 4-5 |
+
+Enable a group with `COMPOSE_PROFILES` (comma-separated), either inline:
+
+```bash
+COMPOSE_PROFILES=graph,queue docker compose up -d
+```
+
+or by setting it in the root `.env` (see `.env.example`). The one-shot
+`migrator` runs first and `api` waits for it.
+
+Enabling `graph` also requires `NEO4J_ENABLED=true` so the migrator applies
+graph migrations. Keep the two consistent: `COMPOSE_PROFILES` contains `graph`
+<=> `NEO4J_ENABLED=true` (they are deliberately separate — profiles control
+which containers run, `NEO4J_ENABLED` controls whether the migrator touches the
+graph — so a mismatch is always visible). With `graph` off the migrator logs
+`neo4j: disabled (NEO4J_ENABLED=false), graph migrations skipped`; with
+`NEO4J_ENABLED=true` but Neo4j not running it fails loudly.
+
+Turning a group **off** again: `docker compose up` (even with `--remove-orphans`)
+does NOT stop containers of a disabled profile. Stop and remove them explicitly
+(volumes are kept):
+
+```bash
+COMPOSE_PROFILES=graph,queue,web docker compose rm -sf neo4j redis frontend
+```
+
+### Resource limits and restart policy
+
+Each container is capped (the WSL VM is limited to 4 CPUs / 12 GB):
+
+| Service | Memory | Restart |
+|---|---|---|
+| postgres | 1g | unless-stopped |
+| minio | 1g | unless-stopped |
+| redis | 256m | unless-stopped |
+| neo4j | 2g (heap 1g + pagecache 512m) | unless-stopped |
+| api | 1g | unless-stopped |
+| worker | 1g | unless-stopped |
+| beat | 512m | unless-stopped |
+| frontend | 1536m | unless-stopped |
+| migrator | 1g | no (one-shot) |
 
 On Windows, check reserved TCP port ranges before choosing host ports:
 
@@ -81,6 +131,9 @@ It guarantees:
 
 - Live (`karven`) is never touched — separate project, ports (25xxx/29xxx/28xxx),
   databases (`karven_test`), bucket (`karven-test-raw`) and image tag.
+- The test stack enables `COMPOSE_PROFILES=graph` and `NEO4J_ENABLED=true`, so
+  Neo4j and the graph migration runner are exercised even though the default
+  live stack starts without them.
 - The live `karven-backend:dev` image is never built, retagged or removed.
 - Integration tests refuse to run unless the environment is the test one
   (guarded in `tests/integration/conftest.py`).

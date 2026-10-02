@@ -10,6 +10,7 @@ from alembic import context
 from sqlalchemy import Engine, create_engine, pool
 
 from app.config import settings
+from app.data import models as data_models  # noqa: F401  (register on Base.metadata)
 from app.db.base import Base
 from app.prompts import models as prompts_models  # noqa: F401  (register on Base.metadata)
 

@@ -45,9 +45,12 @@ def main() -> int:
         upgrade_postgres()
         logger.info("postgres: up to date")
 
-        logger.info("neo4j: applying migrations")
-        run_neo4j_migrations()
-        logger.info("neo4j: up to date")
+        if settings.neo4j_enabled:
+            logger.info("neo4j: applying migrations")
+            run_neo4j_migrations()
+            logger.info("neo4j: up to date")
+        else:
+            logger.info("neo4j: disabled (NEO4J_ENABLED=false), graph migrations skipped")
 
         bucket = _required(settings.minio_bucket_raw, "MINIO_BUCKET_RAW")
         logger.info("minio: ensuring bucket %s", bucket)

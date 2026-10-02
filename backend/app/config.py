@@ -71,8 +71,19 @@ class Settings(BaseSettings):
     neo4j_uri: str | None = None
     neo4j_user: str | None = None
     neo4j_password: SecretStr | None = None
+    # Graph migrations are off by default; enabled together with the `graph`
+    # compose profile (Phase 3). When false the migrator skips Neo4j entirely.
+    neo4j_enabled: bool = False
 
     redis_url: str | None = None
+
+    # TÜİK databrowser2 connector (measured 2026-09-30: at most 2 concurrent
+    # requests; 3+ parallel requests can answer HTTP 200 with a throttle page).
+    tuik_max_concurrency: int = 2
+    tuik_request_timeout_s: float = 30.0
+    tuik_max_retries: int = 3
+    tuik_retry_backoff_s: float = 1.0
+    tuik_throttle_wait_s: float = 5.0
 
     minio_endpoint: str | None = None
     minio_access_key: str | None = None

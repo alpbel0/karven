@@ -1,0 +1,1 @@
+"""TÜİK source connector package."""

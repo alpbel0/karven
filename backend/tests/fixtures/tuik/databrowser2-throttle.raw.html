@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>Yönlendiriliyor...</title>
+  <script>
+    // Yönlendirme süresi (saniye)
+    let time = 3;
+    let countdown;
+
+    function stopwatch() {
+      const timeSpan = document.getElementById("time");
+      timeSpan.textContent = time;
+
+      countdown = setInterval(() => {
+        time--;
+        timeSpan.textContent = time;
+
+        if (time <= 0) {
+          clearInterval(countdown);
+          // Şu anki URL adresi (parametresiz sadeleştirilmiş versiyon)
+          const currentUrl = window.location.href;
+          // Yönlendirme işlemi
+          window.location.href = currentUrl;
+        }
+      }, 1000);
+    }
+  </script>
+</head>
+
+<body onload="stopwatch()">
+  <span id="time"></span> saniye içinde bulunduğunuz sayfaya tekrar yönlendirileceksiniz. Lütfen bekleyiniz...
+</body>
+</html>

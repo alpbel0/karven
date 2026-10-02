@@ -13,7 +13,7 @@ yürütür: ajan planlar ve hataları yorumlar, kod izler ve bekletir. Haberler
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-09-30, canlıda doğrulandı)
 **Bağımlılıklar:** Task 0.3
 
 **Referanslar:** `docs/DECISIONS.md` §5, §13
@@ -22,18 +22,18 @@ yürütür: ajan planlar ve hataları yorumlar, kod izler ve bekletir. Haberler
 
 ### Checklist
 
-- [ ] Kurum, seri (meta bilgisiyle: ad, kurum kategorisi/tablosu, birim,
+- [x] Kurum, seri (meta bilgisiyle: ad, kurum kategorisi/tablosu, birim,
       frekans, kırılım, kapsadığı yıllar) ve gözlem (dönem + değer) tablolarını kur.
-- [ ] Her gözlem için **çekilme zamanı** zorunlu alan olsun.
-- [ ] **Revizyonlar saklanır:** bir dönemin değeri düzeltilirse yeni kayıt
+- [x] Her gözlem için **çekilme zamanı** zorunlu alan olsun.
+- [x] **Revizyonlar saklanır:** bir dönemin değeri düzeltilirse yeni kayıt
       olarak eklenir, eskisi silinmez; okuyan taraf son değeri kullanır.
-- [ ] Çekme işi durum tablosu: `istendi → çekiliyor → tamamlandı / hata`,
+- [x] Çekme işi durum tablosu: `istendi → çekiliyor → tamamlandı / hata`,
       "yaşıyorum" sinyali zamanı, hata nedeni (Task 1.5 kullanır).
 
 **Kabul kriteri:** Migration boş veritabanında kuruluyor; çekilme zamanı
 olmayan bir gözlem veritabanına yazılamıyor.
 
-## Task 1.2 — TÜİK bağlayıcısı
+## Task 1.2 — TÜİK bağlayıcısı (üst task)
 
 **Repo:** `karven`
 **Alan:** `backend`
@@ -42,20 +42,123 @@ olmayan bir gözlem veritabanına yazılamıyor.
 
 **Referanslar:** `docs/source-profiles/tuik.md`, `docs/DECISIONS.md` §5;
 bilgi için `docs/source-profiles/reference/connector-data-coverage-research.md`
+ve araştırma klasörü `Desktop/KARVEN-ARAŞTIRMA/tuik/`
 
-**Hedef dosyalar:** Faz 0 yapısına göre belirlenir.
+**Kapsam kararı (kullanıcı, 2026-09-30):** Bir kaynak bağlanırken **bütün
+kanallarıyla** bağlanır. TÜİK'in 12 kanalı aşağıdaki alt tasklara bölündü ve
+sırayla yapılır. Kapsam dışı yalnızca Mikro Veri Setleri (resmî kurumsal
+başvuru gerektirir).
 
-### Checklist
+**Ortak kurallar (bütün alt tasklar):**
+- Kaynaktan bağımsız ortak bağlayıcı arayüzü (1.2a'da tanımlanır): seri
+  listesi, seri çekme, ortak hata türleri (`not_found`, `empty`, `timeout`,
+  `format_changed`, `source_error`).
+- Aynı veri seti + aynı boyutlar **tek seri**dir; hangi kanaldan geldiği
+  gözlem kaydında tutulur. Kanallar birbirinin yedeğidir.
+- Baz yılı seri kimliğinin parçasıdır (baz değişince yeni seri doğar).
+- Her gözleme çekilme zamanı; ham cevap MinIO'da
+  `sources/tuik/YYYY/MM/DD/<veri-seti>/<id>.<uzantı>`.
+- İstek başına 30 sn zaman aşımı, 3 tekrar deneme (artan bekleme). Hız,
+  2026-09-30 ölçümüne göre: databrowser2'de **2 paralel istek, sabit bekleme
+  yok** (%100 başarı, ~1000 istek/dk); 3+ paralelde TÜİK HTTP 200 ile
+  "Yönlendiriliyor..." HTML sayfası döndürüyor → bu sayfa yavaşlatma sinyali
+  sayılır: bekle, tekrar dene, paralelliği 1'e düşür. Değerler ayarda.
+- Seri olmayan içerik (bülten metni, yayın, sınıflama) için kaynaktan
+  bağımsız yeni tablolar ilgili alt taskta kullanıcıyla tasarlanır.
 
-- [ ] TÜİK'in seri listesini (katalog için meta bilgi) çek.
-- [ ] Bir seriyi 2000-01-01'den itibaren çek; kaynak profilindeki formatları
-      (SDMX, JSON-stat vb.) destekle.
-- [ ] Her yazılan gözleme çekilme zamanını kaydet.
-- [ ] TÜİK'ten gelen ham cevabı MinIO'da sakla.
-- [ ] Hataları anlaşılır biçimde döndür (veri çekme ajanı teşhis için kullanır).
+**Kabul kriteri (üst task):** Bütün alt tasklar canlıda doğrulanmış olarak
+tamamlandı.
 
-**Kabul kriteri:** Gerçek TÜİK'ten en az bir aylık ve bir yıllık seri
-2000'den itibaren eksiksiz çekiliyor; seri listesi meta bilgisiyle kaydediliyor.
+### Task 1.2a — databrowser2 + ortak bağlayıcı arayüzü + seri kataloğu
+
+**Durum:** Tamamlandı (2026-09-30, canlıda doğrulandı) · **Bağımlılıklar:** Task 1.1
+
+- [x] Ortak bağlayıcı arayüzü ve ortak hata türleri.
+- [x] Veri seti listesi ve doğru sürüm numaraları (databrowser2'nin kendi
+      kataloğu `/api/core/nodes/1/catalog`, token gerekmiyor; 467 veri seti).
+- [x] Katalog **veri seti + boyut listeleri** olarak yazılır (DECISIONS §7,
+      2026-09-30): her veri setinin adı, kategorisi, frekansı, yıl aralığı,
+      toplam gözlem sayısı ve her boyutun tam kod listesi (varsa hiyerarşi).
+      Seri satırları önceden yazılmaz; değerler yazılmaz.
+- [x] Kaynağın bildirdiğinden az gözlem veren veri setleri "kaynak eksik
+      bildiriyor" notuyla işaretlenir; filtreli istekte hata veren veri
+      setleri için filtresiz isteğe yedek yol.
+- [x] Bir seriyi 2000-01-01'den itibaren çekme: SDMX-CSV birincil, JSON-stat
+      yedek (biri ayrıştırılamazsa diğeri; biçim değişikliği tespit edilir).
+- [x] Bölge kodu `TR` geçersiz olan veri setlerinde geçerli kodları keşfetme.
+
+**Kabul kriteri:** Canlı container'da: bütün TÜİK veri setleri boyut
+listeleriyle katalogda; TÜFE (aylık) ve GSYH (yıllık) seri olarak oluşturulup
+2000'den itibaren kaynakta ne varsa eksiksiz çekiliyor.
+
+### Task 1.2b — nsiws SDMX (resmî servis)
+
+**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a · **Anahtar:** `TUIK_API_KEY`
+
+- [ ] API anahtarını Keycloak'ta kısa ömürlü token'a çevirme ve yenileme.
+- [ ] Veri çekme; databrowser2 başarısız olursa yedek kanal olarak devreye girer.
+
+**Kabul kriteri:** Aynı seri nsiws'ten çekiliyor ve databrowser2 ile aynı
+değerleri veriyor; yedeğe geçiş canlıda görüldü.
+
+### Task 1.2c — Turcat (IMF SDDS)
+
+**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+
+- [ ] Kilit göstergelerin son + önceki değerleri.
+- [ ] "Yeni dönem yayımlandı mı" kontrolü olarak kullanım (Task 1.4 kesilme
+      uyarısına girdi).
+
+**Kabul kriteri:** Canlıda Turcat göstergeleri okunuyor ve katalogdaki
+serilerle eşleşiyor.
+
+### Task 1.2d — MEDAS + CİP (bölgesel veri)
+
+**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+
+- [ ] İl/ilçe düzeyi göstergeler (`duzey` 1-4); kırılım `breakdown` alanında.
+
+**Kabul kriteri:** Bir bölgesel gösterge 81 il için canlıda çekiliyor.
+
+### Task 1.2e — Sınıflama Sunucusu
+
+**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+
+- [ ] Sınıflama hiyerarşileri (NACE, COICOP, İBBS …) için kaynaktan bağımsız
+      tablo (kullanıcıyla tasarlanır) ve çekme.
+
+**Kabul kriteri:** En az COICOP ve İBBS hiyerarşisi canlıda eksiksiz yüklü.
+
+### Task 1.2f — ZK uygulamaları: turizmapp, Seçim Dağıtım, Biruni Yayın Sistemi
+
+**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+
+- [ ] turizmapp 3 konu.
+- [ ] Seçim Dağıtım 10 tablonun tamamı.
+- [ ] Yayın Sistemi kataloğu (seri olmayan içerik tablosu kullanıcıyla tasarlanır).
+
+**Kabul kriteri:** Üç uygulamadan da canlıda veri alınıyor.
+
+### Task 1.2g — bi.tuik (Qlik) dış ticaret
+
+**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+
+- [ ] Qlik protokolüyle dış ticaret raporları (4 ana kategori).
+
+**Kabul kriteri:** En az bir dış ticaret tablosu canlıda çekiliyor.
+
+### Task 1.2h — WAF kanalları: Veri Portalı toplu indirme + basın bültenleri
+
+**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+
+- [ ] Tarayıcı otomasyonu: önce headless Playwright + gizleme; geçmezse
+      sanal ekranlı gerçek Chrome için ayrı Docker servisi.
+- [ ] Toplu indirme kataloğu (`updatedAt` dahil) ve veri seti dosyaları.
+- [ ] Basın bülteni metinleri (seri olmayan içerik tablosu kullanıcıyla tasarlanır).
+- [ ] Excel/PDF çıktıları.
+
+**Kabul kriteri:** Canlıda WAF aşılarak katalog, bir veri seti dosyası ve bir
+bülten metni alınıyor.
 
 ## Task 1.3 — TCMB bağlayıcısı
 

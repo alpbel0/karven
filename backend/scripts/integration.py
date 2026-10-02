@@ -5,11 +5,11 @@ Usage (from ``backend/``)::
 
     uv run python scripts/integration.py
 
-Starts the throwaway ``karven-test`` compose project (postgres, neo4j, redis,
-minio), runs the migrator, starts the api, then runs ``pytest -m integration``
-on the host using the test settings from ``compose.test.env``. The
-``karven-test`` project is always torn down with ``down -v`` (even on failure
-or Ctrl-C).
+    Starts the throwaway ``karven-test`` compose project (postgres, neo4j,
+    minio via ``COMPOSE_PROFILES=graph``), runs the migrator, starts the api,
+    then runs ``pytest -m integration`` on the host using the test settings from
+    ``compose.test.env``. The ``karven-test`` project is always torn down with
+    ``down -v`` (even on failure or Ctrl-C).
 
 The exit code is pytest's exit code, or 1 if setup failed. Live (``karven``) is
 never touched: different project name, ports, databases, bucket, and image tag.
@@ -67,8 +67,8 @@ def main() -> int:
     pytest_env = {**os.environ, **test_env}
 
     try:
-        log("step 1/4: start infrastructure (postgres, neo4j, redis, minio)")
-        infra = [*compose, "up", "-d", "--build", "--wait", "postgres", "neo4j", "redis", "minio"]
+        log("step 1/4: start infrastructure (postgres, minio, neo4j[graph profile])")
+        infra = [*compose, "up", "-d", "--build", "--wait", "postgres", "minio", "neo4j"]
         if run_step(infra) != 0:
             return 1
 

@@ -116,6 +116,9 @@ elle müdahale olmadan (admin onayı hariç) çalışıyor.
 - [ ] Veri kesilme uyarıları (Task 1.4) panelde görünür; bildirim yok.
 - [ ] Prompt yönetimi: ajan başına sürümleri görme, yeni sürüm ekleme,
       etkinleştirme (Task 0.6).
+- [ ] Container sağlığı: servis başına bellek sınırına takılma (OOM) ve
+      yeniden başlama sayısı, son 24 saat (kullanıcı kararı 2026-09-30;
+      Docker yeniden başlattığı için sessiz kalmamalı).
 
 **Kabul kriteri:** Admin panelinde kaynak durumları ve haber aşamaları gerçek
 veriyle görünüyor; yapay olarak tetiklenen bir veri kesilme uyarısı panelde

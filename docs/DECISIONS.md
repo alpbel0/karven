@@ -170,6 +170,34 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
 
 ## 7. Katalog ve arama
 
+- **Katalog yapısı (2026-09-30):** Katalog **veri seti + boyut listeleri**
+  olarak tutulur: her veri seti (TÜİK veri seti, TCMB grubu vb.) için ad,
+  kategori, frekans, yıl aralığı, toplam gözlem sayısı ve **her boyutun tam kod
+  listesi** (il, sektör, tür, birim …; varsa hiyerarşisiyle). Seri satırları
+  önceden yazılmaz; bir kırılım **ilk kez kullanıldığında** seri tablosuna
+  eklenir (TÜİK'te bütün kombinasyonlar ~1,74 milyon seri ederdi, çoğu hiç
+  kullanılmazdı). Her seri boyut listelerinden bulunabilir; kaynakta verisi
+  olmayan bir kombinasyon çekilirken "boş" olarak öğrenilir ve kaydedilir.
+  Kaynağın kendi içinde tutarsız olduğu veri setleri (bildirdiği gözlem
+  sayısından azını veriyorsa) alınır ama **"kaynak eksik bildiriyor"** notuyla
+  işaretlenir.
+- **Etiket düzeyi (2026-09-30):** Etiketleme **veri seti düzeyinde** yapılır;
+  **bir veri setine birden fazla etiket** verilebilir; seriler veri setinin
+  etiketlerini devralır.
+- **Arama akışı (2026-09-30, Faz 2'de ayrıntılandırılır):**
+  1. Veri seti seçimi: Jev etiketleri, sonra aday veri setlerini puanlar.
+  2. Kırılım seçimi: kod boyutları sırayla Jev'e sorar (seçim sorusu),
+     **hiyerarşik** (önce düzey sonra yer; önce ana sektör sonra alt sektör).
+     Jev'in seçim sorusu en fazla 255 seçenek alır; uzun listeler hiyerarşiyle
+     daraltılır.
+  3. Güven eşiğin altındaysa aynı soru 2-3 farklı cümleyle sorulur; cevaplar
+     uyuşursa kabul, uyuşmazsa en iyi adaylar tutulur.
+  4. **Son doğrulama:** seçilen serinin tam adıyla "bu seri isteğe uyuyor mu?"
+     sorulur; düşükse sıradaki aday seriye / veri setine geçilir.
+  5. Hâlâ belirsizse en iyi 2-3 aday ajana sunulur, seçimi ajan yapar.
+  (2026-09-30 denemesi: il seçimi Kayseri 0,91, düzey önce seçilince Bursa 1,0;
+  sektör iki adımda Tekstil 0,96, Otomotiv 0,89; doğrulama yanlış veri setini
+  0,14 ile yakaladı.) Aşağıdaki eski arama adımları bu akışla değiştirilir.
 - Seriler **kapalı bir etiket listesinden** etiketlenir (kavram ağacı). Okuyucu
   için tek cümlelik açıklama tutulur ama aramada kullanılmaz.
 - Kavram ağacı (`docs/catalog/concept-tree-draft.md`, eski 18 ana dal) Faz
