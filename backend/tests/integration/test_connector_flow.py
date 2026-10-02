@@ -19,9 +19,12 @@ from sqlalchemy import func, select
 
 from app.config import settings
 from app.connectors.base import (
+    NOT_FOUND,
     ROLE_FREQUENCY,
     ROLE_GEO,
+    ROLE_OTHER,
     ROLE_TIME,
+    ConnectorError,
     DatasetMeta,
     DimensionCodeMeta,
     DimensionMeta,
@@ -31,6 +34,8 @@ from app.connectors.base import (
     ingest_series,
     store_raw,
     sync_catalog,
+    upsert_dataset,
+    upsert_institution,
 )
 from app.connectors.tuik.__main__ import _cmd_catalog
 from app.connectors.tuik.parsers import DataflowInfo
@@ -233,6 +238,46 @@ def test_ensure_series_is_idempotent() -> None:
     assert count == 1
 
 
+def test_sync_catalog_adds_new_dimension_and_moves_positions() -> None:
+    institution_code = _unique("conn")
+    base = _dataset_meta("FAKE", ["M"])
+    expanded = replace(
+        base,
+        dimensions=[
+            base.dimensions[0],
+            DimensionMeta(
+                code="SEX",
+                label="Sex",
+                position=1,
+                role=ROLE_OTHER,
+                codes=[DimensionCodeMeta(code="_T", label="Total")],
+            ),
+            replace(base.dimensions[1], position=2),
+            replace(base.dimensions[2], position=3),
+        ],
+    )
+    with SessionLocal() as session:
+        sync_catalog(session, ListConnector(institution_code, [base]))
+        session.commit()
+    with SessionLocal() as session:
+        outcome = sync_catalog(session, ListConnector(institution_code, [expanded]))
+        session.commit()
+
+    assert outcome.updated == 1
+    with SessionLocal() as session:
+        institution = session.scalar(
+            select(Institution).where(Institution.code == institution_code)
+        )
+        assert institution is not None
+        dataset = session.scalar(select(Dataset).where(Dataset.institution_id == institution.id))
+        assert dataset is not None
+        dims = {dimension.code: dimension for dimension in dataset.dimensions}
+        assert dims["SEX"].position == 1
+        assert dims["SEX"].codes[0].code == "_T"
+        assert dims["FREQ"].position == 2
+        assert dims["TIME_PERIOD"].position == 3
+
+
 def test_sync_catalog_marks_removed_codes_and_keeps_them() -> None:
     institution_code = _unique("conn")
     with SessionLocal() as session:
@@ -338,6 +383,9 @@ class MixedConnector:
             for dataflow_id in ("DF_GOOD", "DF_BAD")
         ]
 
+    def unlisted_dataflows(self) -> list[DataflowInfo]:
+        return []
+
     def dataset_meta(self, info: DataflowInfo) -> DatasetMeta:
         if info.dataflow_id == "DF_BAD":
             raise ValueError("parser bug")
@@ -375,3 +423,113 @@ def _assert_raw_object_exists(key: str) -> None:
         assert response["Body"].read() == b'{"fake": true}'
     finally:
         client.close()
+
+
+def test_new_dataset_is_usable_in_the_same_transaction() -> None:
+    # Regression (found live 2026-09-30): right after upsert_dataset inserted a
+    # dataset, ensure_series in the same session saw no dimensions, so the first
+    # Turcat run skipped every indicator.
+    with SessionLocal() as session:
+        institution = upsert_institution(session, _unique("conn"), "Fake Source")
+        _, dataset = upsert_dataset(session, institution.id, _dataset_meta("FAKE", ["M"]))
+        series = ensure_series(session, dataset, {"REF_AREA": "TR", "FREQ": "M"})
+        assert series.id is not None
+        assert {d.code for d in dataset.dimensions} >= {"REF_AREA", "FREQ", "TIME_PERIOD"}
+        session.rollback()
+
+
+class UnlistedFlowConnector:
+    """One dataflow whose listing state and source answer the test switches."""
+
+    institution_name = "Unlisted Source"
+    channel = "databrowser2"
+    client = _StubClient()
+
+    def __init__(self) -> None:
+        self.institution_code = _unique("unl")
+        self.listed = True
+        self.answer: Exception | None = None
+
+    def _info(self, *, listed: bool) -> DataflowInfo:
+        return DataflowInfo(
+            dataflow_id="DF_FLOW",
+            version="1.0",
+            agency="TR",
+            title="DF_FLOW",
+            description=None,
+            source_category=None,
+            listed=listed,
+        )
+
+    def dataflows(self) -> list[DataflowInfo]:
+        return [self._info(listed=True)] if self.listed else []
+
+    def unlisted_dataflows(self) -> list[DataflowInfo]:
+        return [] if self.listed else [self._info(listed=False)]
+
+    def dataset_meta(self, info: DataflowInfo) -> DatasetMeta:
+        if self.answer is not None:
+            raise self.answer
+        return replace(
+            _dataset_meta("DF_FLOW", ["A"]),
+            attributes={"channel": "databrowser2", "dataflow_id": "DF_FLOW"},
+        )
+
+
+def test_catalog_command_writes_keeps_and_clears_unlisted_markers() -> None:
+    connector = UnlistedFlowConnector()
+    args = argparse.Namespace(dry_run=False, limit=None, dataflow=None, verify_completeness=False)
+
+    def attributes_and_dims() -> tuple[dict, int]:
+        with SessionLocal() as session:
+            institution = session.scalar(
+                select(Institution).where(Institution.code == connector.institution_code)
+            )
+            dataset = session.scalar(
+                select(Dataset).where(Dataset.institution_id == institution.id)
+            )
+            return dict(dataset.attributes), len(dataset.dimensions)
+
+    with SessionLocal() as session:
+        assert _cmd_catalog(session, connector, args) == 0
+    listed_attrs, dims = attributes_and_dims()
+    assert "unlisted_since" not in listed_attrs
+
+    # dropped from the listing but still answering: marker written
+    connector.listed = False
+    with SessionLocal() as session:
+        assert _cmd_catalog(session, connector, args) == 0
+    attrs, _ = attributes_and_dims()
+    assert "removed_at" not in attrs
+
+    # pretend it was first missed earlier: the earliest date is kept
+    with SessionLocal() as session:
+        institution = session.scalar(
+            select(Institution).where(Institution.code == connector.institution_code)
+        )
+        dataset = session.scalar(select(Dataset).where(Dataset.institution_id == institution.id))
+        dataset.attributes = {**dataset.attributes, "unlisted_since": "2020-01-01"}
+        session.commit()
+    with SessionLocal() as session:
+        assert _cmd_catalog(session, connector, args) == 0
+    attrs, _ = attributes_and_dims()
+    assert attrs["unlisted_since"] == "2020-01-01"
+
+    # source stops answering: removed_at set, dimensions and other attributes untouched
+    connector.answer = ConnectorError(NOT_FOUND, "gone")
+    with SessionLocal() as session:
+        assert _cmd_catalog(session, connector, args) == 0
+    attrs, removed_dims = attributes_and_dims()
+    assert attrs["removed_at"] == date.today().isoformat()
+    assert attrs["unlisted_since"] == "2020-01-01"
+    assert attrs["channel"] == "databrowser2"
+    assert removed_dims == dims
+
+    # back in the listing: both markers cleared by the wholesale attribute replace
+    connector.listed = True
+    connector.answer = None
+    with SessionLocal() as session:
+        assert _cmd_catalog(session, connector, args) == 0
+    attrs, _ = attributes_and_dims()
+    assert "unlisted_since" not in attrs
+    assert "removed_at" not in attrs

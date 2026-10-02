@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, replace
 from datetime import date
 from typing import Any
@@ -31,6 +31,7 @@ from app.connectors.base import (
 )
 from app.connectors.tuik.client import DEFAULT_BASE_URL, Databrowser2Client
 from app.connectors.tuik.hierarchy import resolve_parents
+from app.connectors.tuik.nsiws import FALLBACK_KINDS, NsiwsClient
 from app.connectors.tuik.parsers import (
     CatalogData,
     DataflowInfo,
@@ -117,6 +118,8 @@ class TuikConnector(SourceConnector):
         http_client: Any = None,
         base_url: str = DEFAULT_BASE_URL,
         settings_obj: Settings | None = None,
+        nsiws: NsiwsClient | None = None,
+        known_dataflows: Iterable[DataflowInfo] = (),
     ) -> None:
         if client is None:
             if store is None:
@@ -129,9 +132,13 @@ class TuikConnector(SourceConnector):
                 settings_obj=settings_obj,
             )
         self._client = client
+        self._nsiws = nsiws
+        self._known = {info.dataflow_id: replace(info, listed=False) for info in known_dataflows}
         self._catalog: CatalogData | None = None
         self._catalog_raw_key: str | None = None
         self._dimension_orders: dict[str, list[str]] = {}
+        self._dimension_order_verified: dict[str, bool] = {}
+        self._dimension_labels: dict[str, dict[str, str]] = {}
 
     @property
     def client(self) -> Databrowser2Client:
@@ -143,6 +150,8 @@ class TuikConnector(SourceConnector):
 
     def close(self) -> None:
         self._client.close()
+        if self._nsiws is not None:
+            self._nsiws.close()
 
     def _ensure_catalog(self) -> CatalogData:
         if self._catalog is None:
@@ -156,8 +165,17 @@ class TuikConnector(SourceConnector):
         """All dataflows (id + correct version) from the live catalog."""
         return list(self._ensure_catalog().dataflows.values())
 
+    def unlisted_dataflows(self) -> list[DataflowInfo]:
+        """Known dataflows (from the database) that the live listing no longer has."""
+        catalog = self._ensure_catalog()
+        return [info for info in self._known.values() if catalog.get(info.dataflow_id) is None]
+
     def resolve(self, dataflow: DataflowInfo | str) -> DataflowInfo:
-        """Resolve a dataflow id or ``TR,ID,VERSION`` identifier to metadata."""
+        """Resolve a dataflow id or ``TR,ID,VERSION`` identifier to metadata.
+
+        The live listing wins; known dataflows that dropped out of it are the
+        fallback, so they stay refreshable and fetchable by their id.
+        """
         if isinstance(dataflow, DataflowInfo):
             return dataflow
         catalog = self._ensure_catalog()
@@ -165,6 +183,12 @@ class TuikConnector(SourceConnector):
         if direct is not None:
             return direct
         for candidate in catalog.dataflows.values():
+            if candidate.dataset_identifier == dataflow:
+                return candidate
+        known = self._known.get(dataflow)
+        if known is not None:
+            return known
+        for candidate in self._known.values():
             if candidate.dataset_identifier == dataflow:
                 return candidate
         raise ConnectorError(NOT_FOUND, f"unknown dataflow {dataflow!r}")
@@ -184,35 +208,48 @@ class TuikConnector(SourceConnector):
                 )
 
     def dataset_meta(self, dataflow: DataflowInfo | str) -> DatasetMeta:
-        """Full dataset metadata: dimensions, code lists, defaults and coverage."""
+        """Full dataset metadata: dimensions, code lists, defaults and coverage.
+
+        The catalogued non-time dimensions are exactly the dataflow's *data
+        dimensions* — the JSON-stat ``id`` order from a live probe — because many
+        dataflows carry hidden dimensions (structure ``hiddenDimensions``) whose
+        codes really are part of the series identity. Hidden dimensions absent
+        from the data stay in ``attributes['hidden_dimensions']`` as pure view
+        settings; catalogued dimensions that did come from ``hiddenDimensions``
+        carry ``attributes['from_hidden'] = true``.
+
+        When the data dimensions cannot be probed, the structure criteria are
+        catalogued instead, the dataset is marked ``source_incomplete`` and a
+        WARNING is logged; hidden dimensions are never guessed as data.
+        """
         info = self.resolve(dataflow)
         identifier = info.dataset_identifier
         structure = self._structure(identifier, info)
         specs, time_dim = parse_structure(structure)
+        spec_by_code = {spec.code: spec for spec in specs}
+        structure_dims = [spec.code for spec in specs if spec.code != time_dim]
+        hidden = parse_hidden_dimensions(structure)
+
+        data_dims, verified = self._data_dimension_order(info, fallback=structure_dims)
+        if not verified:
+            logger.warning(
+                "tuik catalog: %s data dimensions could not be verified; "
+                "cataloguing structure criteria only",
+                info.dataflow_id,
+            )
+        data_dim_set = set(data_dims)
+        hidden_only = [dim for dim in hidden if dim not in data_dim_set]
+        probe_labels = self._dimension_labels.get(info.dataflow_id, {})
 
         obs_count: int | None = None
-        coverage_start: date | None = None
-        coverage_end: date | None = None
         dimensions: list[DimensionMeta] = []
-        for spec in specs:
-            if spec.code == time_dim:
-                start, end = self._time_coverage(identifier, spec.code)
-                coverage_start = start
-                coverage_end = end
-                dimensions.append(
-                    DimensionMeta(
-                        code=spec.code,
-                        label=spec.label,
-                        position=spec.position,
-                        role=ROLE_TIME,
-                        codes=[],
-                        attributes=self._dimension_attributes(spec.dsd_ref, None),
-                    )
-                )
-                continue
-            response = self._client.dataset_partial_codelist(identifier, spec.code)
+        for position, code in enumerate(data_dims):
+            spec = spec_by_code.get(code)
+            dsd_ref = spec.dsd_ref if spec is not None else None
+            label = spec.label if spec is not None else probe_labels.get(code) or ""
+            response = self._client.dataset_partial_codelist(identifier, code)
             try:
-                data = parse_dimension_codelist(response.json(), spec.code)
+                data = parse_dimension_codelist(response.json(), code)
             except ConnectorError as exc:
                 if exc.kind != FORMAT_CHANGED:
                     raise
@@ -221,22 +258,26 @@ class TuikConnector(SourceConnector):
                 logger.warning(
                     "tuik catalog: %s dimension %s has no codelist",
                     info.dataflow_id,
-                    spec.code,
+                    code,
                 )
                 dimensions.append(
                     DimensionMeta(
-                        code=spec.code,
-                        label=spec.label,
-                        position=spec.position,
-                        role=_role_for(spec.code, spec.label, spec.dsd_ref),
+                        code=code,
+                        label=label or code,
+                        position=position,
+                        role=_role_for(code, label or code, dsd_ref),
                         codes=[],
-                        attributes=self._dimension_attributes(spec.dsd_ref, None),
+                        attributes=self._dimension_attributes(
+                            dsd_ref, None, from_hidden=code in hidden
+                        ),
                     )
                 )
                 continue
             obs_count = max(obs_count or 0, data.obs_count)
+            if not label:
+                label = data.dimension_label or code
             parents, hierarchy_source = resolve_parents(
-                spec.code, spec.label, spec.dsd_ref, [(e.code, e.parent_code) for e in data.entries]
+                code, label, dsd_ref, [(e.code, e.parent_code) for e in data.entries]
             )
             codes = [
                 DimensionCodeMeta(
@@ -249,27 +290,52 @@ class TuikConnector(SourceConnector):
             ]
             dimensions.append(
                 DimensionMeta(
-                    code=spec.code,
-                    label=spec.label,
-                    position=spec.position,
-                    role=_role_for(spec.code, spec.label, spec.dsd_ref),
+                    code=code,
+                    label=label,
+                    position=position,
+                    role=_role_for(code, label, dsd_ref),
                     codes=codes,
-                    attributes=self._dimension_attributes(spec.dsd_ref, hierarchy_source),
+                    attributes=self._dimension_attributes(
+                        dsd_ref, hierarchy_source, from_hidden=code in hidden
+                    ),
                 )
             )
+
+        time_spec = spec_by_code.get(time_dim)
+        coverage_start, coverage_end = self._time_coverage(identifier, time_dim)
+        dimensions.append(
+            DimensionMeta(
+                code=time_dim,
+                label=time_spec.label if time_spec is not None else "Time period",
+                position=len(data_dims),
+                role=ROLE_TIME,
+                codes=[],
+                attributes=self._dimension_attributes(
+                    time_spec.dsd_ref if time_spec is not None else None, None
+                ),
+            )
+        )
 
         attributes: dict[str, Any] = {
             "dataflow_id": info.dataflow_id,
             "agency": info.agency,
             "version": info.version,
             "channel": self.channel,
+            "data_dimensions_verified": verified,
         }
-        hidden = parse_hidden_dimensions(structure)
-        if hidden:
-            attributes["hidden_dimensions"] = hidden
+        if hidden_only:
+            attributes["hidden_dimensions"] = hidden_only
         # A dimension without codes means no series of this dataset can be built;
         # flag it instead of cataloguing it as a healthy dataset.
         empty_dims = [d.code for d in dimensions if d.role != ROLE_TIME and not d.codes]
+        notes: list[str] = []
+        if empty_dims:
+            notes.append(f"source serves no codelist for dimensions: {', '.join(empty_dims)}")
+        if not verified:
+            notes.append(
+                "data dimensions could not be verified from the source data; "
+                "catalogued structure criteria only"
+            )
         return DatasetMeta(
             external_code=info.dataflow_id,
             name=info.title,
@@ -280,21 +346,21 @@ class TuikConnector(SourceConnector):
             obs_count=obs_count,
             attributes=attributes,
             dimensions=dimensions,
-            source_incomplete=bool(empty_dims),
-            source_incomplete_note=(
-                f"source serves no codelist for dimensions: {', '.join(empty_dims)}"
-                if empty_dims
-                else None
-            ),
+            source_incomplete=bool(notes),
+            source_incomplete_note="; ".join(notes) if notes else None,
         )
 
     @staticmethod
-    def _dimension_attributes(dsd_ref: str | None, hierarchy_source: str | None) -> dict[str, Any]:
+    def _dimension_attributes(
+        dsd_ref: str | None, hierarchy_source: str | None, *, from_hidden: bool = False
+    ) -> dict[str, Any]:
         attributes: dict[str, Any] = {}
         if dsd_ref:
             attributes["dsd_ref"] = dsd_ref
         if hierarchy_source:
             attributes["hierarchy_source"] = hierarchy_source
+        if from_hidden:
+            attributes["from_hidden"] = True
         return attributes
 
     def _time_coverage(self, identifier: str, time_dim: str) -> tuple[date | None, date | None]:
@@ -317,12 +383,29 @@ class TuikConnector(SourceConnector):
         info = self.resolve(dataflow)
         identifier = info.dataset_identifier
         structure = self._structure(identifier, info)
-        dimensions, _ = self._structure_dimensions(structure)
-        if not dimensions:
+        structure_dims, _ = self._structure_dimensions(structure)
+        criteria_dims = self._criteria_dimensions(structure)
+        data_dims, verified = self._data_dimension_order(info, fallback=criteria_dims)
+        if not structure_dims and not data_dims:
             raise ConnectorError(
                 FORMAT_CHANGED,
                 f"{info.dataflow_id}: structure exposes no selectable dimensions",
             )
+        if verified:
+            # The data's own dimension list is the complete set to enumerate.
+            dimensions = data_dims
+        else:
+            # No verified data dimensions: enumerate everything the structure
+            # exposes (including hidden dimensions) for completeness, but keep
+            # the series identity to the structure criteria so a hidden view
+            # default is never guessed as part of the series key.
+            dimensions = structure_dims
+            logger.warning(
+                "tuik catalog: %s data dimensions could not be verified; "
+                "completeness uses structure dimensions",
+                info.dataflow_id,
+            )
+        order = data_dims
 
         codes: dict[str, list[str]] = {}
         expected = 0
@@ -334,11 +417,6 @@ class TuikConnector(SourceConnector):
             if values:
                 codes[dimension] = values
 
-        order = self._dimension_order(info)
-        if not order:
-            raise ConnectorError(
-                FORMAT_CHANGED, f"{info.dataflow_id}: cannot determine the dimension order"
-            )
         criteria = [self._criterion(dim, codes[dim]) for dim in dimensions if codes.get(dim)]
         metas, received = self._collect(info, identifier, criteria, expected, order, 0)
 
@@ -365,6 +443,12 @@ class TuikConnector(SourceConnector):
 
     @staticmethod
     def _structure_dimensions(structure: dict[str, Any]) -> tuple[list[str], str]:
+        """Structure-declared non-time dimensions (criteria plus hidden).
+
+        Used only as a fallback when the live data probe cannot verify the data
+        dimensions; hidden dimensions are included here because they may still be
+        filterable even when their series role is unknown.
+        """
         time_dim = str(structure.get("timeDimension") or "TIME_PERIOD")
         ids: list[str] = []
         for criterion in structure.get("criteria") or []:
@@ -375,6 +459,18 @@ class TuikConnector(SourceConnector):
             if dimension and str(dimension) not in ids:
                 ids.append(str(dimension))
         return [dim for dim in ids if dim != time_dim], time_dim
+
+    @staticmethod
+    def _criteria_dimensions(structure: dict[str, Any]) -> list[str]:
+        """Structure criteria non-time dimension ids, in declared order (no hidden)."""
+        time_dim = str(structure.get("timeDimension") or "TIME_PERIOD")
+        ids: list[str] = []
+        for criterion in structure.get("criteria") or []:
+            if isinstance(criterion, dict) and criterion.get("id"):
+                code = str(criterion["id"])
+                if code != time_dim and code not in ids:
+                    ids.append(code)
+        return ids
 
     @staticmethod
     def _criterion(dimension: str, values: list[str]) -> dict[str, Any]:
@@ -550,37 +646,64 @@ class TuikConnector(SourceConnector):
         response = self._client.dataset_partial_codelist(dataset_identifier, REF_AREA_DIMENSION)
         return selectable_codes(response.json(), REF_AREA_DIMENSION)
 
-    def _dimension_order(self, info: DataflowInfo) -> list[str]:
+    def _data_dimension_order(
+        self, info: DataflowInfo, *, fallback: list[str] | None = None
+    ) -> tuple[list[str], bool]:
+        """Return ``(data_dimensions, verified)`` for one dataflow (cached).
+
+        ``data_dimensions`` is the JSON-stat ``id`` order from a live data probe,
+        i.e. exactly the dimensions the source actually serves. ``verified`` is
+        True only when that probe succeeded; otherwise ``fallback`` (or the
+        structure criteria) is used and the data dimensions are unverified, so a
+        caller can refuse to guess hidden view defaults as series dimensions.
+        """
         cached = self._dimension_orders.get(info.dataflow_id)
         if cached is not None:
-            return cached
+            return cached, self._dimension_order_verified.get(info.dataflow_id, False)
         identifier = info.dataset_identifier
-        order = self._safe_probe(identifier, ref_area_criteria(DEFAULT_REF_AREA))
+        order: list[str] = []
+        labels: dict[str, str] = {}
+        probed = self._probe_dimensions(identifier, ref_area_criteria(DEFAULT_REF_AREA))
+        if probed is not None:
+            order, labels = probed
         if not order:
             try:
                 codes = self._ref_area_codes(identifier)
             except ConnectorError:
                 codes = []
             if codes:
-                order = self._safe_probe(identifier, ref_area_criteria(codes[0]))
+                probed = self._probe_dimensions(identifier, ref_area_criteria(codes[0]))
+                if probed is not None:
+                    order, labels = probed
+        verified = bool(order)
         if not order:
-            order = self._structure_order(identifier)
+            order = list(fallback) if fallback is not None else self._structure_order(identifier)
         self._dimension_orders[info.dataflow_id] = order
-        return order
+        self._dimension_order_verified[info.dataflow_id] = verified
+        self._dimension_labels[info.dataflow_id] = labels
+        return order, verified
 
-    def _safe_probe(self, dataset_identifier: str, criteria: list[dict[str, Any]]) -> list[str]:
+    def _dimension_order(self, info: DataflowInfo) -> list[str]:
+        return self._data_dimension_order(info)[0]
+
+    def _probe_dimensions(
+        self, dataset_identifier: str, criteria: list[dict[str, Any]]
+    ) -> tuple[list[str], dict[str, str]] | None:
+        """Probe JSON-stat for ``(dimension order, dimension labels)`` or None."""
         try:
-            return self._probe_order(dataset_identifier, criteria)
+            response = self._client.dataset_data(dataset_identifier, criteria)
+            payload = response.json()
         except ConnectorError:
-            return []
-
-    def _probe_order(self, dataset_identifier: str, criteria: list[dict[str, Any]]) -> list[str]:
-        response = self._client.dataset_data(dataset_identifier, criteria)
-        payload = response.json()
+            return None
         if not isinstance(payload, dict) or not payload.get("id"):
-            return []
+            return None
         time_id = jsonstat_time_dimension(payload)
-        return [str(dim_id) for dim_id in payload["id"] if dim_id != time_id]
+        order = [str(dim_id) for dim_id in payload["id"] if dim_id != time_id]
+        labels: dict[str, str] = {}
+        for dim_id, dim_info in (payload.get("dimension") or {}).items():
+            if isinstance(dim_info, dict) and dim_info.get("label"):
+                labels[str(dim_id)] = str(dim_info["label"])
+        return order, labels
 
     def _structure_order(self, dataset_identifier: str) -> list[str]:
         response = self._client.dataset_structure(dataset_identifier)
@@ -602,6 +725,36 @@ class TuikConnector(SourceConnector):
         return [spec.code for spec in specs if spec.code != time_dim]
 
     def fetch_series(
+        self,
+        dataset_code: str,
+        codes: dict[str, str],
+        *,
+        order: list[str] | None = None,
+        start: date = date(2000, 1, 1),
+    ) -> FetchResult:
+        """Fetch one series from databrowser2, backing off to nsiws on failure.
+
+        Failure kinds that trigger the official nsiws channel: ``timeout``,
+        ``source_error``, ``throttled`` or ``not_found``. A parse/format error
+        (``format_changed``) or an empty result is not retried on nsiws.
+        """
+        try:
+            return self._fetch_databrowser2(dataset_code, codes, order=order, start=start)
+        except ConnectorError as exc:
+            if self._nsiws is None or exc.kind not in FALLBACK_KINDS:
+                raise
+            # Fixed, greppable text: live monitors watch for this fallback.
+            logger.warning(
+                "tuik databrowser2 failed (%s), falling back to nsiws: %s",
+                exc.kind,
+                dataset_code,
+            )
+            version = self.resolve(dataset_code).version
+            return self._nsiws.fetch_series(
+                dataset_code, codes, version=version, order=order, start=start
+            )
+
+    def _fetch_databrowser2(
         self,
         dataset_code: str,
         codes: dict[str, str],

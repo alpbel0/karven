@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--NSI Web Service v8.15.1.0-->
+<message:Structure xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:structure="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common">
+  <message:Header>
+    <message:ID>IDREF922163</message:ID>
+    <message:Test>false</message:Test>
+    <message:Prepared>2026-09-30T14:27:51.4763615+03:00</message:Prepared>
+    <message:Sender id="Unknown" />
+    <message:Receiver id="Unknown" />
+  </message:Header>
+  <message:Structures>
+    <structure:Dataflows>
+      <structure:Dataflow id="DF_TUFE_SDMX_TT10" agencyID="TR" version="1.0" isFinal="true">
+        <common:Annotations>
+          <common:Annotation id="HIDE_REVISION_PERIOD">
+            <common:AnnotationTitle>HIDE_REVISION_PERIOD</common:AnnotationTitle>
+            <common:AnnotationType>HIDE_REVISION_PERIOD</common:AnnotationType>
+            <common:AnnotationText xml:lang="en">HIDE_REVISION_PERIOD</common:AnnotationText>
+            <common:AnnotationText xml:lang="tr">HIDE_REVISION_PERIOD</common:AnnotationText>
+          </common:Annotation>
+        </common:Annotations>
+        <common:Name xml:lang="tr">Tüketici fiyat endeksi ve değişim oranları</common:Name>
+        <common:Name xml:lang="en">Index numbers and rate of changes in the consumer price index</common:Name>
+        <common:Description xml:lang="en">Index numbers and rate of changes in the consumer price index</common:Description>
+        <common:Description xml:lang="tr">Tüketici fiyat endeksi ve değişim oranları</common:Description>
+        <structure:Structure>
+          <Ref id="DSD_TUFE" version="1.12" agencyID="TR" package="datastructure" class="DataStructure" />
+        </structure:Structure>
+      </structure:Dataflow>
+    </structure:Dataflows>
+  </message:Structures>
+</message:Structure>

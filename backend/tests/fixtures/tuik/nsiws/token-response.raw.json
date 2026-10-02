@@ -1,0 +1,9 @@
+{
+  "access_token": "test-access-token",
+  "expires_in": 300,
+  "refresh_expires_in": 0,
+  "token_type": "Bearer",
+  "not-before-policy": 0,
+  "session_state": "test-session",
+  "scope": "profile email"
+}

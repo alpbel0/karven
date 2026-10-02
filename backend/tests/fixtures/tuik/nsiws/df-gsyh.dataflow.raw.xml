@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--NSI Web Service v8.15.1.0-->
+<message:Structure xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:structure="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure" xmlns:common="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common">
+  <message:Header>
+    <message:ID>IDREF409273</message:ID>
+    <message:Test>false</message:Test>
+    <message:Prepared>2026-09-30T14:27:51.7980376+03:00</message:Prepared>
+    <message:Sender id="Unknown" />
+    <message:Receiver id="Unknown" />
+  </message:Header>
+  <message:Structures>
+    <structure:Dataflows>
+      <structure:Dataflow id="UH_BH_GSYH_CARI" agencyID="TR" version="1.0" isFinal="true">
+        <common:Annotations>
+          <common:Annotation id="HIDE_REVISION_PERIOD">
+            <common:AnnotationTitle>HIDE_REVISION_PERIOD</common:AnnotationTitle>
+            <common:AnnotationType>HIDE_REVISION_PERIOD</common:AnnotationType>
+            <common:AnnotationText xml:lang="en">HIDE_REVISION_PERIOD</common:AnnotationText>
+            <common:AnnotationText xml:lang="tr">HIDE_REVISION_PERIOD</common:AnnotationText>
+          </common:Annotation>
+        </common:Annotations>
+        <common:Name xml:lang="tr">Bölgesel gayrisafi yurt içi hasıla (cari fiyatlarla)</common:Name>
+        <common:Name xml:lang="en">Regional gross domestic product (at current prices)</common:Name>
+        <common:Description xml:lang="en">This table presents GDP values at current prices in TRY and USD at A3 and A10  economic activity breakdown by SR-1(Statistical Regions), SR-2, and SR-3 levels.</common:Description>
+        <common:Description xml:lang="tr">A3 ve A10 ekonomik faaliyet kırılımında İBBS-1, İBBS-2 ve İBBS-3 düzeyinde TL ve ABD doları cinsinden cari fiyatlarla GSYH değerlerinin yer aldığı tablodur.</common:Description>
+        <structure:Structure>
+          <Ref id="DSD_BOLGESEL_GSYH" version="1.1" agencyID="TR" package="datastructure" class="DataStructure" />
+        </structure:Structure>
+      </structure:Dataflow>
+    </structure:Dataflows>
+  </message:Structures>
+</message:Structure>

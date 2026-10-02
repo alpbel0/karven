@@ -1,0 +1,868 @@
+{
+  "status": "Success",
+  "menu": [
+    {
+      "menuIcon": "tuik-icon-Cevre_Enerji-renkli",
+      "menuName": "Çevre ve Enerji",
+      "menuNameEn": "Environment and Energy",
+      "subMenu": [
+        {
+          "gostergeNo": "CVRBA-GK1697132-O40508",
+          "gostergeAdi": "Atık hizmeti verilen belediye nüfusunun toplam belediye nüfusuna oranı (%)",
+          "gostergeAdiEn": "Rate of population served by municipal waste services in total municipal population (%)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "CVRAS-GK179211-O40717",
+          "gostergeAdi": "Atıksu Arıtma Hizmeti Verilen Nüfus Oranı (%)",
+          "gostergeAdiEn": "Ratio of Population Served by Wastewater Treatment (%)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "CVRAS-GK179213-O40718",
+          "gostergeAdi": "Kişi Başı Günlük Atıksu Miktarı (L/Kişi-Gün)",
+          "gostergeAdiEn": "Daily Per Capita Wastewater Amount (L/Capita-Day)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "CVRAS-GK179060-O40709",
+          "gostergeAdi": "Kanalizasyon Hizmeti Verilen Nüfus Oranı (%)",
+          "gostergeAdiEn": "Ratio of Population Provided with Sewerage Service (%)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "CVRBS-GK1697172-O40909",
+          "gostergeAdi": "İçme Suyu Şebekesi Bulunan Nüfus Oranı (%)",
+          "gostergeAdiEn": "Proportion of Population with Potable Water Network (%)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "CVRBS-GK1697194-O40921",
+          "gostergeAdi": "İçme Suyu Arıtma Hizmeti Verilen Nüfus Oranı (%)",
+          "gostergeAdiEn": "Ratio of Population Served by Drinking Water Treatment (%)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "ENR-GK054-O0015",
+          "gostergeAdi": "Kişi Başına Elektrik Tüketimi (kWh)",
+          "gostergeAdiEn": "Total electricity consumption per capita (kWh)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        }
+      ]
+    },
+    {
+      "menuIcon": "tuik-icon-Sosyoekonomik_beyaz",
+      "menuName": "Sosyoekonomik Seviye",
+      "menuNameEn": "Socioeconomic Level",
+      "subMenu": [
+        {
+          "gostergeNo": "ses123",
+          "gostergeAdi": "Ortalama Sosyoekonomik Seviye Skorları",
+          "gostergeAdiEn": "Average Socioeconomic Level Scores",
+          "duzeyler": [ 4, 3 ],
+          "period": "yillik",
+          "kaynak": "json",
+          "color": "RdYlGn",
+          "kayitSayisi": 5,
+          "basligiKoru": 1,
+          "snfSayisi":7
+        }
+      ]
+    },
+    {
+      "menuIcon": "tuik-icon-Egitim_Kultur_Spor_Turizm_renkli",
+      "menuName": "Eğitim ve Kültür",
+      "menuNameEn": "Education and Culture",
+      "subMenu": [
+        {
+          "gostergeNo": "ULE-GK378667484-O29503",
+          "gostergeAdi": "Ortalama Eğitim Süresi (yıl)",
+          "gostergeAdiEn": "Mean Years of Schooling (year)",
+          "duzeyler": [3,5],
+          "period": "yillik",
+          "gridDuzey": true,
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "grid_column": "ortalama_egitim_suresi",
+          "basligiKoru": 1,
+          "gridAralik":[0,6,9,13,22],
+           "zoomConfig":10.1,
+           "color" : "Greens",
+           "saydamlik":75
+        },
+        {
+          "gostergeNo": "ULE-GK160887-O29502",
+          "gostergeAdi": "Okuma Yazma Bilmeyen Sayısı",
+          "gostergeAdiEn": "Number of Illiterate",
+          "duzeyler": [2, 3, 4],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "SNM-GK160947-O33301",
+          "gostergeAdi": "Sinema Salon Sayısı",
+          "gostergeAdiEn": "Number of Cinema Halls",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "SNM-GK160951-O33303",
+          "gostergeAdi": "Sinema Film Sayısı",
+          "gostergeAdiEn": "Number of Cinema Movie",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "EGT-GK119-O001",
+          "gostergeAdi": "İlkokul /Öğretmen başına düşen öğrenci sayısı",
+          "gostergeAdiEn": "Number of students per teacher, primary school",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "EGT-GK120-O001",
+          "gostergeAdi": "Ortaokul /Öğretmen başına düşen öğrenci sayısı",
+          "gostergeAdiEn": "Number of students per teacher, lower secondary education",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "EGT-GK121-O001",
+          "gostergeAdi": "Ortaöğretim /Öğretmen başına düşen öğrenci sayısı",
+          "gostergeAdiEn": "Number of students per teacher, upper secondary education",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "EGT-GK122-O001",
+          "gostergeAdi": "İlk ve ortaokul /Derslik başına düşen öğrenci sayısı",
+          "gostergeAdiEn": "Number of students per classroom, primary school and lower secondary education",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "EGT-GK123-O001",
+          "gostergeAdi": "Ortaöğretim /Derslik başına düşen öğrenci sayısı",
+          "gostergeAdiEn": "Number of students per classroom, upper secondary education",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        }
+      ]
+    },
+    {
+      "menuIcon": "tuik-icon-insaat_Konut_renkli",
+      "menuName": "İnşaat ve Konut",
+      "menuNameEn": "Construction and Housing",
+      "subMenu": [
+        {
+          "gostergeNo": "INS-GK055-O006",
+          "gostergeAdi": "Konut satış sayıları (toplam)",
+          "gostergeAdiEn": "Number of house sales (total)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "INS-GK056-O006",
+          "gostergeAdi": "Konut satış sayıları (ilk satış)",
+          "gostergeAdiEn": "Number of house sales (first sale)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "INS-GK057-O006",
+          "gostergeAdi": "Yapı ruhsatına göre bina sayısı",
+          "gostergeAdiEn": "Number of building according to construction permit",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "INS-GK058-O006",
+          "gostergeAdi": "Yapı ruhsatına göre daire sayısı",
+          "gostergeAdiEn": "Number of dwelling unit according to construction permit",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "INS-GK059-O006",
+          "gostergeAdi": "Yapı ruhsatına göre yüzölçümü (metrekare)",
+          "gostergeAdiEn": "Floor area (square meters) according to construction permit",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "INS-GK060-O006",
+          "gostergeAdi": "Yapı kullanma izin belgesine göre bina sayısı",
+          "gostergeAdiEn": "Number of building according to occupancy permit",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "INS-GK061-O006",
+          "gostergeAdi": "Yapı kullanma izin belgesine göre daire sayısı",
+          "gostergeAdiEn": "Number of dwelling unit according to occupancy permitı",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "INS-GK062-O006",
+          "gostergeAdi": "Yapı kullanma izin belgesine göre yüzölçümü (metrekare)",
+          "gostergeAdiEn": "Floor area (square meters) according to occupancy permit",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        }
+      ]
+    },
+    {
+      "menuIcon": "tuik-icon-isgucu_Ucret_renkli",
+      "menuName": "İstihdam ve İşsizlik",
+      "menuNameEn": "Employment and Unemployment",
+      "subMenu": [
+        {
+          "gostergeNo": "ISGD-GK18575-O18502",
+          "gostergeAdi": "İşgücüne Katılma Oranı (%)",
+          "gostergeAdiEn": "Labour Force Participation Rate (%)",
+          "duzeyler": [2,3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "ISGD-GK18575-O18506",
+          "gostergeAdi": "İstihdam Oranı (%)",
+          "gostergeAdiEn": "Employment Rate (%)",
+          "duzeyler": [2,3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "ISGD-GK18575-O18504",
+          "gostergeAdi": "İşsizlik Oranı (%)",
+         "gostergeAdiEn": "Unemployment Rate (%)",
+          "duzeyler": [2,3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        }
+      ]
+    },
+
+    {
+      "menuIcon": "tuik-icon-Toplum_Nufus_renkli",
+      "menuName": "Nüfus ve Demografi",
+      "menuNameEn": "Population and Demography",
+      "subMenu": [
+        {
+          "gostergeNo": "ADNKS-GK137473-O29001",
+          "gostergeAdi": "Toplam Nüfus",
+          "gostergeAdiEn": "Total Population",
+          "duzeyler": [2, 3, 4, 5],
+          "period": "yillik",
+          "kaynak": "medas",
+          "gridDuzey": true,
+          "kayitSayisi": 5,
+          "grid_column": "toplam_nufus",
+          "basligiKoru": 1,
+          "color" : "Reds"
+        },
+
+        {
+          "gostergeNo": "ADNKS-GK1003-O29001",
+          "gostergeAdi": "Erkek Nüfus",
+          "gostergeAdiEn": "Male Population",
+          "duzeyler": [2, 3, 4, 5],
+          "period": "yillik",
+          "kaynak": "medas",
+          "gridDuzey": true,
+          "kayitSayisi": 5,
+          "grid_column": "erkek_nufus",
+          "basligiKoru": 1,
+            "color" : "Reds"
+        },
+
+        {
+          "gostergeNo": "ADNKS-GK1004-O29001",
+          "gostergeAdi": "Kadın Nüfus",
+          "gostergeAdiEn": "Female Population",
+          "duzeyler": [2, 3, 4, 5],
+          "period": "yillik",
+          "kaynak": "medas",
+          "gridDuzey": true,
+          "kayitSayisi": 5,
+          "grid_column": "kadin_nufus",
+          "basligiKoru": 1,
+             "color" : "Reds"
+        },
+    
+        {
+          "gostergeNo": "ADNKS-GK140832-O29009",
+          "gostergeAdi": "Net Göç Hızı (‰)",
+          "gostergeAdiEn": "Migration Rate (‰)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "DGM-GK378140485-O40204",
+          "gostergeAdi": "Kaba Doğum Hızı (‰)",
+          "gostergeAdiEn": "Crude birth rate (‰)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "OLM-GK378140491-O40405",
+          "gostergeAdi": "Kaba Ölüm Hızı (‰)",
+          "gostergeAdiEn": "Crude death rate  (‰)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "DGM-GK378140487-O40205",
+          "gostergeAdi": "Toplam Doğurganlık Hızı (‰)",
+          "gostergeAdiEn": "Total fertility rate (‰)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "EVL-GK378140481-O40109",
+          "gostergeAdi": "Kaba Evlenme Hızı (‰)",
+          "gostergeAdiEn": "Crude marriage rate  (‰)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "BSM-GK378140477-O40003",
+          "gostergeAdi": "Kaba Boşanma Hızı (‰)",
+          "gostergeAdiEn": "Crude divorce rate  (‰)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "DMG-GK036-O002",
+          "gostergeAdi": "Doğuşta Beklenen Yaşam Süreleri (yıl)",
+          "gostergeAdiEn": "Life expectancy at birth (years)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 3
+        },
+        {
+          "gostergeNo": "NFS-GK064-O005",
+          "gostergeAdi": "Toplam yaş bağımlılık oranı (%)",
+          "gostergeAdiEn": "Total age dependency ratio (%)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "NFS-GK069-O005",
+          "gostergeAdi": "Ortalama hanehalkı büyüklüğü ",
+          "gostergeAdiEn": "Average size of households",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        }
+      ]
+    },
+
+
+
+
+
+    {
+      "menuIcon": "tuik-icon-Saglik_Sosyal_Koruma_renkli",
+      "menuName": "Sağlık ve Sosyal Koruma",
+      "menuNameEn": "Health and Social Protection",
+      "subMenu": [
+        {
+          "gostergeNo": "SGL-GK072-O0010",
+          "gostergeAdi": "Yüzbin kişi başına toplam hastane yatak sayısı ",
+          "gostergeAdiEn": "Number of hospital beds per 100.000 population",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+   
+        {
+          "gostergeNo": "SGL-GK073-O0010",
+          "gostergeAdi": "Bin kişi başına düşen toplam hekim sayısı",
+          "gostergeAdiEn": "Number of physicians per 1.000 population",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "SGL-GK074-O0010",
+          "gostergeAdi": "Hastane sayısı",
+          "gostergeAdiEn": "Number of hospitals",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "SGL-GK075-O0010",
+          "gostergeAdi": "Hastane yatak sayısı ",
+          "gostergeAdiEn": "Number of hospital beds ",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        }
+      ]
+    },
+    {
+      "menuIcon": "tuik-icon-Sanayi_renkli",
+      "menuName": "Sanayi",
+      "menuNameEn": "Industry",
+      "subMenu": [
+        {
+          "gostergeNo": "ISKYT-GK378267475-O12101",
+          "gostergeAdi": "Girişim sayıları",
+          "gostergeAdiEn": "Number of enterprises",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267476-O12101",
+          "gostergeAdi": "Girişim Sayıları->A. (Tarım, Ormancılık Ve Balıkçılık)",
+          "gostergeAdiEn": "Number Of Enterprises->A. (Agriculture, Forestry And Fishing)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267477-O12101",
+          "gostergeAdi": "Girişim Sayıları->B. (Madencilik Ve Taş Ocakçılığı)",
+          "gostergeAdiEn": "Number Of Enterprises->B. (Mining And Quarrying)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267478-O12101",
+          "gostergeAdi": "Girişim Sayıları->C. (İmalat)",
+          "gostergeAdiEn": "Number Of Enterprises->C. (Manufacturing)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267479-O12101",
+          "gostergeAdi": "Girişim Sayıları->D. (Elektrik, Gaz, Buhar Ve İklimlendirme Üretimi Ve Dağıtımı)",
+          "gostergeAdiEn": "Number Of Enterprises->D. (Electricity, Gas, Steam And Air Conditioning Supply)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267480-O12101",
+          "gostergeAdi": "Girişim Sayıları->E. (Su Temini; Kanalizasyon, Atık Yönetimi Ve İyileştirme Faaliyetleri)",
+          "gostergeAdiEn": "Number Of Enterprises->E. (Water Supply; Sewerage, Waste Management And Remediation Activities)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267481-O12101",
+          "gostergeAdi": "Girişim Sayıları->F. (İnşaat)",
+          "gostergeAdiEn": "Number Of Enterprises->F. (Construction)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267482-O12101",
+          "gostergeAdi": "Girişim Sayıları->G. (Toptan Ve Perakende Ticaret; Motorlu Kara Taşıtlarının Ve Motosikletlerin Onarımı)",
+          "gostergeAdiEn": "Number Of Enterprises->G. (Wholesale And Retail Trade; Repair Of Motor Vehicles And Motorcycles)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267483-O12101",
+          "gostergeAdi": "Girişim Sayıları->H. (Ulaştırma Ve Depolama)",
+          "gostergeAdiEn": "Number Of Enterprises->H. (Transportation And Storage)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267484-O12101",
+          "gostergeAdi": "Girişim Sayıları->I. (Konaklama Ve Yiyecek Hizmeti Faaliyetleri)",
+          "gostergeAdiEn": "Number Of Enterprises->I. (Accommodation And Food Service Activities)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267485-O12101",
+          "gostergeAdi": "Girişim Sayıları->J. (Bilgi Ve İletişim)",
+          "gostergeAdiEn": "Number Of Enterprises->J. (Information And Communication)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267486-O12101",
+          "gostergeAdi": "Girişim Sayıları->K. (Finans Ve Sigorta Faaliyetleri)",
+          "gostergeAdiEn": "Number Of Enterprises->K. (Financial And Insurance Activities)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267487-O12101",
+          "gostergeAdi": "Girişim Sayıları->L. (Gayrimenkul Faaliyetleri)",
+          "gostergeAdiEn": "Number Of Enterprises->L. (Real Estate Activities)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267488-O12101",
+          "gostergeAdi": "Girişim Sayıları->M. (Mesleki, Bilimsel Ve Teknik Faaliyetler)",
+          "gostergeAdiEn": "Number Of Enterprises->M. (Professional, Scientific And Technical Activities)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267489-O12101",
+          "gostergeAdi": "Girişim Sayıları->N. (İdari Ve Destek Hizmet Faaliyetleri)",
+          "gostergeAdiEn":"Number Of Enterprises->N. (Administrative And Support Service Activities)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267491-O12101",
+          "gostergeAdi": "Girişim Sayıları->P. (Eğitim)",
+          "gostergeAdiEn": "Number Of Enterprises->P. (Education)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267492-O12101",
+          "gostergeAdi": "Girişim Sayıları->Q. (İnsan Sağlığı Ve Sosyal Hizmet Faaliyetleri)",
+          "gostergeAdiEn": "Number Of Enterprises->Q. (Human Health And Social Work Activities)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267493-O12101",
+          "gostergeAdi": "Girişim Sayıları->R. (Kültür, Sanat, Eğlence, Dinlence Ve Spor)",
+          "gostergeAdiEn": "Number Of Enterprises->R. (Arts, Entertainment And Recreation)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ISKYT-GK378267494-O12101",
+          "gostergeAdi": "Girişim Sayıları->S. (Diğer Hizmet Faaliyetleri)",
+          "gostergeAdiEn": "Number Of Enterprises->S. (Other Service Activities)",
+          "duzeyler": [2, 3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        }
+      ]
+    },
+
+    {
+      "menuIcon": "tuik-icon-Tarim_Orman_Balikcilik_renkli",
+      "menuName": "Tarım ve Hayvancılık",
+      "menuNameEn": "Agriculture and Livestock",
+      "subMenu": [
+        {
+          "gostergeNo": "BTUR-GK4056122-O32001",
+          "gostergeAdi": "Tarım Alanı (dekar)",
+          "gostergeAdiEn": "Agricultural area  (decare)",
+          "duzeyler": [3, 4],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "BTUR-GK4056122-O32009",
+          "gostergeAdi": "Örtüaltı Tarım Alanı (dekar)",
+          "gostergeAdiEn": "Areas for land under protective cover (decare)",
+          "duzeyler": [3, 4],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "HYV-GK1696800-O32507",
+          "gostergeAdi": "Yumurta Tavuğu Sayısı (adet)",
+          "gostergeAdiEn": "Number of laying hens (piece)",
+          "duzeyler": [2, 3, 4],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+
+        {
+          "gostergeNo": "TRM-GK080-O003",
+          "gostergeAdi": "Canlı hayvanlar değeri (bin TL)",
+          "gostergeAdiEn": "Value of livestock (thousand TL)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        }
+      ]
+    },
+    {
+      "menuIcon": "tuik-icon-Ulastirma_Haberlesme_renkli",
+      "menuName": "Ulaştırma ve Haberleşme",
+      "menuNameEn": "Transportation and Communication",
+      "subMenu": [
+        {
+          "gostergeNo": "ULS-GK091-O009",
+          "gostergeAdi": "Otomobil sayısı (yıllık)",
+          "gostergeAdiEn": "Number of automobiles (annual)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ULS-GK092-O009",
+          "gostergeAdi": "Motorlu kara taşıtları sayısı (yıllık)",
+          "gostergeAdiEn": "Number of road motor vehicles (annual)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ULS-GK111403-O12001",
+          "gostergeAdi": "Otomobil sayısı (aylık)",
+          "gostergeAdiEn": "Number of automobiles (monthly)",
+          "duzeyler": [3],
+          "period": "aylik",
+          "kaynak": "medas",
+          "kayitSayisi": 24,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ULS-GK132711-O12001",
+          "gostergeAdi": "Motorlu kara taşıtları sayısı (aylık)",
+          "gostergeAdiEn": "The number of road motor vehicles (monthly)",
+          "duzeyler": [3],
+          "period": "aylik",
+          "kaynak": "medas",
+          "kayitSayisi": 24,
+          "basligiKoru": 1
+        },
+        {
+          "gostergeNo": "ULS-GK093-O009",
+          "gostergeAdi": "Bin kişi başına otomobil sayısı ",
+          "gostergeAdiEn": "Number of passenger cars per thousand inhabitants",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "ULS-GK094-O009",
+          "gostergeAdi": "Ölümlü yaralanmalı trafik kaza sayısı",
+          "gostergeAdiEn": "Number of accidents involving death and personal injury",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "KAZA-GK378459516-O7309",
+          "gostergeAdi": "Bir Milyon Araç Başına Ölü Sayısı",
+          "gostergeAdiEn": "Number of person killed per million road motor vehicles",
+          "duzeyler": [2,3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "KAZA-GK378459518-O7310",
+          "gostergeAdi": "Bir Milyon Araç Başına Yaralı Sayısı",
+          "gostergeAdiEn": "Number of persons injured per million road motor vehicle",
+          "duzeyler": [2,3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "KAZA-GK378459483-O7303",
+          "gostergeAdi": "Kaza ölü sayısı",
+          "gostergeAdiEn": "Number of persons killed",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "KAZA-GK378459504-O7304",
+          "gostergeAdi": "Kaza yaralı sayısı",
+          "gostergeAdiEn": "Number of injured in accident",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "medas",
+          "kayitSayisi": 5
+        }
+      ]
+    },
+    {
+      "menuIcon": "tuik-icon-Ulusal_Hesaplar_renkli",
+      "menuName": "Ulusal Hesaplar",
+      "menuNameEn": "National Account",
+      "subMenu": [
+        {
+          "gostergeNo": "UHS-GK095-O0011",
+          "gostergeAdi": "Kişi başına GSYH ($) ",
+          "gostergeAdiEn": "GDP per capita ($) ",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "UHS-GK096-O0011",
+          "gostergeAdi": "Kişi başına GSYH (TL) ",
+          "gostergeAdiEn": "GDP per capita (TL)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        },
+        {
+          "gostergeNo": "UHS-GK097-O0011",
+          "gostergeAdi": "GSYH (bin TL)",
+          "gostergeAdiEn": "GDP (thousand TL)",
+          "duzeyler": [3],
+          "period": "yillik",
+          "kaynak": "ilGostergeleri",
+          "kayitSayisi": 5
+        }
+      ]
+    }
+  ]
+}

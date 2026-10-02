@@ -16,6 +16,7 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Identity,
     Index,
@@ -287,4 +288,107 @@ class Observation(Base):
             "period",
             desc("fetched_at"),
         ),
+    )
+
+
+_REGION_METHOD_CHECK = "method IN ('label_match', 'manual')"
+# Region levels the crosswalk knows about. Only provinces are mapped today; add
+# a value here (and in migration 0006) to extend the check.
+REGION_LEVELS: tuple[str, ...] = ("province",)
+_REGION_LEVEL_CHECK = "level IN (" + ", ".join(f"'{level}'" for level in REGION_LEVELS) + ")"
+
+_LINK_RELATION_CHECK = "relation IN ('same_series', 'related')"
+_LINK_METHOD_CHECK = "method IN ('jev_proposed', 'manual')"
+_LINK_STATUS_CHECK = "status IN ('proposed', 'accepted', 'rejected')"
+
+
+class CatalogLink(Base):
+    """A proposed/accepted mapping between a source series and a catalog series.
+
+    One row links one breakdown of a ``from`` dataset (``from_codes``) to one
+    breakdown of a ``to`` dataset (``to_codes``). ``mapping`` holds the optional
+    JSON transformation (region, period, scale) validated by
+    ``app.catalog.mapping``. Proposals are created by Jev (``jev_proposed``) and
+    are never auto-accepted: a reviewer sets ``status``.
+    """
+
+    __tablename__ = "catalog_links"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    from_dataset_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("datasets.id", name="fk_catalog_links_from_dataset"), nullable=False
+    )
+    from_codes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    to_dataset_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("datasets.id", name="fk_catalog_links_to_dataset"), nullable=False
+    )
+    to_codes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    mapping: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    relation: Mapped[str] = mapped_column(Text, nullable=False)
+    method: Mapped[str] = mapped_column(Text, nullable=False)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    status: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'proposed'"), default="proposed"
+    )
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "from_dataset_id",
+            "from_codes",
+            "to_dataset_id",
+            "to_codes",
+            name="uq_catalog_links_pair",
+        ),
+        CheckConstraint(_LINK_RELATION_CHECK, name="ck_catalog_links_relation"),
+        CheckConstraint(_LINK_METHOD_CHECK, name="ck_catalog_links_method"),
+        CheckConstraint(_LINK_STATUS_CHECK, name="ck_catalog_links_status"),
+    )
+
+
+class RegionCrosswalk(Base):
+    """A source-independent mapping between two region code schemes.
+
+    One row says: ``from_code`` in ``from_scheme`` is the same place as
+    ``to_code`` in ``to_scheme``, at ``level`` (only provinces for now). The
+    mapping is not tied to a dataset: other sources (e.g. TCMB province data)
+    add their own scheme later, and Phase 3 maps read it directly. ``method``
+    records how the row was derived; ``label`` is the canonical İBBS label.
+    """
+
+    __tablename__ = "region_crosswalk"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    from_scheme: Mapped[str] = mapped_column(Text, nullable=False)
+    from_code: Mapped[str] = mapped_column(Text, nullable=False)
+    to_scheme: Mapped[str] = mapped_column(Text, nullable=False)
+    to_code: Mapped[str] = mapped_column(Text, nullable=False)
+    level: Mapped[str] = mapped_column(Text, nullable=False)
+    label: Mapped[str] = mapped_column(Text, nullable=False)
+    method: Mapped[str] = mapped_column(Text, nullable=False)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "from_scheme",
+            "from_code",
+            "to_scheme",
+            name="uq_region_crosswalk_from",
+        ),
+        CheckConstraint(_REGION_METHOD_CHECK, name="ck_region_crosswalk_method"),
+        CheckConstraint(_REGION_LEVEL_CHECK, name="ck_region_crosswalk_level"),
+        Index("ix_region_crosswalk_to", "to_scheme", "to_code"),
     )

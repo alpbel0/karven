@@ -1,0 +1,64 @@
+{
+"criteria": [
+{
+"id": "REF_AREA",
+"label": "Reference area",
+"extra": {
+"DataStructureRef": "TR+CL_IBBS+1.2"
+}
+},
+{
+"id": "INDICATOR",
+"label": "Statistical indicator",
+"extra": {
+"DataStructureRef": "TR+CL_GOSTERGE+6.4"
+}
+},
+{
+"id": "DEGISIM",
+"label": "Index-Change",
+"extra": {
+"DataStructureRef": "TR+CL_DEGISIM_UFE+1.0"
+}
+},
+{
+"id": "BASE_PER",
+"label": "Base period",
+"extra": {
+"DataStructureRef": "TR+CL_BAZ_YIL+1.3"
+}
+},
+{
+"id": "FREQ",
+"label": "Frequency of observation",
+"extra": {
+"DataStructureRef": "TR+CL_SIKLIK+1.0"
+}
+},
+{
+"id": "FAAL_GRUP",
+"label": "Activity Group",
+"extra": {
+"DataStructureRef": "TR+CL_FAAL_GRUP_UFE+1.0"
+}
+},
+{
+"id": "TIME_PERIOD",
+"label": "Time period",
+"extra": {
+"DataStructureRef": "MA+CL_TIME_PERIOD+1.0"
+}
+}
+],
+"template": {
+"hiddenDimensions": [
+"FIYAT_ENDEKS_KAPSAM",
+"MALIYET_GRUP",
+"FAALIYET_CPA_2008",
+"URUN_UFE_NACE_CPA",
+"FAALIYET_CPA_2_1"
+]
+},
+"territorialDimension": "REF_AREA",
+"timeDimension": "TIME_PERIOD"
+}

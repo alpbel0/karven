@@ -85,6 +85,33 @@ class Settings(BaseSettings):
     tuik_retry_backoff_s: float = 1.0
     tuik_throttle_wait_s: float = 5.0
 
+    # TÜİK nsiws SDMX REST backup channel (measured 2026-09-30: one worker is
+    # enough; ~25% of requests silently 30 s timeout and need a retry; the
+    # Keycloak token lives ~5 min, so refresh ~1 min early and once on a 401).
+    tuik_api_key: SecretStr | None = None
+    tuik_nsiws_base_url: str = "https://nsiws.tuik.gov.tr/rest"
+    tuik_nsiws_token_url: str = "https://giris.tuik.gov.tr/realms/web/protocol/openid-connect/token"
+    tuik_nsiws_client_id: str = "nsi-ws-consumer"
+    tuik_nsiws_max_concurrency: int = 1
+    tuik_nsiws_request_timeout_s: float = 30.0
+    tuik_nsiws_max_retries: int = 3
+    tuik_nsiws_retry_backoff_s: float = 1.0
+    tuik_nsiws_token_refresh_skew_s: float = 60.0
+
+    # TÜİK Turcat (IMF SDDS national summary page). Measured 2026-09-30: no WAF
+    # and no throttle page, so it can use up to 4 workers.
+    turcat_max_concurrency: int = 4
+    turcat_request_timeout_s: float = 30.0
+    turcat_max_retries: int = 3
+    turcat_retry_backoff_s: float = 1.0
+
+    # TÜİK CİP (Coğrafi İstatistik Portalı) connector. Measured 2026-09-30: a
+    # 40-request burst saw no throttling, so up to 4 workers are safe.
+    cip_max_concurrency: int = 4
+    cip_request_timeout_s: float = 30.0
+    cip_max_retries: int = 3
+    cip_retry_backoff_s: float = 1.0
+
     minio_endpoint: str | None = None
     minio_access_key: str | None = None
     minio_secret_key: SecretStr | None = None

@@ -93,32 +93,51 @@ listeleriyle katalogda; TÜFE (aylık) ve GSYH (yıllık) seri olarak oluşturul
 
 ### Task 1.2b — nsiws SDMX (resmî servis)
 
-**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a · **Anahtar:** `TUIK_API_KEY`
+**Durum:** Tamamlandı (2026-09-30, canlıda doğrulandı) · **Bağımlılıklar:** Task 1.2a · **Anahtar:** `TUIK_API_KEY`
 
-- [ ] API anahtarını Keycloak'ta kısa ömürlü token'a çevirme ve yenileme.
-- [ ] Veri çekme; databrowser2 başarısız olursa yedek kanal olarak devreye girer.
+- [x] API anahtarını Keycloak'ta kısa ömürlü token'a çevirme ve yenileme.
+- [x] Veri çekme; databrowser2 başarısız olursa yedek kanal olarak devreye girer.
 
 **Kabul kriteri:** Aynı seri nsiws'ten çekiliyor ve databrowser2 ile aynı
 değerleri veriyor; yedeğe geçiş canlıda görüldü.
 
 ### Task 1.2c — Turcat (IMF SDDS)
 
-**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+**Durum:** Devam ediyor (TÜİK kaynaklı satırlar canlıda eşleştirildi;
+"yeni dönem" kontrolü Task 1.4'te bağlanacak) · **Bağımlılıklar:** Task 1.2a
 
-- [ ] Kilit göstergelerin son + önceki değerleri.
+- [x] Kilit göstergelerin son + önceki değerleri.
 - [ ] "Yeni dönem yayımlandı mı" kontrolü olarak kullanım (Task 1.4 kesilme
       uyarısına girdi).
 
 **Kabul kriteri:** Canlıda Turcat göstergeleri okunuyor ve katalogdaki
 serilerle eşleşiyor.
 
+**Not (2026-09-30):** Turcat'ın 258 satırının çoğu TCMB/Hazine verisi; yalnız
+~25'i TÜİK. 7 TÜİK göstergesi (TÜFE, ÜFE, sanayi üretimi, istihdam, işsizlik,
+ücret endeksi, nüfus) değer karşılaştırmasıyla elle eşleştirildi
+(`catalog_links`, method=manual). Turcat istihdam/işsizlikte ilk yayım
+değerini gösteriyor; güncel tabloya bağlandı (kullanıcı kararı). GSYH (13
+satır) databrowser2'de çeyreklik ulusal olmadığı için Task 1.3'te EVDS'e,
+dış ticaret (2 satır) 1.2g'ye, TCMB/Hazine satırları Task 1.3 sonrasına
+kaldı.
+
 ### Task 1.2d — MEDAS + CİP (bölgesel veri)
 
-**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+**Durum:** Tamamlandı (2026-09-30, canlıda doğrulandı) · **Bağımlılıklar:** Task 1.2a
 
-- [ ] İl/ilçe düzeyi göstergeler (`duzey` 1-4); kırılım `breakdown` alanında.
+- [x] İl/ilçe düzeyi göstergeler (`duzey` 1-4); kırılım `breakdown` alanında.
 
 **Kabul kriteri:** Bir bölgesel gösterge 81 il için canlıda çekiliyor.
+
+**Not (2026-09-30):** Kaynaktan bağımsız `region_crosswalk` tablosu
+(migration 0006): CİP plaka kodu ↔ İBBS düzey-3, 81/81 (2'si CİP yazım
+hatası nedeniyle elle). Sadece iller (kullanıcı kararı; ilçeler gerektiğinde).
+79 CİP göstergesinin 48'i databrowser2 serilerine 81 ilin tamamında değer
+karşılaştırmasıyla elle bağlandı. Kalan 30'unun (yapı izinleri, il işgücü
+oranları, eğitim/sağlık oranları, sinema, tarım, göç, ölüm hızı, yaşam süresi
+vb.) databrowser2'de il düzeyinde karşılığı yok; CİP tek il kaynağı.
+`CIP_ses123` kaynağın kendisinde HTTP 500 veriyor.
 
 ### Task 1.2e — Sınıflama Sunucusu
 
@@ -237,6 +256,17 @@ görevi yeni dönemi kendiliğinden ekliyor.
 **Kabul kriteri:** Uzun süren bir çekme (20 dakikadan uzun) sinyal verdiği
 sürece tamamlanıyor; sinyali kesilen iş takılmış olarak işaretleniyor; park
 edilen iş veri gelince devam ediyor.
+
+**Not (2026-09-30, kullanıcı kararı):** TÜİK katalog yenilemesi her veri
+setinin boyut listesini verinin tam varsayılan görünümünden yokluyor (büyük
+setlerde 10-30 MB, toplam çalıştırma ~40 dk). Küçültülmüş yoklama canlıda
+gizli boyutu düşürdüğü için (ÜFE ürün boyutu) kullanılamaz. Zamanlanmış
+yenilemede boyut listesi yalnızca veri setinin yapısı (structure) değiştiğinde
+yeniden yoklanacak.
+
+**Not (2026-09-30, kullanıcı kararı):** Kabul edilmiş `catalog_links`
+eşleştirmeleri zamanlanmış bir işle düzenli olarak yeniden kontrol edilecek
+(iki kaynak hâlâ aynı değeri veriyor mu); tutmayanlar uyarı olarak raporlanır.
 
 ## Task 1.6 — Veri çekme ajanı
 

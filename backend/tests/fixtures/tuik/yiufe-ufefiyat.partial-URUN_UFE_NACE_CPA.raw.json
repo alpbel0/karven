@@ -1,0 +1,31 @@
+{
+"criteria": [
+{
+"id": "URUN_UFE_NACE_CPA",
+"label": "Product Classification by Activity Code List",
+"values": [
+{
+"id": "B-E36",
+"parentId": "B-E",
+"name": "Industry (except construction, sewerage, waste management and remediation activities)",
+"isDefault": false,
+"isSelectable": true
+},
+{
+"id": "B-E",
+"parentId": "B",
+"name": "Industry (except construction)",
+"isDefault": false,
+"isSelectable": false
+},
+{
+"id": "C",
+"name": "MANUFACTURED PRODUCTS",
+"isDefault": false,
+"isSelectable": true
+}
+]
+}
+],
+"obsCount": 505249
+}

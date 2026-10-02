@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import logging
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 from typing import Any
@@ -10,11 +12,13 @@ from typing import Any
 from app.connectors.base import (
     EMPTY,
     NOT_FOUND,
+    TIMEOUT,
     ConnectorError,
     DatasetMeta,
     DimensionMeta,
     FetchResult,
 )
+from app.connectors.tuik import __main__ as tuik_cli
 from app.connectors.tuik.__main__ import (
     _cmd_catalog,
     _dry_run_fetch,
@@ -69,6 +73,9 @@ class StubConnector:
             )
             for dataflow_id in self._results
         ]
+
+    def unlisted_dataflows(self) -> list[DataflowInfo]:
+        return []
 
     def dataset_meta(self, info: DataflowInfo) -> DatasetMeta:
         result = self._results[info.dataflow_id]
@@ -182,6 +189,9 @@ class _VerifyConnector:
             for dataflow_id in self._results
         ]
 
+    def unlisted_dataflows(self) -> list[DataflowInfo]:
+        return []
+
     def catalog_dataflow(self, info: DataflowInfo) -> DataflowCatalog:
         return self._results[info.dataflow_id]
 
@@ -257,3 +267,207 @@ def test_verify_completeness_leaves_matching_dataset_unflagged(capsys) -> None:
     assert _verify_completeness(session, connector, args, [info]) == 0
     assert dataset.source_incomplete is False
     assert "0 flagged" in capsys.readouterr().out
+
+
+def _info(dataflow_id: str, *, listed: bool = True) -> DataflowInfo:
+    return DataflowInfo(
+        dataflow_id=dataflow_id,
+        version="1.0",
+        agency="TR",
+        title=dataflow_id,
+        description=None,
+        source_category=None,
+        listed=listed,
+    )
+
+
+class _UnlistedConnector:
+    """Listed DF_LIVE plus one unlisted dataflow whose answer the test chooses."""
+
+    institution_code = "tuik"
+    institution_name = "Türkiye İstatistik Kurumu"
+    channel = "databrowser2"
+
+    def __init__(self, unlisted_result: Any, *, listed: tuple[str, ...] = ("DF_LIVE",)) -> None:
+        self.client = _StubClient()
+        self._listed = listed
+        self._unlisted_result = unlisted_result
+
+    def dataflows(self) -> list[DataflowInfo]:
+        return [_info(dataflow_id) for dataflow_id in self._listed]
+
+    def unlisted_dataflows(self) -> list[DataflowInfo]:
+        return [_info("DF_GONE", listed=False)]
+
+    def dataset_meta(self, info: DataflowInfo) -> DatasetMeta:
+        if not info.listed and isinstance(self._unlisted_result, Exception):
+            raise self._unlisted_result
+        return replace(_dataset(info.dataflow_id), attributes={"channel": "databrowser2"})
+
+
+class _Dataset:
+    def __init__(self, attributes: dict[str, Any]) -> None:
+        self.attributes = attributes
+
+
+class _MarkerSession:
+    def __init__(self) -> None:
+        self.commits = 0
+        self.rollbacks = 0
+
+    def commit(self) -> None:
+        self.commits += 1
+
+    def rollback(self) -> None:
+        self.rollbacks += 1
+
+
+def _run_catalog(monkeypatch, connector, existing: dict[str, _Dataset]):
+    upserted: dict[str, DatasetMeta] = {}
+
+    class _Institution:
+        id = 1
+
+    monkeypatch.setattr(tuik_cli, "upsert_institution", lambda *a, **k: _Institution())
+
+    def fake_upsert(session, institution_id, meta):
+        upserted[meta.external_code] = meta
+        return "updated", None
+
+    monkeypatch.setattr(tuik_cli, "upsert_dataset", fake_upsert)
+    monkeypatch.setattr(
+        tuik_cli,
+        "_existing_dataset",
+        lambda session, institution_id, dataflow_id: existing.get(dataflow_id),
+    )
+    args = argparse.Namespace(dry_run=False, limit=None, dataflow=None, verify_completeness=False)
+    assert _cmd_catalog(_MarkerSession(), connector, args) == 0
+    return upserted
+
+
+def test_catalog_marks_an_unlisted_dataflow_that_still_answers(monkeypatch, capsys) -> None:
+    connector = _UnlistedConnector(None)
+    upserted = _run_catalog(monkeypatch, connector, {})
+
+    today = tuik_cli.date.today().isoformat()
+    assert upserted["DF_GONE"].attributes["unlisted_since"] == today
+    assert "unlisted_since" not in upserted["DF_LIVE"].attributes
+    assert "removed_at" not in upserted["DF_GONE"].attributes
+    assert "dataflows: listed=1 unlisted=1 removed=0" in capsys.readouterr().out
+
+
+def test_catalog_keeps_the_earliest_unlisted_since(monkeypatch) -> None:
+    connector = _UnlistedConnector(None)
+    existing = {
+        "DF_GONE": _Dataset({"unlisted_since": "2026-01-05", "removed_at": "2026-02-01"}),
+    }
+    upserted = _run_catalog(monkeypatch, connector, existing)
+
+    attributes = upserted["DF_GONE"].attributes
+    assert attributes["unlisted_since"] == "2026-01-05"
+    # it answers again, so the stale removed marker is not carried through
+    assert "removed_at" not in attributes
+
+
+def test_catalog_marks_unlisted_not_found_as_removed(monkeypatch, capsys, caplog) -> None:
+    connector = _UnlistedConnector(ConnectorError(NOT_FOUND, "structure gone"))
+    existing = {"DF_GONE": _Dataset({"channel": "databrowser2", "unlisted_since": "2026-01-05"})}
+    with caplog.at_level(logging.WARNING, logger="app.connectors.tuik"):
+        upserted = _run_catalog(monkeypatch, connector, existing)
+
+    assert "DF_GONE" not in upserted  # dimensions untouched: no upsert at all
+    attributes = existing["DF_GONE"].attributes
+    assert attributes["removed_at"] == tuik_cli.date.today().isoformat()
+    assert attributes["unlisted_since"] == "2026-01-05"
+    assert attributes["channel"] == "databrowser2"
+    assert any("no longer serves" in record.getMessage() for record in caplog.records)
+    captured = capsys.readouterr()
+    assert "dataflows: listed=1 unlisted=0 removed=1" in captured.out
+    assert "1 dataflows ok, 0 failed, 2 processed" in captured.out
+
+
+def test_catalog_keeps_the_earliest_removed_at(monkeypatch) -> None:
+    connector = _UnlistedConnector(ConnectorError(NOT_FOUND, "gone"))
+    existing = {"DF_GONE": _Dataset({"removed_at": "2026-03-01"})}
+    _run_catalog(monkeypatch, connector, existing)
+
+    assert existing["DF_GONE"].attributes["removed_at"] == "2026-03-01"
+
+
+def test_catalog_unlisted_timeout_is_a_failure_not_removed(monkeypatch, capsys) -> None:
+    connector = _UnlistedConnector(ConnectorError(TIMEOUT, "slow"))
+    existing = {"DF_GONE": _Dataset({"channel": "databrowser2"})}
+    _run_catalog(monkeypatch, connector, existing)
+
+    assert "removed_at" not in existing["DF_GONE"].attributes
+    captured = capsys.readouterr()
+    assert "1 dataflows ok, 1 failed, 2 processed" in captured.out
+    assert "removed=0" in captured.out
+    assert "failed by kind: timeout (1): DF_GONE" in captured.out
+
+
+def test_catalog_relisted_dataflow_clears_the_markers(monkeypatch) -> None:
+    # DF_GONE is back in the live listing: a listed info upserts attributes
+    # without either marker, so the wholesale replace clears them.
+    connector = _UnlistedConnector(None, listed=("DF_LIVE", "DF_GONE"))
+    connector.unlisted_dataflows = lambda: []  # type: ignore[method-assign]
+    existing = {"DF_GONE": _Dataset({"unlisted_since": "2026-01-05", "removed_at": "2026-02-01"})}
+    upserted = _run_catalog(monkeypatch, connector, existing)
+
+    assert upserted["DF_GONE"].attributes == {"channel": "databrowser2"}
+
+
+def test_catalog_dry_run_handles_unlisted_without_writing(capsys) -> None:
+    connector = _UnlistedConnector(ConnectorError(NOT_FOUND, "gone"))
+    args = argparse.Namespace(
+        dry_run=True, limit=None, dataflow="DF_GONE", verify_completeness=False
+    )
+
+    assert _cmd_catalog(None, connector, args) == 0
+
+    out = capsys.readouterr().out
+    assert "dataflows: listed=0 unlisted=0 removed=1" in out
+    assert "nothing written" in out
+
+
+def test_dataflow_filter_finds_an_unlisted_dataflow(capsys) -> None:
+    connector = _UnlistedConnector(None)
+    args = argparse.Namespace(
+        dry_run=True, limit=None, dataflow="TR,DF_GONE,1.0", verify_completeness=False
+    )
+
+    assert _cmd_catalog(None, connector, args) == 0
+
+    assert "dataflows: listed=0 unlisted=1 removed=0" in capsys.readouterr().out
+
+
+def test_known_dataflows_loader_only_takes_databrowser2_datasets() -> None:
+    class _Row:
+        def __init__(self, code: str, attributes: dict[str, Any]) -> None:
+            self.external_code = code
+            self.attributes = attributes
+            self.name = f"{code} name"
+            self.description = None
+            self.source_category = "Cat"
+
+    rows = [
+        _Row("DF_A", {"channel": "databrowser2", "agency": "TR", "version": "1.0"}),
+        _Row("TURCAT_X", {"channel": "turcat"}),
+        _Row("CIP_1", {"channel": "cip", "agency": "TR", "version": "1.0"}),
+        _Row("DF_NO_VERSION", {"channel": "databrowser2", "agency": "TR"}),
+    ]
+
+    class _Result:
+        def scalars(self):
+            return iter(rows)
+
+    class _Session:
+        def execute(self, statement):
+            return _Result()
+
+    known = tuik_cli.load_known_dataflows(_Session(), "tuik")
+
+    assert [info.dataflow_id for info in known] == ["DF_A"]
+    assert known[0].listed is False
+    assert known[0].dataset_identifier == "TR,DF_A,1.0"
+    assert known[0].source_category == "Cat"

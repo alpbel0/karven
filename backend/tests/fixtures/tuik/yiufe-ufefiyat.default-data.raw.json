@@ -1,0 +1,56 @@
+{
+"id": [
+"REF_AREA",
+"INDICATOR",
+"DEGISIM",
+"BASE_PER",
+"FREQ",
+"URUN_UFE_NACE_CPA",
+"FAAL_GRUP",
+"TIME_PERIOD"
+],
+"size": [
+1,
+1,
+5,
+1,
+1,
+334,
+6,
+536
+],
+"role": {
+"time": [
+"TIME_PERIOD"
+],
+"geo": [
+"REF_AREA"
+]
+},
+"dimension": {
+"REF_AREA": {
+"label": "Reference area"
+},
+"INDICATOR": {
+"label": "Statistical indicator"
+},
+"DEGISIM": {
+"label": "Index-Change"
+},
+"BASE_PER": {
+"label": "Base period"
+},
+"FREQ": {
+"label": "Frequency of observation"
+},
+"URUN_UFE_NACE_CPA": {
+"label": "Product Classification by Activity"
+},
+"FAAL_GRUP": {
+"label": "Activity Group"
+},
+"TIME_PERIOD": {
+"label": "Time period"
+}
+}
+}

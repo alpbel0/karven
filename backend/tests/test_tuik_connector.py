@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 from pathlib import Path
@@ -97,6 +98,32 @@ SUT_META = DataflowInfo(
     description=None,
     source_category=None,
 )
+YIUFE_PREFIX = "yiufe-ufefiyat"
+YIUFE_META = DataflowInfo(
+    dataflow_id="DF_YIUFE_EDO_V1",
+    version="1.0",
+    agency="TR",
+    title="Domestic Producer Price Index and Rate of Change [2003=100]",
+    description=None,
+    source_category=None,
+)
+# DF_YIUFE_EDO_V1 structure criteria order vs the data (JSON-stat id) order:
+# URUN_UFE_NACE_CPA is hidden yet is a real data dimension and must be catalogued.
+YIUFE_DATA_DIMENSIONS = [
+    "REF_AREA",
+    "INDICATOR",
+    "DEGISIM",
+    "BASE_PER",
+    "FREQ",
+    "URUN_UFE_NACE_CPA",
+    "FAAL_GRUP",
+]
+YIUFE_HIDDEN_ONLY = [
+    "FIYAT_ENDEKS_KAPSAM",
+    "MALIYET_GRUP",
+    "FAALIYET_CPA_2008",
+    "FAALIYET_CPA_2_1",
+]
 
 TUFE_CODES = {
     "REF_AREA": "TR",
@@ -288,7 +315,9 @@ def csv_response(name: str) -> httpx.Response:
 
 
 def build_connector(
-    handler: Callable[[httpx.Request], httpx.Response], store: InMemoryObjectStore
+    handler: Callable[[httpx.Request], httpx.Response],
+    store: InMemoryObjectStore,
+    known: tuple[DataflowInfo, ...] = (),
 ) -> TuikConnector:
     def routed(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("/catalog"):
@@ -297,7 +326,7 @@ def build_connector(
 
     http_client = httpx.Client(transport=httpx.MockTransport(routed))
     client = Databrowser2Client(http_client=http_client, store=store, sleeper=lambda _: None)
-    return TuikConnector(client=client)
+    return TuikConnector(client=client, known_dataflows=known)
 
 
 def request_body(request: httpx.Request) -> Any:
@@ -565,6 +594,8 @@ def test_dataset_meta_maps_dimensions_codes_and_roles() -> None:
         json_headers = {"content-type": "application/json"}
         if path.endswith("/structure"):
             return json_response(f"{MERKEZI_PREFIX}.structure.raw.json")
+        if path.endswith("/data"):
+            return json_response(f"{MERKEZI_PREFIX}.default-data.raw.json")
         if "/PartialCodelists/" in path:
             dimension = path.rsplit("/", 1)[1]
             if dimension == "TIME_PERIOD":
@@ -625,6 +656,20 @@ def test_dataset_meta_uses_source_parent_ids() -> None:
                 },
                 headers=json_headers,
             )
+        if path.endswith("/data"):
+            return httpx.Response(
+                200,
+                json={
+                    "id": ["REF_AREA", "TIME_PERIOD"],
+                    "size": [1, 1],
+                    "role": {"time": ["TIME_PERIOD"]},
+                    "dimension": {
+                        "REF_AREA": {"label": "Reference area"},
+                        "TIME_PERIOD": {"label": "Time period"},
+                    },
+                },
+                headers=json_headers,
+            )
         if "/PartialCodelists/" in path:
             dimension = path.rsplit("/", 1)[1]
             if dimension == "TIME_PERIOD":
@@ -661,6 +706,21 @@ def test_dataset_meta_tolerates_empty_codelists() -> None:
                 },
                 headers=json_headers,
             )
+        if path.endswith("/data"):
+            return httpx.Response(
+                200,
+                json={
+                    "id": ["FREQ", "INDICATOR", "TIME_PERIOD"],
+                    "size": [1, 1, 1],
+                    "role": {"time": ["TIME_PERIOD"]},
+                    "dimension": {
+                        "FREQ": {"label": "Frequency of observation"},
+                        "INDICATOR": {"label": "Statistical indicator"},
+                        "TIME_PERIOD": {"label": "Time period"},
+                    },
+                },
+                headers=json_headers,
+            )
         if "/PartialCodelists/" in path:
             dimension = path.rsplit("/", 1)[1]
             if dimension == "TIME_PERIOD":
@@ -693,6 +753,133 @@ def test_dataset_meta_tolerates_empty_codelists() -> None:
     assert "INDICATOR" in (meta.source_incomplete_note or "")
     assert meta.coverage_start == date(2017, 1, 1)
     assert meta.coverage_end == date(2025, 12, 31)
+
+
+def yiufe_handler(*, probe_ok: bool = True) -> Callable[[httpx.Request], httpx.Response]:
+    """Handler serving the captured DF_YIUFE_EDO_V1 fixtures."""
+
+    json_headers = {"content-type": "application/json"}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = path_of(request)
+        if path.endswith("/structure"):
+            return json_response(f"{YIUFE_PREFIX}.structure.raw.json")
+        if path.endswith("/data"):
+            if probe_ok:
+                return json_response(f"{YIUFE_PREFIX}.default-data.raw.json")
+            return httpx.Response(200, content=b"not json", headers=json_headers)
+        if "/PartialCodelists/" in path:
+            dimension = path.rsplit("/", 1)[1]
+            if dimension == "URUN_UFE_NACE_CPA":
+                return json_response(f"{YIUFE_PREFIX}.partial-URUN_UFE_NACE_CPA.raw.json")
+            if dimension == "TIME_PERIOD":
+                return httpx.Response(
+                    200,
+                    json={
+                        "criteria": [
+                            {
+                                "id": "TIME_PERIOD",
+                                "label": "Time period",
+                                "values": [
+                                    {"id": "2003-01-01", "name": "Start Time period"},
+                                    {"id": "2026-08-01", "name": "End Time period"},
+                                ],
+                            }
+                        ]
+                    },
+                    headers=json_headers,
+                )
+            return httpx.Response(
+                200,
+                json={
+                    "criteria": [
+                        {
+                            "id": dimension,
+                            "label": dimension,
+                            "values": [
+                                {
+                                    "id": "X",
+                                    "name": "One code",
+                                    "isSelectable": True,
+                                    "isDefault": True,
+                                }
+                            ],
+                        }
+                    ]
+                },
+                headers=json_headers,
+            )
+        if path.endswith("/download/csv"):
+            return httpx.Response(
+                200,
+                content=b"TIME_PERIOD,OBS_VALUE\n2003-01,5.0\n",
+                headers={"content-type": "text/csv"},
+            )
+        raise AssertionError(path)
+
+    return handler
+
+
+def test_dataset_meta_catalogues_hidden_data_dimensions() -> None:
+    store = InMemoryObjectStore()
+    connector = build_connector(yiufe_handler(), store)
+
+    meta = connector.dataset_meta(YIUFE_META)
+
+    ordered = sorted(meta.dimensions, key=lambda dim: dim.position)
+    assert [dim.code for dim in ordered] == [*YIUFE_DATA_DIMENSIONS, "TIME_PERIOD"]
+    assert [dim.position for dim in ordered] == list(range(len(ordered)))
+    by_code = {dim.code: dim for dim in ordered}
+
+    urun = by_code["URUN_UFE_NACE_CPA"]
+    assert urun.attributes.get("from_hidden") is True
+    assert urun.label == "Product Classification by Activity"
+    assert {code.code for code in urun.codes} == {"B-E36", "B-E", "C"}
+    assert next(code for code in urun.codes if code.code == "B-E36").parent_code == "B-E"
+    assert by_code["FAAL_GRUP"].position > urun.position
+    assert by_code["REF_AREA"].attributes.get("from_hidden") is None
+
+    assert meta.attributes["data_dimensions_verified"] is True
+    assert meta.attributes["hidden_dimensions"] == YIUFE_HIDDEN_ONLY
+    assert "URUN_UFE_NACE_CPA" not in meta.attributes["hidden_dimensions"]
+    assert meta.source_incomplete is False
+    assert meta.coverage_start == date(2003, 1, 1)
+    assert meta.coverage_end == date(2026, 8, 1)
+
+
+def test_dataset_meta_marks_unverifiable_data_dimensions() -> None:
+    store = InMemoryObjectStore()
+    connector = build_connector(yiufe_handler(probe_ok=False), store)
+
+    meta = connector.dataset_meta(YIUFE_META)
+
+    assert meta.attributes["data_dimensions_verified"] is False
+    assert meta.source_incomplete is True
+    assert "could not be verified" in (meta.source_incomplete_note or "")
+    # Structure criteria are still catalogued; hidden dimensions are never guessed.
+    codes = [dim.code for dim in meta.dimensions]
+    assert "REF_AREA" in codes and "URUN_UFE_NACE_CPA" not in codes
+    assert meta.attributes["hidden_dimensions"] == [
+        "FIYAT_ENDEKS_KAPSAM",
+        "MALIYET_GRUP",
+        "FAALIYET_CPA_2008",
+        "URUN_UFE_NACE_CPA",
+        "FAALIYET_CPA_2_1",
+    ]
+
+
+def test_catalog_key_for_yiufe_has_every_data_dimension() -> None:
+    store = InMemoryObjectStore()
+    connector = build_connector(yiufe_handler(), store)
+    meta = connector.dataset_meta(YIUFE_META)
+
+    ordered = sorted(meta.dimensions, key=lambda dim: dim.position)
+    order = [dim.code for dim in ordered if dim.role != "time"]
+    codes = {dim.code: dim.codes[0].code for dim in ordered if dim.role != "time" and dim.codes}
+    assert "URUN_UFE_NACE_CPA" in codes
+
+    result = connector.fetch_series("DF_YIUFE_EDO_V1", codes, order=order)
+    assert result.points == [(date(2003, 1, 1), Decimal("5.0"))]
 
 
 def test_fetch_series_retries_unfiltered_when_filtered_request_500s() -> None:
@@ -977,3 +1164,32 @@ def test_catalog_regional_series_is_fetchable() -> None:
     assert fetched.points[-1] == (date(2021, 1, 1), Decimal("2"))
     csv_by_dim = {c["id"]: c["filterValues"] for c in csv_bodies[0]}
     assert csv_by_dim["REF_AREA"] == ["TR100"]
+
+
+def test_resolve_falls_back_to_known_dataflows_the_listing_dropped() -> None:
+    dropped = DataflowInfo(
+        dataflow_id="DF_DROPPED_FROM_LISTING",
+        version="1.0",
+        agency="TR",
+        title="Banks employment",
+        description=None,
+        source_category=None,
+    )
+    live = replace(TUFE_META, title="stale title from the database")
+    connector = build_connector(
+        lambda request: json_response(CATALOG), InMemoryObjectStore(), known=(dropped, live)
+    )
+
+    found = connector.resolve("DF_DROPPED_FROM_LISTING")
+    assert found.listed is False
+    assert found.dataset_identifier == "TR,DF_DROPPED_FROM_LISTING,1.0"
+    assert connector.resolve("TR,DF_DROPPED_FROM_LISTING,1.0") == found
+    # the live listing wins for a dataflow that is still listed
+    assert connector.resolve("DF_TUFE_SDMX_TT10").listed is True
+    assert connector.resolve("DF_TUFE_SDMX_TT10").title != live.title
+    assert [info.dataflow_id for info in connector.unlisted_dataflows()] == [
+        "DF_DROPPED_FROM_LISTING"
+    ]
+    assert len(connector.dataflows()) == 467
+    with pytest.raises(ConnectorError):
+        connector.resolve("DF_NEVER_HEARD_OF")

@@ -767,6 +767,8 @@ class DataflowInfo:
     title: str
     description: str | None
     source_category: str | None
+    # False for a dataflow we know from the database that the live listing dropped.
+    listed: bool = True
 
     @property
     def dataset_identifier(self) -> str:
@@ -864,7 +866,12 @@ class CodelistData:
 
 
 def parse_hidden_dimensions(payload: dict[str, Any]) -> list[str]:
-    """Dimensions applied only through the view's defaults (not part of series identity)."""
+    """Dimension ids the view declares as hidden (``template.hiddenDimensions``).
+
+    Hidden is a view concept, not proof that a dimension is absent from the data:
+    many dataflows carry some of these dimensions in their JSON-stat ``id`` with
+    real codes. Callers decide which are real data dimensions by probing the data.
+    """
     if not isinstance(payload, dict):
         return []
     hidden = (payload.get("template") or {}).get("hiddenDimensions") or []
@@ -874,10 +881,11 @@ def parse_hidden_dimensions(payload: dict[str, Any]) -> list[str]:
 def parse_structure(payload: dict[str, Any]) -> tuple[list[DimensionSpec], str]:
     """Return ``(dimensions, time_dimension)`` from a structure response.
 
-    Only the selectable (top-level) dimensions are returned, in the structure's
-    criteria order; that order defines the ``series`` external code. Dimensions
-    that the view applies through its own defaults (``hiddenDimensions``) are not
-    part of a series identity and are reported by :func:`parse_hidden_dimensions`.
+    Only the visible (top-level) dimensions are returned, in the structure's
+    criteria order. ``template.hiddenDimensions`` are reported separately by
+    :func:`parse_hidden_dimensions`; "hidden" is a view setting and does not prove
+    a dimension is absent from the data, so it must not be treated as series
+    metadata on its own.
     """
     if not isinstance(payload, dict):
         raise ConnectorError(FORMAT_CHANGED, "structure payload is not an object")

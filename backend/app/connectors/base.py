@@ -38,7 +38,7 @@ from app.config import settings
 from app.data.errors import SeriesDefinitionError
 from app.data.models import Dataset, DatasetDimension, DimensionCode, Institution, Series
 from app.data.observations import RecordResult, record_observations
-from app.data.periods import frequency_for_sdmx_code
+from app.data.periods import FREQUENCIES, frequency_for_sdmx_code
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +106,10 @@ class DimensionCodeMeta:
     label: str
     parent_code: str | None = None
     is_default: bool = False
+    # Optional per-code metadata. Sources without a FREQ/UNIT_MEASURE dimension
+    # (e.g. Turcat) put the frequency and unit here instead; the series builder
+    # reads them as a fallback.
+    attributes: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -367,6 +371,16 @@ def upsert_dataset(session: Session, institution_id: int, meta: DatasetMeta) -> 
         codes += _upsert_dimension_codes(session, dimension, dim_meta)
 
     session.flush()
+    # Rows above were added through foreign keys, so the in-memory relationship
+    # collections loaded earlier are stale. Expire them so callers that use the
+    # returned dataset right away (e.g. ensure_series in the same transaction)
+    # see the new dimensions and codes. Found live 2026-09-30: the first Turcat
+    # run skipped every indicator because dataset.dimensions was still empty.
+    for dimension in session.scalars(
+        sa.select(DatasetDimension).where(DatasetDimension.dataset_id == dataset.id)
+    ):
+        session.expire(dimension, ["codes"])
+    session.expire(dataset, ["dimensions"])
     outcome = UNCHANGED
     if changed:
         outcome = INSERTED if created else UPDATED
@@ -390,7 +404,7 @@ def _upsert_dimension_codes(
                     label=code_meta.label,
                     parent_code=code_meta.parent_code,
                     is_default=code_meta.is_default,
-                    attributes={},
+                    attributes=dict(code_meta.attributes),
                 )
             )
             count += 1
@@ -403,9 +417,11 @@ def _upsert_dimension_codes(
             row.label = code_meta.label
             row.parent_code = code_meta.parent_code
             row.is_default = code_meta.is_default
-        if row.attributes.get("removed_at"):
-            attributes = dict(row.attributes)
-            attributes.pop("removed_at", None)
+        # A code that reappears clears a previous ``removed_at`` marker, and any
+        # other attribute change is persisted.
+        attributes = dict(code_meta.attributes)
+        attributes.pop("removed_at", None)
+        if row.attributes != attributes:
             row.attributes = attributes
         count += 1
     for code, row in existing.items():
@@ -492,7 +508,7 @@ def build_series_definition(dataset: Dataset, codes: dict[str, str]) -> SeriesDe
                 f"code {code!r} is not valid for dimension {dimension.code!r} of "
                 f"dataset {dataset.external_code!r}"
             )
-    frequency = _frequency_from_codes(codes)
+    frequency = _frequency_from_codes(non_time, codes, dataset)
     unit = _unit_from_codes(non_time, codes)
     breakdown = {
         dimension.code: {
@@ -520,20 +536,68 @@ def build_series_definition(dataset: Dataset, codes: dict[str, str]) -> SeriesDe
     )
 
 
-def _frequency_from_codes(codes: dict[str, str]) -> str:
-    frequency_code = codes.get("FREQ")
-    if frequency_code is None:
-        raise SeriesDefinitionError("dataset has no FREQ dimension; cannot derive frequency")
-    try:
-        return frequency_for_sdmx_code(frequency_code)
-    except Exception as exc:  # noqa: BLE001 - re-raise with context
-        raise SeriesDefinitionError(f"unknown FREQ code {frequency_code!r}") from exc
+def _selected_code(
+    dimensions: list[DatasetDimension], codes: dict[str, str]
+) -> dict[str, DimensionCode]:
+    selected: dict[str, DimensionCode] = {}
+    for dimension in dimensions:
+        code = codes.get(dimension.code)
+        if code is None:
+            continue
+        for row in dimension.codes:
+            if row.code == code:
+                selected[dimension.code] = row
+                break
+    return selected
+
+
+def _frequency_from_codes(
+    dimensions: list[DatasetDimension],
+    codes: dict[str, str],
+    dataset: Dataset | None = None,
+) -> str:
+    """Derive the series frequency: FREQ dimension, then a code attribute, then
+    the dataset default.
+
+    Turcat INDICATOR codes carry ``attributes['frequency']``; CİP datasets publish
+    one fixed frequency as ``attributes['default_frequency']``.
+    """
+    for dimension in dimensions:
+        if dimension.code == "FREQ":
+            try:
+                return frequency_for_sdmx_code(codes[dimension.code])
+            except Exception as exc:  # noqa: BLE001 - re-raise with context
+                raise SeriesDefinitionError(f"unknown FREQ code {codes[dimension.code]!r}") from exc
+    selected = _selected_code(dimensions, codes)
+    for dimension in dimensions:
+        row = selected.get(dimension.code)
+        frequency = (row.attributes or {}).get("frequency") if row is not None else None
+        if frequency:
+            if frequency not in FREQUENCIES:
+                raise SeriesDefinitionError(
+                    f"unknown frequency attribute {frequency!r} on code {codes[dimension.code]!r}"
+                )
+            return frequency
+    default = (dataset.attributes or {}).get("default_frequency") if dataset is not None else None
+    if default:
+        if default not in FREQUENCIES:
+            raise SeriesDefinitionError(f"unknown default_frequency {default!r}")
+        return str(default)
+    raise SeriesDefinitionError(
+        "dataset has no FREQ dimension, no frequency attribute and no default_frequency"
+    )
 
 
 def _unit_from_codes(dimensions: list[DatasetDimension], codes: dict[str, str]) -> str | None:
     for dimension in dimensions:
         if dimension.code == "UNIT_MEASURE":
             return _code_label(dimension, codes[dimension.code])
+    selected = _selected_code(dimensions, codes)
+    for dimension in dimensions:
+        row = selected.get(dimension.code)
+        unit = (row.attributes or {}).get("unit") if row is not None else None
+        if unit:
+            return str(unit)
     return None
 
 

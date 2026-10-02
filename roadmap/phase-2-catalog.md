@@ -105,6 +105,16 @@ rastgele 50 seride etiketler elle kontrol edilmiş.
 **Kabul kriteri:** "Türkiye geneli toplam konut satış sayısı, aylık" isteği doğru
 seriyi 4-5 puanla döndürüyor; puanlama parçalı listede de çalışıyor.
 
+**Not (2026-09-30):** Checklist'teki eski "seri" adımları DECISIONS §7'deki yeni
+akışa göre (veri seti → hiyerarşik kırılım seçimi → düşük güvende çoklu
+cümleleme → son doğrulama) yeniden yazılacak. Task 1.2c'de aynı işi yapan
+eşleştirme prototipinden (`app/catalog/linking.py`) canlıda öğrenilenler:
+Türkçe istek ile TÜİK'in **İngilizce** etiketleri arasında uyumsuzluk (ör.
+"Nüfus"u doğru tabloda bulup doğrulamada 0,28 ile eledi); ilk adımda yanlış
+veri seti seçimi (GSYH sektör bileşenleri yıllık/bölgesel tablolara gitti);
+veri seti seçimine açıklama ve kategori bilgisinin katılması gerekiyor. Turcat
+ve CİP eşleştirmeleri bu yüzden elle yapıldı (kullanıcı kararı).
+
 ## Task 2.5 — Veri durumu aracı
 
 **Repo:** `karven`

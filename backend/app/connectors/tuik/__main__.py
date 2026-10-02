@@ -19,21 +19,29 @@ import time
 from collections import Counter, deque
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.connectors.base import (
     FORMAT_CHANGED,
+    NOT_FOUND,
     ROLE_TIME,
     ConnectorError,
+    MinioObjectStore,
     ingest_series,
     resolve_external_code,
     upsert_dataset,
     upsert_institution,
 )
+from app.connectors.tuik.cip import CipClient, CipConnector
 from app.connectors.tuik.client import Databrowser2Client
 from app.connectors.tuik.connector import TuikConnector
+from app.connectors.tuik.nsiws import build_nsiws_client
+from app.connectors.tuik.parsers import DataflowInfo
+from app.connectors.tuik.turcat import TurcatClient, TurcatConnector, ingest_sector
+from app.connectors.tuik.turcat_parsers import SECTORS
 from app.data.errors import SeriesDefinitionError, SeriesNotFoundError
 from app.data.models import Dataset, DatasetDimension, DimensionCode, Institution
 
@@ -87,6 +95,33 @@ def build_parser() -> argparse.ArgumentParser:
     find = subparsers.add_parser("find", help="search dataset names and code labels")
     find.add_argument("--text", required=True, help="ILIKE pattern text")
 
+    turcat = subparsers.add_parser(
+        "turcat", help="sync the IMF SDDS (Turcat) sector indicators and values"
+    )
+    turcat.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and parse the five sectors but write nothing (no DB, no MinIO)",
+    )
+
+    cip = subparsers.add_parser(
+        "cip-catalog", help="sync CİP regional datasets (datasets/dimensions/codes; no values)"
+    )
+    cip.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and parse every indicator but write nothing (no DB, no MinIO)",
+    )
+    cip.add_argument("--limit", type=int, default=None, help="process at most N indicators")
+    cip.add_argument(
+        "--kaynak",
+        default=None,
+        choices=["medas", "ilGostergeleri", "json"],
+        help="only indicators of this sideMenu kaynak",
+    )
+
     return parser
 
 
@@ -96,7 +131,8 @@ def _print_error(command: str, error: Exception) -> None:
 
 def _dataflows(connector: TuikConnector, args: argparse.Namespace):
     try:
-        dataflows = connector.dataflows()
+        # Listed ones first, then the known ones the listing dropped.
+        dataflows = [*connector.dataflows(), *connector.unlisted_dataflows()]
     except ConnectorError as exc:
         _print_error("catalog", exc)
         return None
@@ -139,6 +175,10 @@ def _cmd_catalog(
     failures: list[tuple[str, ConnectorError]] = []
     dimensions = 0
     codes = 0
+    hidden_gained = 0
+    unverified = 0
+    listed = unlisted = removed = 0
+    today = date.today().isoformat()
     pending = deque(dataflows)
 
     with ThreadPoolExecutor(max_workers=max(1, connector.client.max_concurrency)) as pool:
@@ -152,6 +192,19 @@ def _cmd_catalog(
                 except ConnectorError as exc:
                     if not dry_run and session is not None:
                         session.rollback()
+                    if not info.listed and exc.kind == NOT_FOUND:
+                        # Gone from the listing and the source no longer answers.
+                        logger.warning(
+                            "tuik catalog: %s left the listing and the source no longer "
+                            "serves it; marking removed",
+                            info.dataflow_id,
+                        )
+                        removed += 1
+                        if not dry_run:
+                            assert session is not None and institution_id is not None
+                            _mark_removed(session, institution_id, info.dataflow_id, today)
+                            session.commit()
+                        continue
                     failures.append((info.dataflow_id, exc))
                     continue
                 except Exception as exc:  # noqa: BLE001 - one bad dataflow must not abort the run
@@ -164,8 +217,24 @@ def _cmd_catalog(
                         )
                     )
                     continue
+                if info.listed:
+                    listed += 1
+                else:
+                    unlisted += 1
+                    meta.attributes["unlisted_since"] = _unlisted_since(
+                        session if not dry_run else None,
+                        institution_id,
+                        info.dataflow_id,
+                        today,
+                    )
                 dimensions += len(meta.dimensions)
                 codes += sum(len(dimension.codes) for dimension in meta.dimensions)
+                if any(dim.attributes.get("from_hidden") for dim in meta.dimensions):
+                    hidden_gained += 1
+                if not meta.attributes.get("data_dimensions_verified", True):
+                    unverified += 1
+                if dry_run and args.dataflow:
+                    _print_dimensions(info.dataflow_id, meta)
                 if dry_run:
                     outcomes["found"] += 1
                 else:
@@ -187,7 +256,206 @@ def _cmd_catalog(
             f"unchanged={outcomes['unchanged']}"
         )
     print(f"dimensions={dimensions} codes={codes} runtime={runtime:.1f}s")
+    print(f"dataflows: listed={listed} unlisted={unlisted} removed={removed}")
+    print(
+        f"hidden-dimensions catalogued: {hidden_gained} datasets; "
+        f"unverified data dimensions: {unverified} datasets"
+    )
     _print_failures(failures)
+    return 0
+
+
+def _existing_dataset(
+    session: Session | None, institution_id: int | None, dataflow_id: str
+) -> Dataset | None:
+    if session is None or institution_id is None:
+        return None
+    return session.scalar(
+        select(Dataset).where(
+            Dataset.institution_id == institution_id,
+            Dataset.external_code == dataflow_id,
+        )
+    )
+
+
+def _unlisted_since(
+    session: Session | None, institution_id: int | None, dataflow_id: str, today: str
+) -> str:
+    """The earliest date the dataflow was seen missing (kept once recorded)."""
+    dataset = _existing_dataset(session, institution_id, dataflow_id)
+    if dataset is not None:
+        recorded = (dataset.attributes or {}).get("unlisted_since")
+        if recorded:
+            return min(str(recorded), today)
+    return today
+
+
+def _mark_removed(session: Session, institution_id: int, dataflow_id: str, today: str) -> None:
+    """Flag a dataset the source no longer serves; dimensions stay untouched."""
+    dataset = _existing_dataset(session, institution_id, dataflow_id)
+    if dataset is None:
+        return
+    attributes = dict(dataset.attributes or {})
+    attributes["removed_at"] = min(str(attributes.get("removed_at") or today), today)
+    attributes.setdefault("unlisted_since", today)
+    dataset.attributes = attributes
+
+
+def load_known_dataflows(session: Session, institution_code: str) -> list[DataflowInfo]:
+    """Databrowser2 datasets already in the database, as dataflows (read-only)."""
+    rows = session.execute(
+        select(Dataset)
+        .join(Institution, Institution.id == Dataset.institution_id)
+        .where(Institution.code == institution_code)
+    ).scalars()
+    known: list[DataflowInfo] = []
+    for dataset in rows:
+        attributes = dataset.attributes or {}
+        if attributes.get("channel") != "databrowser2":
+            continue
+        agency, version = attributes.get("agency"), attributes.get("version")
+        if not agency or not version:
+            continue
+        known.append(
+            DataflowInfo(
+                dataflow_id=str(attributes.get("dataflow_id") or dataset.external_code),
+                version=str(version),
+                agency=str(agency),
+                title=dataset.name,
+                description=dataset.description,
+                source_category=dataset.source_category,
+                listed=False,
+            )
+        )
+    return known
+
+
+def _known_for(command: str, dry_run: bool) -> list[DataflowInfo]:
+    """Known dataflows for ``catalog``/``fetch``; a dry run tolerates an unreachable DB."""
+    if command not in ("catalog", "fetch"):
+        return []
+    try:
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            return load_known_dataflows(session, TuikConnector.institution_code)
+    except Exception:  # noqa: BLE001
+        if not dry_run:
+            raise
+        logger.warning("tuik: database unreachable, unlisted known dataflows unavailable")
+        return []
+
+
+def _print_dimensions(dataflow_id: str, meta: Any) -> None:
+    """Print one dataset's catalogued dimensions (dry-run, single dataflow)."""
+    print(f"{dataflow_id}: dimensions={len(meta.dimensions)}")
+    for dim in sorted(meta.dimensions, key=lambda item: item.position):
+        flags = []
+        if dim.role == ROLE_TIME:
+            flags.append("time")
+        if dim.attributes.get("from_hidden"):
+            flags.append("from_hidden")
+        marker = f" [{', '.join(flags)}]" if flags else ""
+        print(f"  {dim.position}: {dim.code} codes={len(dim.codes)}{marker}")
+    if meta.source_incomplete:
+        print(f"  source_incomplete: {meta.source_incomplete_note}")
+
+
+def _cmd_cip_catalog(
+    session: Session | None, connector: CipConnector, args: argparse.Namespace
+) -> int:
+    started = time.monotonic()
+    entries = connector.entries()
+    if args.kaynak:
+        entries = [entry for entry in entries if entry.kaynak == args.kaynak]
+    if args.limit is not None:
+        entries = entries[: args.limit]
+
+    dry_run = bool(getattr(args, "dry_run", False))
+    institution_id: int | None = None
+    if not dry_run:
+        assert session is not None
+        institution = upsert_institution(
+            session, connector.institution_code, connector.institution_name
+        )
+        session.commit()
+        institution_id = institution.id
+
+    ok = 0
+    outcomes: Counter[str] = Counter()
+    level_histogram: Counter[tuple[int, ...]] = Counter()
+    dimensions = codes = 0
+    unexpected: list[tuple[str, ConnectorError]] = []
+    max_workers = max(1, connector.client.max_concurrency)
+
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = [(entry, pool.submit(connector.dataset_meta, entry)) for entry in entries]
+        for entry, future in futures:
+            try:
+                meta = future.result()
+            except ConnectorError as exc:
+                if not dry_run and session is not None:
+                    session.rollback()
+                unexpected.append((f"CIP_{entry.gosterge_no}", exc))
+                continue
+            except Exception as exc:  # noqa: BLE001 - one bad indicator must not abort the run
+                if not dry_run and session is not None:
+                    session.rollback()
+                unexpected.append(
+                    (
+                        f"CIP_{entry.gosterge_no}",
+                        ConnectorError(FORMAT_CHANGED, f"{type(exc).__name__}: {exc}"),
+                    )
+                )
+                continue
+            if not meta.dimensions:
+                # No level returned data; the connector already recorded the reason.
+                # Persist it as a flagged dataset ("record it as a failed dataset").
+                if not dry_run:
+                    assert session is not None and institution_id is not None
+                    outcome, _ = upsert_dataset(session, institution_id, meta)
+                    outcomes[outcome] += 1
+                    session.commit()
+                continue
+            working = tuple(meta.attributes.get("working_levels") or ())
+            level_histogram[working] += 1
+            dimensions += len(meta.dimensions)
+            codes += sum(len(dimension.codes) for dimension in meta.dimensions)
+            if dry_run:
+                outcomes["found"] += 1
+            else:
+                assert session is not None and institution_id is not None
+                outcome, _ = upsert_dataset(session, institution_id, meta)
+                outcomes[outcome] += 1
+                session.commit()
+            ok += 1
+
+    catalog_failures = connector.failures()
+    failure_rows = [
+        (f"CIP_{failure.gosterge_no}", ConnectorError(failure.kind, failure.reason))
+        for failure in catalog_failures
+    ] + unexpected
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    print(
+        f"cip-catalog{mode}: {ok} datasets ok, {len(failure_rows)} failed, {len(entries)} processed"
+    )
+    if dry_run:
+        print(f"datasets: found={outcomes['found']} (dry-run, nothing written)")
+    else:
+        print(
+            "datasets: "
+            f"inserted={outcomes['inserted']} updated={outcomes['updated']} "
+            f"unchanged={outcomes['unchanged']}"
+        )
+    histogram = ", ".join(
+        f"{'/'.join(str(level) for level in levels) or '-'}={count}"
+        for levels, count in sorted(level_histogram.items())
+    )
+    print(f"levels/dataset: {histogram or '-'}")
+    print(f"dimensions={dimensions} codes={codes} runtime={runtime:.1f}s")
+    _print_failures(failure_rows)
     return 0
 
 
@@ -396,6 +664,99 @@ def _cmd_fetch(session: Session, connector: TuikConnector, args: argparse.Namesp
     return 0
 
 
+def _cmd_turcat(
+    session: Session | None, connector: TurcatConnector, args: argparse.Namespace
+) -> int:
+    dry_run = bool(getattr(args, "dry_run", False))
+    started = time.monotonic()
+    codes = [entry[0] for entry in SECTORS]
+    fetched: dict[str, object] = {}
+    failures: list[tuple[str, ConnectorError]] = []
+    workers = max(1, min(len(codes), connector.client.max_concurrency))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {code: pool.submit(connector.fetch_sector, code) for code in codes}
+        for code, future in futures.items():
+            try:
+                fetched[code] = future.result()
+            except ConnectorError as exc:
+                failures.append((code, exc))
+            except Exception as exc:  # noqa: BLE001 - one bad sector must not abort the run
+                failures.append(
+                    (code, ConnectorError(FORMAT_CHANGED, f"{type(exc).__name__}: {exc}"))
+                )
+
+    total_indicators = total_values = total_unparsed = 0
+    samples: list[str] = []
+    for code in codes:
+        fetch = fetched.get(code)
+        if fetch is None:
+            continue
+        parsed = fetch.parse
+        values = sum(1 for item in parsed.indicators if item.latest_value is not None)
+        total_indicators += len(parsed.indicators)
+        total_values += values
+        total_unparsed += len(parsed.errors)
+        print(
+            f"sector {code}: rows={len(parsed.indicators) + len(parsed.groups)} "
+            f"indicators={len(parsed.indicators)} groups={len(parsed.groups)} "
+            f"values={values} unparsed={len(parsed.errors)}"
+        )
+        for error in parsed.errors[:5]:
+            print(f"  unparseable: {error}")
+        for item in parsed.indicators:
+            if item.latest_value is None:
+                continue
+            samples.append(
+                f"  {code}:{item.code} {item.name[:44]!r} period={item.period} "
+                f"prev={item.previous_period} latest={item.latest_value} "
+                f"previous={item.previous_value} unit={item.unit} freq={item.frequency}"
+            )
+            if len(samples) >= 10:
+                break
+
+    for line in samples:
+        print(line)
+
+    runtime = time.monotonic() - started
+    if dry_run:
+        print(
+            f"turcat (dry-run): {len(fetched)} sectors ok, {len(failures)} failed; "
+            f"indicators={total_indicators} values={total_values} "
+            f"unparsed={total_unparsed} runtime={runtime:.1f}s"
+        )
+        _print_failures(failures)
+        return 0
+
+    assert session is not None
+    institution = upsert_institution(
+        session, connector.institution_code, connector.institution_name
+    )
+    session.commit()
+    inserted = unchanged = points = series_count = 0
+    for code in codes:
+        fetch = fetched.get(code)
+        if fetch is None:
+            continue
+        meta = connector.dataset_meta(code)
+        outcome, dataset = upsert_dataset(session, institution.id, meta)
+        result = ingest_sector(session, connector, dataset, fetch)
+        session.commit()
+        inserted += result.inserted
+        unchanged += result.unchanged
+        points += result.points
+        series_count += result.series
+        print(
+            f"{code}: {outcome} series={result.series} inserted={result.inserted} "
+            f"unchanged={result.unchanged} points={result.points} skipped={result.skipped}"
+        )
+    print(
+        f"turcat: {len(fetched)} sectors, series={series_count} inserted={inserted} "
+        f"unchanged={unchanged} points={points} runtime={time.monotonic() - started:.1f}s"
+    )
+    _print_failures(failures)
+    return 0
+
+
 def _cmd_find(session: Session, connector: TuikConnector, args: argparse.Namespace) -> int:
     institution = session.scalar(
         select(Institution).where(Institution.code == connector.institution_code)
@@ -431,29 +792,89 @@ def _cmd_find(session: Session, connector: TuikConnector, args: argparse.Namespa
     return 0
 
 
+def _is_cip_command(args: argparse.Namespace) -> bool:
+    if args.command == "cip-catalog":
+        return True
+    if args.command != "fetch":
+        return False
+    dataset = getattr(args, "dataset", None) or ""
+    series = getattr(args, "series", None) or ""
+    return dataset.startswith("CIP_") or series.startswith("CIP_")
+
+
+def _run_cip(args: argparse.Namespace, dry_run: bool) -> int:
+    if dry_run:
+        connector = CipConnector(client=CipClient(store=None))
+    else:
+        connector = CipConnector()
+    try:
+        if args.command == "cip-catalog":
+            if dry_run:
+                return _cmd_cip_catalog(None, connector, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_cip_catalog(session, connector, args)
+        if dry_run:
+            return _dry_run_fetch(connector, args)
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            return _cmd_fetch(session, connector, args)
+    finally:
+        connector.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the CLI. Returns a process exit code."""
     args = build_parser().parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     dry_run = bool(getattr(args, "dry_run", False))
-    if dry_run:
-        connector = TuikConnector(client=Databrowser2Client(store=None))
-    else:
-        connector = TuikConnector()
+    if _is_cip_command(args):
+        return _run_cip(args, dry_run)
+
+    connector = _build_connector(args.command, dry_run, _known_for(args.command, dry_run))
     try:
         if dry_run and args.command == "catalog":
             return _cmd_catalog(None, connector, args)
         if dry_run and args.command == "fetch":
             return _dry_run_fetch(connector, args)
+        if dry_run and args.command == "turcat":
+            return _cmd_turcat(None, connector, args)
 
         from app.db.session import SessionLocal
 
-        handlers = {"catalog": _cmd_catalog, "fetch": _cmd_fetch, "find": _cmd_find}
+        handlers = {
+            "catalog": _cmd_catalog,
+            "fetch": _cmd_fetch,
+            "find": _cmd_find,
+            "turcat": _cmd_turcat,
+        }
         with SessionLocal() as session:
             return handlers[args.command](session, connector, args)
     finally:
         connector.close()
+
+
+def _build_connector(
+    command: str, dry_run: bool, known: list[DataflowInfo] | None = None
+) -> TuikConnector | TurcatConnector:
+    """Create the connector for ``command``; dry runs never touch MinIO."""
+    if command == "turcat":
+        if dry_run:
+            return TurcatConnector(client=TurcatClient(store=None))
+        return TurcatConnector()
+    try:
+        nsiws = build_nsiws_client(store=None if dry_run else MinioObjectStore())
+    except Exception:  # noqa: BLE001 - the backup must never stop the primary CLI
+        logger.warning("tuik nsiws backup unavailable", exc_info=True)
+        nsiws = None
+    if dry_run:
+        return TuikConnector(
+            client=Databrowser2Client(store=None), nsiws=nsiws, known_dataflows=known or ()
+        )
+    return TuikConnector(nsiws=nsiws, known_dataflows=known or ())
 
 
 if __name__ == "__main__":
