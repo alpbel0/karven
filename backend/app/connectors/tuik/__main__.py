@@ -17,7 +17,8 @@ import logging
 import sys
 import time
 from collections import Counter, deque
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import Iterator
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import date
 from typing import Any
 
@@ -40,6 +41,21 @@ from app.connectors.tuik.client import Databrowser2Client
 from app.connectors.tuik.connector import TuikConnector
 from app.connectors.tuik.nsiws import build_nsiws_client
 from app.connectors.tuik.parsers import DataflowInfo
+from app.connectors.tuik.siniflama import (
+    ClassificationData,
+    CorrespondenceItemRow,
+    CorrespondenceSummary,
+    DimensionLinkRow,
+    SiniflamaClient,
+    SiniflamaVersion,
+    discover_versions,
+    fetch_classification,
+    link_dimensions,
+    load_classifications,
+    load_correspondences,
+    parse_correspondence_detail,
+    parse_correspondence_list,
+)
 from app.connectors.tuik.turcat import TurcatClient, TurcatConnector, ingest_sector
 from app.connectors.tuik.turcat_parsers import SECTORS
 from app.data.errors import SeriesDefinitionError, SeriesNotFoundError
@@ -120,6 +136,42 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         choices=["medas", "ilGostergeleri", "json"],
         help="only indicators of this sideMenu kaynak",
+    )
+
+    siniflama = subparsers.add_parser(
+        "siniflama", help="sync the TÜİK classification server (versions + correspondences)"
+    )
+    siniflama.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and parse everything but write nothing (no DB, no MinIO)",
+    )
+    siniflama.add_argument(
+        "--only-id", default=None, help="process only this classification version id"
+    )
+    siniflama.add_argument(
+        "--no-correspondences",
+        action="store_true",
+        dest="no_correspondences",
+        help="skip the correspondence tables",
+    )
+
+    siniflama_link = subparsers.add_parser(
+        "siniflama-link-dimensions",
+        help="link databrowser2 dimensions to classification versions by normalized code/label",
+    )
+    siniflama_link.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="read and report the matches but write nothing",
+    )
+    siniflama_link.add_argument(
+        "--report",
+        default=None,
+        metavar="FILE",
+        help="write a TSV of every qualifying link plus the classification-like near-misses",
     )
 
     return parser
@@ -359,6 +411,239 @@ def _print_dimensions(dataflow_id: str, meta: Any) -> None:
         print(f"  {dim.position}: {dim.code} codes={len(dim.codes)}{marker}")
     if meta.source_incomplete:
         print(f"  source_incomplete: {meta.source_incomplete_note}")
+
+
+def _fetch_correspondence_detail(
+    client: SiniflamaClient, summary: CorrespondenceSummary
+) -> list[CorrespondenceItemRow]:
+    detail = client.correspondence_detail(
+        summary.external_id, summary.from_external_id, summary.to_external_id
+    )
+    return parse_correspondence_detail(detail.json())
+
+
+def _stream_classifications(
+    client: SiniflamaClient, versions: list[SiniflamaVersion], *, workers: int
+) -> Iterator[tuple[SiniflamaVersion, ClassificationData | None, ConnectorError | None]]:
+    """Fetch+parse each version, keeping at most ``workers`` fetches in flight.
+
+    Yields ``(version, data, None)`` for a success and ``(version, None, error)``
+    for a failure; never holds more parsed versions than are in flight, so a
+    memory-hungry version cannot pile up behind a slow load.
+    """
+    queue = deque(versions)
+    in_flight: deque[tuple[SiniflamaVersion, Future[ClassificationData]]] = deque()
+    width = max(1, workers)
+    with ThreadPoolExecutor(max_workers=width) as pool:
+        while queue or in_flight:
+            while queue and len(in_flight) < width:
+                version = queue.popleft()
+                in_flight.append((version, pool.submit(fetch_classification, client, version)))
+            version, future = in_flight.popleft()
+            try:
+                yield version, future.result(), None
+            except ConnectorError as exc:
+                yield version, None, exc
+            except Exception as exc:  # noqa: BLE001 - one bad version must not abort the run
+                yield version, None, ConnectorError(FORMAT_CHANGED, f"{type(exc).__name__}: {exc}")
+
+
+def _stream_correspondences(
+    client: SiniflamaClient, summaries: list[CorrespondenceSummary], *, workers: int
+) -> Iterator[
+    tuple[CorrespondenceSummary, list[CorrespondenceItemRow] | None, ConnectorError | None]
+]:
+    """Fetch+parse each correspondence table with the same bounded concurrency."""
+    queue = deque(summaries)
+    in_flight: deque[tuple[CorrespondenceSummary, Future[list[CorrespondenceItemRow]]]] = deque()
+    width = max(1, workers)
+    with ThreadPoolExecutor(max_workers=width) as pool:
+        while queue or in_flight:
+            while queue and len(in_flight) < width:
+                summary = queue.popleft()
+                in_flight.append(
+                    (summary, pool.submit(_fetch_correspondence_detail, client, summary))
+                )
+            summary, future = in_flight.popleft()
+            try:
+                yield summary, future.result(), None
+            except ConnectorError as exc:
+                yield summary, None, exc
+            except Exception as exc:  # noqa: BLE001 - one bad table must not abort the run
+                yield summary, None, ConnectorError(FORMAT_CHANGED, f"{type(exc).__name__}: {exc}")
+
+
+def _cmd_siniflama(
+    session: Session | None, client: SiniflamaClient, args: argparse.Namespace
+) -> int:
+    started = time.monotonic()
+    dry_run = session is None
+    only_id = getattr(args, "only_id", None)
+    no_correspondences = bool(getattr(args, "no_correspondences", False))
+
+    versions, list_failures = discover_versions(client)
+    if only_id is not None:
+        versions = [version for version in versions if version.external_id == str(only_id)]
+        if not versions:
+            print(f"siniflama: no version with id {only_id!r} in the listing", file=sys.stderr)
+            return 1
+
+    workers = max(1, client.max_concurrency)
+    version_failures: list[tuple[str, ConnectorError]] = []
+    parent_missing = total_items = 0
+    ok_versions = 0
+    inserted = updated = unchanged = removed = 0
+    # Fetch -> parse -> upsert -> commit per version, so a failure (fetch or
+    # write) is reported and never rolls back a version already committed.
+    for version, data, error in _stream_classifications(client, versions, workers=workers):
+        if error is not None:
+            version_failures.append((version.external_id, error))
+            continue
+        assert data is not None
+        found = len(data.items)
+        missing = sum(1 for item in data.items if item.attributes.get("parent_missing"))
+        if dry_run:
+            ok_versions += 1
+            total_items += found
+            parent_missing += missing
+            continue
+        assert session is not None
+        try:
+            loads = load_classifications(session, [data])
+            session.commit()
+        except Exception as exc:  # noqa: BLE001 - one bad version must not abort the run
+            session.rollback()
+            version_failures.append(
+                (
+                    version.external_id,
+                    ConnectorError(FORMAT_CHANGED, f"{type(exc).__name__}: {exc}"),
+                )
+            )
+            continue
+        ok_versions += 1
+        total_items += found
+        parent_missing += missing
+        for load in loads:
+            inserted += load.items_inserted
+            updated += load.items_updated
+            unchanged += load.items_unchanged
+            removed += load.items_removed
+
+    corr_ok = corr_failed = corr_rows = 0
+    failures: list[tuple[str, ConnectorError]] = [*list_failures, *version_failures]
+    if not no_correspondences:
+        summaries: list[CorrespondenceSummary] = []
+        try:
+            response = client.correspondence_list()
+            summaries = parse_correspondence_list(response.json())
+        except ConnectorError as exc:
+            corr_failed += 1
+            failures.append(("correspondences", exc))
+        except Exception as exc:  # noqa: BLE001 - one bad listing must not abort the run
+            corr_failed += 1
+            failures.append(
+                ("correspondences", ConnectorError(FORMAT_CHANGED, f"{type(exc).__name__}: {exc}"))
+            )
+        for summary, items, error in _stream_correspondences(client, summaries, workers=workers):
+            if error is not None:
+                corr_failed += 1
+                failures.append((summary.external_id, error))
+                continue
+            assert items is not None
+            if dry_run:
+                corr_ok += 1
+                corr_rows += len(items)
+                continue
+            assert session is not None
+            try:
+                load_correspondences(session, [(summary, items)])
+                session.commit()
+            except Exception as exc:  # noqa: BLE001 - one bad table must not abort the run
+                session.rollback()
+                corr_failed += 1
+                failures.append(
+                    (
+                        summary.external_id,
+                        ConnectorError(FORMAT_CHANGED, f"{type(exc).__name__}: {exc}"),
+                    )
+                )
+                continue
+            corr_ok += 1
+            corr_rows += len(items)
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    failed_versions = len(list_failures) + len(version_failures)
+    print(
+        f"siniflama{mode}: versions ok={ok_versions} failed={failed_versions} "
+        f"parent_missing={parent_missing}"
+    )
+    if dry_run:
+        print(
+            f"items: found={total_items} "
+            f"inserted=0 updated=0 unchanged=0 removed=0 (dry-run, nothing written)"
+        )
+    else:
+        print(
+            f"items: inserted={inserted} updated={updated} unchanged={unchanged} removed={removed}"
+        )
+    print(f"correspondences: ok={corr_ok} failed={corr_failed} rows={corr_rows}")
+    print(f"runtime={runtime:.1f}s")
+    _print_failures(failures)
+    return 0
+
+
+_REPORT_HEADER = "status\tdataset\tdimension\tclassification\ttotal\tcoverage\tlabel_agreement\n"
+
+
+def _write_link_report(path: str, rows: tuple[DimensionLinkRow, ...]) -> None:
+    """Write the link report as TSV: qualifying links then per-dimension near-misses."""
+    with open(path, "w", encoding="utf-8", newline="") as handle:
+        handle.write(_REPORT_HEADER)
+        for row in rows:
+            status = "link" if row.qualified else "near_miss"
+            handle.write(
+                f"{status}\t{row.dataset}\t{row.dimension}\t{row.classification}\t"
+                f"{row.total}\t{row.coverage:.3f}\t{row.label_agreement:.3f}\n"
+            )
+
+
+def _cmd_siniflama_link(session: Session | None, args: argparse.Namespace) -> int:
+    assert session is not None
+    dry_run = bool(getattr(args, "dry_run", False))
+    report_path = getattr(args, "report", None)
+    result = link_dimensions(session, dry_run=dry_run, collect_report=bool(report_path))
+    if not dry_run:
+        session.commit()
+    mode = " (dry-run)" if dry_run else ""
+    print(
+        f"siniflama-link-dimensions{mode}: dimensions={result.dimensions} links={result.links} "
+        f"inserted={result.inserted} updated={result.updated} deleted={result.deleted} "
+        f"unchanged={result.unchanged}"
+    )
+    if report_path:
+        _write_link_report(report_path, result.report)
+        print(f"report: {report_path} ({len(result.report)} rows)")
+    return 0
+
+
+def _run_siniflama(args: argparse.Namespace, dry_run: bool) -> int:
+    if args.command == "siniflama-link-dimensions":
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            return _cmd_siniflama_link(session, args)
+
+    client = SiniflamaClient(store=None if dry_run else MinioObjectStore())
+    try:
+        if dry_run:
+            return _cmd_siniflama(None, client, args)
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            return _cmd_siniflama(session, client, args)
+    finally:
+        client.close()
 
 
 def _cmd_cip_catalog(
@@ -831,6 +1116,8 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     dry_run = bool(getattr(args, "dry_run", False))
+    if args.command in ("siniflama", "siniflama-link-dimensions"):
+        return _run_siniflama(args, dry_run)
     if _is_cip_command(args):
         return _run_cip(args, dry_run)
 

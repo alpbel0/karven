@@ -1,0 +1,152 @@
+[
+ {
+  "Id": 274,
+  "DonusumAdi": "CPA 2.1-CPC 2.0",
+  "KaynakSurum": "Faaliyete Göre Ürünlerin İstatistiki Sınıflaması, Versiyon 2.1 (CPA 2.1)",
+  "HedefSurum": "Merkezi Ürün Sınıflaması, Versiyon 2.0 ",
+  "KaynakSurumId": 924,
+  "HedefSurumId": 231,
+  "Aciklama": "-",
+  "Aciklama_en": "-"
+ },
+ {
+  "Id": 271,
+  "DonusumAdi": "NACE Rev.2.1-Altılı (V3.0)-NACE Rev.2.1-Altılı, 2026",
+  "KaynakSurum": "NACE Rev.2.1-Altılı (V3.0) [ULUSAL SINIFLAMA]",
+  "HedefSurum": "NACE Rev.2.1-Altılı, 2026 [ULUSAL SINIFLAMA]",
+  "KaynakSurumId": 1530,
+  "HedefSurumId": 1684,
+  "Aciklama": "Eurostat tarafından oluşturulan V1.06 sürümüne uygundur.",
+  "Aciklama_en": "Eurostat tarafından oluşturulan V1.06 sürümüne uygundur."
+ },
+ {
+  "Id": 269,
+  "DonusumAdi": "NACE Rev.2-NACE Rev.2.1",
+  "KaynakSurum": "Avrupa Topluluğunda Ekonomik Faaliyetlerin İstatistiki Sınıflaması , NACE Rev.2",
+  "HedefSurum": "Avrupa Topluluğunda Ekonomik Faaliyetlerin İstatistiki Sınıflaması , NACE Rev.2.1",
+  "KaynakSurumId": 191,
+  "HedefSurumId": 1438,
+  "Aciklama": "Eurostat tarafından oluşturulan V1.06 sürümüne uygundur.",
+  "Aciklama_en": "-"
+ },
+ {
+  "Id": 268,
+  "DonusumAdi": "CPA 2.1-CPA 2.2",
+  "KaynakSurum": "Faaliyete Göre Ürünlerin İstatistiki Sınıflaması, Versiyon 2.1 (CPA 2.1)",
+  "HedefSurum": "Faaliyete Göre Ürünlerin İstatistiki Sınıflaması, Versiyon 2.2 (CPA 2.2)",
+  "KaynakSurumId": 924,
+  "HedefSurumId": 1682,
+  "Aciklama": "Avrupa Komisyonu tarafından yayımlanan 20.04.2026 tarih ve 2026/880 sayılı yönetmeliğe uygundur.",
+  "Aciklama_en": "It complies with Regulation No. 2026/880 dated 20.04.2026 published by the European Commission."
+ },
+ {
+  "Id": 267,
+  "DonusumAdi": "ECOICOP ver.1-ECOICOP ver.2",
+  "KaynakSurum": "Amaca Göre Bireysel Tüketimin Avrupa Sınıflaması, versiyon 1 (ECOICOP 1)",
+  "HedefSurum": "Amaca Göre Bireysel Tüketimin Avrupa Sınıflaması, versiyon 2 (ECOICOP 2)",
+  "KaynakSurumId": 355,
+  "HedefSurumId": 1677,
+  "Aciklama": "Eurostat tarafından yayımlanan \"ECOICOP ver. 1-ECOICOP ver. 2 correspondence table_v1.00\" ile uyumludur.",
+  "Aciklama_en": "Eurostat tarafından yayımlanan \"ECOICOP ver. 1-ECOICOP ver. 2 correspondence table_v1.00\" ile uyumludur."
+ },
+ {
+  "Id": 241,
+  "DonusumAdi": "COICOP 2018-ECOICOP ver.1",
+  "KaynakSurum": "Amaca Göre Bireysel Tüketim Sınıflaması, 2018",
+  "HedefSurum": "Amaca Göre Bireysel Tüketimin Avrupa Sınıflaması, versiyon 1 (ECOICOP 1)",
+  "KaynakSurumId": 1332,
+  "HedefSurumId": 355,
+  "Aciklama": "-",
+  "Aciklama_en": "-"
+ },
+ {
+  "Id": 240,
+  "DonusumAdi": "ISIC Rev.4-ISIC Rev.5",
+  "KaynakSurum": "Tüm Ekonomik Faaliyetlerin Uluslararası Standart Sanayi Sınıflaması, ISIC Rev.4 ",
+  "HedefSurum": "Tüm Ekonomik Faaliyetlerin Uluslararası Standart Sanayi Sınıflaması, ISIC Rev.5",
+  "KaynakSurumId": 198,
+  "HedefSurumId": 1585,
+  "Aciklama": " -",
+  "Aciklama_en": " -"
+ },
+ {
+  "Id": 239,
+  "DonusumAdi": "CSA REV. 1.0-CSA REV. 2.0",
+  "KaynakSurum": "İstatistiki Faaliyet Sınıflaması Ver. 1.0",
+  "HedefSurum": "İstatistiki Faaliyet Sınıflaması Ver. 2.0",
+  "KaynakSurumId": 1362,
+  "HedefSurumId": 1469,
+  "Aciklama": "-",
+  "Aciklama_en": "-"
+ },
+ {
+  "Id": 206,
+  "DonusumAdi": "GTİP 2018-PRODTR 2018",
+  "KaynakSurum": "Gümrük Tarife İstatistik Pozisyonu Cetveli, 2018",
+  "HedefSurum": "PRODTR listesi (Türkiye Sanayi Ürünleri Listesi), 2017-2018 versiyonu",
+  "KaynakSurumId": 1109,
+  "HedefSurumId": 1683,
+  "Aciklama": " -",
+  "Aciklama_en": " -"
+ },
+ {
+  "Id": 203,
+  "DonusumAdi": "ECOICOP ver.1-COICOP 2018",
+  "KaynakSurum": "Amaca Göre Bireysel Tüketimin Avrupa Sınıflaması, versiyon 1 (ECOICOP 1)",
+  "HedefSurum": "Amaca Göre Bireysel Tüketim Sınıflaması, 2018",
+  "KaynakSurumId": 355,
+  "HedefSurumId": 1332,
+  "Aciklama": "Beşli düzeyde Amaca Göre Bireysel Tüketimin Avrupa Sınıflaması - ECOICOP ile Amaca Göre Bireysel Tüketim Sınıflaması, 2018 - COICOP 2018 arasındaki dönüşümü sağlar.",
+  "Aciklama_en": " -"
+ },
+ {
+  "Id": 198,
+  "DonusumAdi": "COICOP 2018-CPA 2.1",
+  "KaynakSurum": "Amaca Göre Bireysel Tüketim Sınıflaması, 2018",
+  "HedefSurum": "Faaliyete Göre Ürünlerin İstatistiki Sınıflaması, Versiyon 2.1 (CPA 2.1)",
+  "KaynakSurumId": 1332,
+  "HedefSurumId": 924,
+  "Aciklama": "-",
+  "Aciklama_en": "-"
+ },
+ {
+  "Id": 197,
+  "DonusumAdi": "ECOICOP ver.1-CPA 2.1",
+  "KaynakSurum": "Amaca Göre Bireysel Tüketimin Avrupa Sınıflaması, versiyon 1 (ECOICOP 1)",
+  "HedefSurum": "Faaliyete Göre Ürünlerin İstatistiki Sınıflaması, Versiyon 2.1 (CPA 2.1)",
+  "KaynakSurumId": 355,
+  "HedefSurumId": 924,
+  "Aciklama": "-",
+  "Aciklama_en": "-"
+ },
+ {
+  "Id": 196,
+  "DonusumAdi": "TAORBA 2.1-TAORBA_2.1_2021",
+  "KaynakSurum": "Ulusal Tarım, Ormancılık ve Balıkçılık Ürünleri Sınıflaması, Versiyon 2.1",
+  "HedefSurum": "Ulusal Tarım, Ormancılık ve Balıkçılık Ürünleri Sınıflaması, 2021",
+  "KaynakSurumId": 1139,
+  "HedefSurumId": 1281,
+  "Aciklama": " -",
+  "Aciklama_en": " -"
+ },
+ {
+  "Id": 140,
+  "DonusumAdi": "ISCO 88 - ISCO 08",
+  "KaynakSurum": "Uluslararası Standart Meslek Sınıflaması - ISCO 88",
+  "HedefSurum": "Uluslararası Standart Meslek Sınıflaması - ISCO 08",
+  "KaynakSurumId": 5,
+  "HedefSurumId": 210,
+  "Aciklama": "<P><TABLE border=�1� cellSpacing=�0� cellPadding=�4� width=��100%��><TBODY><TR><TD><P align=center>GEÇİŞ TÜRÜ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </P></TD><TD><P align=center>&nbsp;BİRİM GRUP SAYISI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GEÇİŞ %&nbsp;&nbsp;&nbsp;&nbsp; </P></TD></TR><TR><TD><P align=center>&nbsp;1X1</P></TD><TD><P align=center>&nbsp;137</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 35.13&nbsp;</P></TD></TR><TR><TD><P align=center>&nbsp;1XN</P></TD><TD><P align=center>&nbsp; 26</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6.67</P></TD></TR><TR><TD><P align=center>&nbsp;NX1</P></TD><TD><P align=center>&nbsp; 84</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp; 21.54</P></TD></TR><TR><TD><P align=center>&nbsp;NXM</P></TD><TD><P align=center>&nbsp;143</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp; 36.67</P></TD></TR><TR><TD><P align=center>&nbsp;TOPLAM</P></TD><TD><P align=center>&nbsp;390</P></TD><TD><P align=center>%100.00</P></TD></TR></TBODY></TABLE></P><SPAN lang=�TR� �=��´´����������������������´´�� 10pt�=��´´����������������������´´��><SPAN lang=�TR� �=��´´����������������������´´�� 11pt�=��´´����������������������´´��><P><SPAN lang=�TR� �=��´´����������������������´´�� 10pt�=��´´����������������������´´��><SPAN lang=�TR� �=��´´����������������������´´�� 11pt�=��´´����������������������´´��>Şu anda üzerinde çalıştığımız ISCO 08 meslek sınıflaması ile eski ISCO 88 arasındaki dönüşüm tablosuna göre, meslek verisi kodları için ISCO 88`deki&nbsp;birim grup&nbsp;kodlarının&nbsp;<SPAN �=��´´����������������������´´�� yes�=��´´����������������������´´��></SPAN>%56.67`ının (1x1 ve Nx1 dönüşümleri toplamı)&nbsp; ISCO 08`e doğrudan&nbsp;geçişi mümkündür.</SPAN></SPAN></P><P><SPAN lang=�TR� �=��´´����������������������´´�� 10pt�=��´´����������������������´´��><SPAN lang=�TR� �=��´´����������������������´´�� 11pt�=��´´����������������������´´��>I. 1’e 1 geçişler: ISCO 88’in 137 birim grubu, ISCO 08’in tam olarak birer birim&nbsp; grubuna karşılık gelmektedir.<BR>&nbsp;<BR>II. N’e 1 geçişler:&nbsp; ISCO 88’in 84 birim grubundan&nbsp;iki veya daha fazla birim grup, ISCO 08’deki bir birim gruba karşılık gelmektedir;</SPAN></SPAN></P><P><SPAN lang=�TR� �=��´´����������������������´´�� 10pt�=��´´����������������������´´��><SPAN lang=�TR� �=��´´����������������������´´�� 11pt�=��´´����������������������´´��>III. 1’e N geçişler: ISCO 88`in 26 birim grubu, ISCO 08’de&nbsp;iki veya daha fazla birim grupta kapsanmaktadır.</SPAN></SPAN></P><P><SPAN lang=�TR� �=��´´����������������������´´�� 10pt�=��´´����������������������´´��><SPAN lang=�TR� �=��´´����������������������´´�� 11pt�=��´´����������������������´´��>IV. N’e M geçişler: ISCO 88’in 143 birim grubundaki&nbsp;iki veya daha fazla birim grup,&nbsp; ISCO 08’deki iki veya daha fazla birim gruba karşılık gelmektedir.</SPAN></SPAN></P></SPAN></SPAN>",
+  "Aciklama_en": "<P><TABLE border=�1� cellSpacing=�0� cellPadding=�4� width=��100%��><TBODY><TR><TD><P align=center>Type of Correspondence&nbsp;&nbsp;&nbsp;&nbsp; </P></TD><TD><P align=center>Number of Minor Groups&nbsp;&nbsp; </P></TD><TD><P align=center>Percentage of Types of&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Correspondence<BR></P></TD></TR><TR><TD><P align=center>&nbsp;1X1</P></TD><TD><P align=center>&nbsp;137</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp; 35.13&nbsp;</P></TD></TR><TR><TD><P align=center>&nbsp;1XN</P></TD><TD><P align=center>&nbsp;26</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6.67</P></TD></TR><TR><TD><P align=center>&nbsp;NX1</P></TD><TD><P align=center>84</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp; 21.54</P></TD></TR><TR><TD><P align=center>&nbsp;NXM</P></TD><TD><P align=center>413</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp; 36.67</P></TD></TR><TR><TD><P align=center>TOTAL</P></TD><TD><P align=center>&nbsp;390</P></TD><TD><P align=center>%100.00</P></TD></TR></TBODY></TABLE></P><SPAN lang=�TR� �=��´´����������������������´´�� 10pt�=��´´����������������������´´��><SPAN lang=�TR� �=��´´����������������������´´�� 11pt�=��´´����������������������´´��><P align=justify><SPAN lang=�TR� �=��´´����������������������´´�� 10pt�=��´´����������������������´´��><SPAN lang=�TR� �=��´´����������������������´´�� 11pt�=��´´����������������������´´��>According to correspondence table between&nbsp;ISCO 08 (International Standard Classification of Occupations)&nbsp;that we are working on now and old classification ISCO 88,&nbsp;% 56.67 percentage of&nbsp;ISCO 88`s minor groups has a&nbsp;possible direct transition into ISCO 08`s minor groups (1x1 and Nx1 correspondences) for occupational data codes.</SPAN></SPAN></P><SPAN lang=�TR� �=��´´����������������������´´�� 10pt�=��´´����������������������´´��><SPAN lang=�TR� �=��´´����������������������´´�� 11pt�=��´´����������������������´´��><P>I.&nbsp; 1 to&nbsp;1 correspondences: 137 minor groups in ISCO 88&nbsp;correspond exactly&nbsp; to only one minor group in&nbsp;ISCO 08.<BR>&nbsp;<BR>II. N to&nbsp;1 correspondences:&nbsp; 84 minor groups of ISCO 88, where two or more minor groups in ISCO 88, correspond to one minor group in ISCO 08.</P><P>III. 1 to N correspondences: 26 minor groups, where one minor group of ISCO 88&nbsp; is split into two or more minor group in&nbsp;ISCO 08.</P><P>IV.&nbsp; N to M&nbsp; correspondences: 143 minor groups , where two or more minor groups in ISCO 88 correspond to two or more minor groups in&nbsp;ISCO 88.</SPAN></SPAN></P></SPAN></SPAN>"
+ },
+ {
+  "Id": 133,
+  "DonusumAdi": "ISCO 08 - ISCO 88",
+  "KaynakSurum": "Uluslararası Standart Meslek Sınıflaması - ISCO 08",
+  "HedefSurum": "Uluslararası Standart Meslek Sınıflaması - ISCO 88",
+  "KaynakSurumId": 210,
+  "HedefSurumId": 5,
+  "Aciklama": "<TABLE border=�1� cellSpacing=�0� cellPadding=�4� width=��100%��><TBODY><TR><TD><P align=center>GEÇİŞ TÜRÜ(ISCO88)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </P></TD><TD><P align=center>&nbsp;BİRİM GRUP SAYISI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; GEÇİŞ %&nbsp;&nbsp;&nbsp;&nbsp; </P></TD></TR><TR><TD><P align=center>&nbsp;1X1</P></TD><TD><P align=center>&nbsp;137</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 35.13&nbsp;</P></TD></TR><TR><TD><P align=center>&nbsp;1XN</P></TD><TD><P align=center>&nbsp; 26</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6.67</P></TD></TR><TR><TD><P align=center>&nbsp;NX1</P></TD><TD><P align=center>&nbsp; 84</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp; 21.54</P></TD></TR><TR><TD><P align=center>&nbsp;NXM</P></TD><TD><P align=center>&nbsp;143</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp; 36.67</P></TD></TR><TR><TD><P align=center>&nbsp;TOPLAM</P></TD><TD><P align=center>&nbsp;390</P></TD><TD><P align=center>%100.00</P></TD></TR></TBODY></TABLE><SPAN lang=�TR� �=����´´����������������������´´���� 10pt�=����´´����������������������´´����><SPAN lang=�TR� �=����´´����������������������´´���� 11pt�=����´´����������������������´´����><P><SPAN lang=�TR� �=����´´����������������������´´���� 10pt�=����´´����������������������´´����><SPAN lang=�TR� �=����´´����������������������´´���� 11pt�=����´´����������������������´´����>Şu anda üzerinde çalıştığımız ISCO 08 meslek sınıflaması ile eski ISCO 88 arasındaki dönüşüm tablosuna göre, meslek verisi kodları için ISCO 88`deki&nbsp;birim grup&nbsp;kodlarının&nbsp;<SPAN �=����´´����������������������´´���� yes�=����´´����������������������´´����></SPAN>%56.67`ının (1x1 ve Nx1 dönüşümleri toplamı)&nbsp; ISCO 08`e doğrudan&nbsp;geçişi mümkündür.</SPAN></SPAN></P><P><SPAN lang=�TR� �=����´´����������������������´´���� 10pt�=����´´����������������������´´����><SPAN lang=�TR� �=����´´����������������������´´���� 11pt�=����´´����������������������´´����>I. 1’e 1 geçişler: ISCO 88’in 137 birim grubu, ISCO 08’in tam olarak birer birim&nbsp; grubuna karşılık gelmektedir.<BR>&nbsp;<BR>II. N’e 1 geçişler:&nbsp; ISCO 88’in 84 birim grubundan&nbsp;iki veya daha fazla birim grup, ISCO 08’deki bir birim gruba karşılık gelmektedir;</SPAN></SPAN></P><P><SPAN lang=�TR� �=����´´����������������������´´���� 10pt�=����´´����������������������´´����><SPAN lang=�TR� �=����´´����������������������´´���� 11pt�=����´´����������������������´´����>III. 1’e N geçişler: ISCO 88`in 26 birim grubu, ISCO 08’de&nbsp;iki veya daha fazla birim grupta kapsanmaktadır.</SPAN></SPAN></P><P><SPAN lang=�TR� �=����´´����������������������´´���� 10pt�=����´´����������������������´´����><SPAN lang=�TR� �=����´´����������������������´´���� 11pt�=����´´����������������������´´����>IV. N’e M geçişler: ISCO 88’in 143 birim grubundaki&nbsp;iki veya daha fazla birim grup,&nbsp; ISCO 08’deki iki veya daha fazla birim gruba karşılık gelmektedir.</SPAN></SPAN></P></SPAN></SPAN>",
+  "Aciklama_en": "<TABLE border=�1� cellSpacing=�0� cellPadding=�4� width=��100%��><TBODY><TR><TD><P align=center>Type of Correspondence (ISCO 88)&nbsp;&nbsp;&nbsp;&nbsp; </P></TD><TD><P align=center>Number of Minor Groups&nbsp;&nbsp; </P></TD><TD><P align=center>Percentage of Types of&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Correspondence<BR></P></TD></TR><TR><TD><P align=center>&nbsp;1X1</P></TD><TD><P align=center>&nbsp;137</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp; 35.13&nbsp;</P></TD></TR><TR><TD><P align=center>&nbsp;1XN</P></TD><TD><P align=center>&nbsp;26</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6.67</P></TD></TR><TR><TD><P align=center>&nbsp;NX1</P></TD><TD><P align=center>84</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp; 21.54</P></TD></TR><TR><TD><P align=center>&nbsp;NXM</P></TD><TD><P align=center>413</P></TD><TD><P align=center>&nbsp;&nbsp;&nbsp; 36.67</P></TD></TR><TR><TD><P align=center>TOTAL</P></TD><TD><P align=center>&nbsp;390</P></TD><TD><P align=center>%100.00</P></TD></TR></TBODY></TABLE><SPAN lang=�TR� �=���´´����������������������´´��� 10pt�=���´´����������������������´´���><SPAN lang=�TR� �=���´´����������������������´´��� 11pt�=���´´����������������������´´���><P align=justify><SPAN lang=�TR� �=���´´����������������������´´��� 10pt�=���´´����������������������´´���><SPAN lang=�TR� �=���´´����������������������´´��� 11pt�=���´´����������������������´´���>According to correspondence table between&nbsp;ISCO 08 (International Standard Classification of Occupations)&nbsp;that we are working on now and old classification ISCO 88,&nbsp;% 56.67 percentage of&nbsp;ISCO 88`s minor groups has a&nbsp;possible direct transition into ISCO 08`s minor groups (1x1 and Nx1 correspondences) for occupational data codes.</SPAN></SPAN></P><SPAN lang=�TR� �=���´´����������������������´´��� 10pt�=���´´����������������������´´���><SPAN lang=�TR� �=���´´����������������������´´��� 11pt�=���´´����������������������´´���><P>I.&nbsp; 1 to&nbsp;1 correspondences: 137 minor groups in ISCO 88&nbsp;correspond exactly&nbsp; to only one minor group in&nbsp;ISCO 08.<BR>&nbsp;<BR>II. N to&nbsp;1 correspondences:&nbsp; 84 minor groups of ISCO 88, where two or more minor groups in ISCO 88, correspond to one minor group in ISCO 08.</P><P>III. 1 to N correspondences: 26 minor groups, where one minor group of ISCO 88&nbsp; is split into two or more minor group in&nbsp;ISCO 08.</P><P>IV.&nbsp; N to M&nbsp; correspondences: 143 minor groups , where two or more minor groups in ISCO 88 correspond to two or more minor groups in&nbsp;ISCO 88.</SPAN></SPAN></P></SPAN></SPAN>"
+ }
+]

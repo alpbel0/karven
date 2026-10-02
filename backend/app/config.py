@@ -112,6 +112,16 @@ class Settings(BaseSettings):
     cip_max_retries: int = 3
     cip_retry_backoff_s: float = 1.0
 
+    # TÜİK classification server (siniflama.tuik.gov.tr). Measured 2026-09-30:
+    # token-free, no WAF; 1, 2 and 4 parallel requests all answered (median
+    # 1.0-1.5 s). The largest tree is ~10 MB / ~20 s and the largest
+    # correspondence detail took 53 s, so the timeout is far above databrowser2's.
+    siniflama_base_url: str = "https://siniflama.tuik.gov.tr"
+    siniflama_max_concurrency: int = 2
+    siniflama_request_timeout_s: float = 120.0
+    siniflama_max_retries: int = 3
+    siniflama_retry_backoff_s: float = 1.0
+
     minio_endpoint: str | None = None
     minio_access_key: str | None = None
     minio_secret_key: SecretStr | None = None

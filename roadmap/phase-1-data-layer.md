@@ -141,12 +141,23 @@ vb.) databrowser2'de il düzeyinde karşılığı yok; CİP tek il kaynağı.
 
 ### Task 1.2e — Sınıflama Sunucusu
 
-**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+**Durum:** Tamamlandı (2026-09-30, canlıda doğrulandı) · **Bağımlılıklar:** Task 1.2a
 
-- [ ] Sınıflama hiyerarşileri (NACE, COICOP, İBBS …) için kaynaktan bağımsız
+- [x] Sınıflama hiyerarşileri (NACE, COICOP, İBBS …) için kaynaktan bağımsız
       tablo (kullanıcıyla tasarlanır) ve çekme.
 
 **Kabul kriteri:** En az COICOP ve İBBS hiyerarşisi canlıda eksiksiz yüklü.
+
+**Not (2026-09-30):** Sınıflama Sunucusu'nun tamamı yüklendi (kullanıcı
+kararı): 133 sürüm, 1.231.655 kalem (kaynaktaki 124 satır birebir tekrar),
+15 eşleşme tablosu (38.394 satır). Tablolar kaynaktan bağımsız (migration
+0008-0010); kalem kimliği kod + üst kod + ad (aynı kod birden çok üst başlık
+altında geçebiliyor). Yükleme sürüm sürüm yazılıyor (bellek ~300 MB). 2
+paralel istek, 120 sn zaman aşımı. databrowser2 boyutları normalize edilmiş
+kod + İngilizce ad uyumu (≥%80) ile sınıflamalara bağlandı: 248 bağ (İBBS,
+NACE/ISIC, SITC, CPA, COICOP). TÜFE'nin TÜİK'e özel 7 haneli madde kodları ve
+bazı ÜFE ürün boyutları kısmi uyum nedeniyle bağlanmadı (Faz 2'de ele
+alınabilir). Aylık yenileme Task 1.5'te zamanlanacak.
 
 ### Task 1.2f — ZK uygulamaları: turizmapp, Seçim Dağıtım, Biruni Yayın Sistemi
 
@@ -267,6 +278,8 @@ yeniden yoklanacak.
 **Not (2026-09-30, kullanıcı kararı):** Kabul edilmiş `catalog_links`
 eşleştirmeleri zamanlanmış bir işle düzenli olarak yeniden kontrol edilecek
 (iki kaynak hâlâ aynı değeri veriyor mu); tutmayanlar uyarı olarak raporlanır.
+Sınıflama Sunucusu (Task 1.2e) ayda bir yeniden yüklenir ve ardından boyut
+bağları (`siniflama-link-dimensions`) yeniden hesaplanır.
 
 ## Task 1.6 — Veri çekme ajanı
 

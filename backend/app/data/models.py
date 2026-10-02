@@ -356,6 +356,208 @@ class CatalogLink(Base):
     )
 
 
+class Classification(Base):
+    """A source-independent classification version (e.g. a TÜİK ISIC/COICOP list).
+
+    ``source`` names the origin (``tuik_siniflama`` today; other sources may add
+    their own classification versions later) and ``external_id`` is the source's
+    own id, so the row is identified by ``(source, external_id)``.
+    """
+
+    __tablename__ = "classifications"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    external_id: Mapped[str] = mapped_column(Text, nullable=False)
+    type_code: Mapped[str] = mapped_column(Text, nullable=False)
+    short_name: Mapped[str | None] = mapped_column(Text, nullable=True)
+    short_name_en: Mapped[str | None] = mapped_column(Text, nullable=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    name_en: Mapped[str | None] = mapped_column(Text, nullable=True)
+    owner: Mapped[str | None] = mapped_column(Text, nullable=True)
+    owner_en: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("source", "external_id", name="uq_classifications_source_external_id"),
+    )
+
+
+class ClassificationItem(Base):
+    """One code of a classification version.
+
+    The source repeats a ``code`` inside one version: many terms under one code
+    (LOCARNO), one code under several parents (EKONOMİK GRUPLAR), or two parents
+    for one code. An item is therefore identified by ``(code, parent_code,
+    label)``, with a ``NULL`` parent still colliding with itself. Codes the
+    source removes are kept and flagged with ``attributes['removed_at']`` (never
+    deleted); a triple that reappears clears the flag. ``parent_code`` is the
+    source's ``ust_kod``; the known source defect of a non-top row with an empty
+    parent is flagged ``attributes['parent_missing']`` and never repaired with an
+    invented parent.
+    """
+
+    __tablename__ = "classification_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    classification_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("classifications.id", name="fk_classification_items_classification"),
+        nullable=False,
+    )
+    code: Mapped[str] = mapped_column(Text, nullable=False)
+    parent_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    level: Mapped[int] = mapped_column(Integer, nullable=False)
+    label: Mapped[str] = mapped_column(Text, nullable=False)
+    label_en: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "classification_id",
+            "code",
+            "parent_code",
+            "label",
+            name="uq_classification_items_identity",
+            postgresql_nulls_not_distinct=True,
+        ),
+        Index("ix_classification_items_classification_code", "classification_id", "code"),
+        Index("ix_classification_items_parent", "classification_id", "parent_code"),
+    )
+
+
+class ClassificationCorrespondence(Base):
+    """A correspondence table between two classification versions.
+
+    ``from_classification_id``/``to_classification_id`` point at the matching
+    ``classifications`` rows. The source can reference a version it no longer
+    lists (measured 2026-09-30: ids 5, 210, 1438, 1682, 1684), so the two links
+    are nullable and the raw source ids/labels are kept in ``attributes``.
+    """
+
+    __tablename__ = "classification_correspondences"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    external_id: Mapped[str] = mapped_column(Text, nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    from_classification_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("classifications.id", name="fk_correspondences_from_classification"),
+        nullable=True,
+    )
+    to_classification_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("classifications.id", name="fk_correspondences_to_classification"),
+        nullable=True,
+    )
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "source", "external_id", name="uq_classification_correspondences_source_external_id"
+        ),
+    )
+
+
+class ClassificationCorrespondenceItem(Base):
+    """One from_code -> to_code row of a correspondence table.
+
+    ``from_code``/``to_code`` are stored verbatim: the source uses ``-`` for "no
+    source code" and ``*`` for "any", and those markers are meaningful rows.
+    ``from_label``/``to_label`` carry the source's item labels.
+    """
+
+    __tablename__ = "classification_correspondence_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    correspondence_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(
+            "classification_correspondences.id",
+            name="fk_correspondence_items_correspondence",
+        ),
+        nullable=False,
+    )
+    from_code: Mapped[str] = mapped_column(Text, nullable=False)
+    to_code: Mapped[str] = mapped_column(Text, nullable=False)
+    from_label: Mapped[str | None] = mapped_column(Text, nullable=True)
+    to_label: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "correspondence_id",
+            "from_code",
+            "to_code",
+            name="uq_correspondence_items_correspondence_codes",
+        ),
+    )
+
+
+class DimensionClassificationLink(Base):
+    """A databrowser2 dimension whose codes match a classification version.
+
+    ``matched_codes`` counts the dimension's non-aggregate codes found in the
+    version and ``total_codes`` the non-aggregate codes considered (``coverage``
+    is their ratio); ``label_agreement`` is the share of found codes whose label
+    equals the version item's. A row exists only when the scores clear the
+    thresholds in ``app.connectors.tuik.siniflama``. The table is derived and
+    recomputed in full by the link command, so a row that no longer qualifies is
+    deleted rather than kept.
+    """
+
+    __tablename__ = "dimension_classification_links"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    dimension_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("dataset_dimensions.id", name="fk_dimension_classification_links_dimension"),
+        nullable=False,
+    )
+    classification_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("classifications.id", name="fk_dimension_classification_links_classification"),
+        nullable=False,
+    )
+    matched_codes: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_codes: Mapped[int] = mapped_column(Integer, nullable=False)
+    coverage: Mapped[float] = mapped_column(
+        Float, nullable=False, server_default=text("0"), default=0.0
+    )
+    label_agreement: Mapped[float] = mapped_column(
+        Float, nullable=False, server_default=text("0"), default=0.0
+    )
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "dimension_id",
+            "classification_id",
+            name="uq_dimension_classification_links_dimension_classification",
+        ),
+    )
+
+
 class RegionCrosswalk(Base):
     """A source-independent mapping between two region code schemes.
 

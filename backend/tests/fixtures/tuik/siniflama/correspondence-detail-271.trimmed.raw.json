@@ -1,0 +1,51 @@
+[
+ {
+  "Id": null,
+  "KaynakSurum": null,
+  "HedefSurum": "Başka yerde sınıflandırılmamış uzmanlaşmış diğer toptan ticaret",
+  "KaynakKod": "-",
+  "HedefKod": "46.89.00"
+ },
+ {
+  "Id": null,
+  "KaynakSurum": "Baklagillerin yetiştirilmesi",
+  "HedefSurum": "Baklagillerin yetiştirilmesi",
+  "KaynakKod": "01.11.07",
+  "HedefKod": "01.11.07"
+ },
+ {
+  "Id": null,
+  "KaynakSurum": "Tahıl yetiştiriciliği",
+  "HedefSurum": "Tahıl yetiştiriciliği",
+  "KaynakKod": "01.11.12",
+  "HedefKod": "01.11.12"
+ },
+ {
+  "Id": null,
+  "KaynakSurum": "Yağlı tohum yetiştiriciliği",
+  "HedefSurum": "Yağlı tohum yetiştiriciliği",
+  "KaynakKod": "01.11.14",
+  "HedefKod": "01.11.14"
+ },
+ {
+  "Id": null,
+  "KaynakSurum": "Çeltik (kabuklu pirinç) yetiştirilmesi",
+  "HedefSurum": "Çeltik (kabuklu pirinç) yetiştirilmesi",
+  "KaynakKod": "01.12.14",
+  "HedefKod": "01.12.14"
+ },
+ {
+  "Id": null,
+  "KaynakSurum": "Şeker pancarı yetiştirilmesi",
+  "HedefSurum": "Şeker pancarı yetiştirilmesi",
+  "KaynakKod": "01.13.17",
+  "HedefKod": "01.13.17"
+ },
+ {
+  "Id": null,
+  "KaynakSurum": null,
+  "HedefSurum": "Başka yerde sınıflandırılmamış uzmanlaşmış diğer toptan ticaret",
+  "KaynakKod": "-",
+  "HedefKod": "46.89.00"
+ }
+]
