@@ -13,10 +13,14 @@ from app.connectors.base import EMPTY, FORMAT_CHANGED, ConnectorError, InMemoryO
 from app.connectors.tuik import __main__ as tuik_cli
 from app.connectors.tuik.__main__ import build_parser
 from app.connectors.tuik.siniflama import (
+    BI_DIMENSION_RULES,
+    NORMALIZATION,
     ClassificationItemRow,
     SiniflamaClient,
     _plan_item_changes,
+    bi_dimension_candidates,
     dimension_classification_matches,
+    dimension_union_matches,
     discover_versions,
     is_aggregate_code,
     looks_like_classification,
@@ -431,6 +435,131 @@ def test_looks_like_classification() -> None:
     assert looks_like_classification("COICOP_2018")
     assert looks_like_classification("nace2")
     assert not looks_like_classification("REF_AREA")
+
+
+# --- bi.tuik per-dimension rules -------------------------------------------
+
+
+def test_union_rule_scores_against_the_group_union() -> None:
+    class_labels, inverted = _class_maps(
+        {
+            1: [("01", None, "Live animals"), ("02", None, "Meat")],
+            2: [("01", None, "Live animals"), ("03", None, "Fish")],
+            3: [("01", None, "Wrong"), ("02", None, "Wrong"), ("03", None, "Wrong")],
+        }
+    )
+    short_names = {1: "GTİP 2026", 2: "GTİP 2013", 3: "SITC Rev.4"}
+    codes = {"01": "Live animals", "02": "Meat", "03": "Fish"}
+
+    union = dimension_union_matches(
+        codes, codes, group_ids={1, 2}, class_labels=class_labels, inverted=inverted
+    )
+    assert (union.total, union.found) == (3, 3)
+    assert union.coverage == 1.0
+    assert union.label_agreement == 1.0
+
+    candidates = bi_dimension_candidates(
+        "PRODUCT_HS",
+        codes,
+        class_labels=class_labels,
+        inverted=inverted,
+        short_names=short_names,
+    )
+    by_version = {candidate.classification_id: candidate for candidate in candidates}
+    assert set(by_version) == {1, 2}
+    assert by_version[1].attributes == {
+        "rule": "union",
+        "group": "GTİP",
+        "union_coverage": 1.0,
+        "version_coverage": 2 / 3,
+    }
+    assert by_version[1].matched_codes == 2 and by_version[1].total_codes == 3
+    assert all(candidate.qualified for candidate in candidates)
+
+
+def test_union_rule_does_not_qualify_below_the_coverage_threshold() -> None:
+    class_labels, inverted = _class_maps({1: [("01", None, "Live animals")]})
+    codes = {"01": "Live animals", **{f"{index:02d}": f"Label {index}" for index in range(2, 21)}}
+    candidates = bi_dimension_candidates(
+        "PRODUCT_HS",
+        codes,
+        class_labels=class_labels,
+        inverted=inverted,
+        short_names={1: "GTİP 2026"},
+    )
+    assert candidates == []
+
+
+def test_code_only_rule_ignores_label_agreement() -> None:
+    class_labels, inverted = _class_maps({4: [("01", None, "Wrong"), ("02", None, "Wrong")]})
+    codes = {"01": "Live animals", "02": "Meat"}
+    candidates = bi_dimension_candidates(
+        "PRODUCT_SITC",
+        codes,
+        class_labels=class_labels,
+        inverted=inverted,
+        short_names={4: "SITC Rev.4"},
+    )
+    assert len(candidates) == 1
+    assert candidates[0].coverage == 1.0
+    assert candidates[0].label_agreement == 0.0
+    assert candidates[0].attributes == {"rule": "code_only", "normalization": NORMALIZATION}
+    assert candidates[0].qualified
+
+
+def test_code_only_rule_keeps_only_the_best_version() -> None:
+    class_labels, inverted = _class_maps(
+        {
+            4: [("01", None, "A"), ("02", None, "B")],
+            5: [("01", None, "A")],
+        }
+    )
+    codes = {"01": "A", "02": "B"}
+    candidates = bi_dimension_candidates(
+        "PRODUCT_SITC",
+        codes,
+        class_labels=class_labels,
+        inverted=inverted,
+        short_names={4: "SITC Rev.4", 5: "SITC Rev.3"},
+    )
+    assert [candidate.classification_id for candidate in candidates] == [4]
+
+
+def test_normal_rule_candidates_use_the_normal_attributes() -> None:
+    class_labels, inverted = _class_maps(
+        {7: [("A", None, "Alpha"), ("B", None, "Bravo"), ("C", None, "Charlie")]}
+    )
+    codes = {"A": "Alpha", "B": "Bravo", "C": "Charlie"}
+    candidates = bi_dimension_candidates(
+        "PRODUCT_ISIC",
+        codes,
+        class_labels=class_labels,
+        inverted=inverted,
+        short_names={7: "ISIC Rev.4"},
+    )
+    assert [candidate.classification_id for candidate in candidates] == [7]
+    assert candidates[0].qualified
+    assert candidates[0].attributes == {"rule": "normal", "normalization": NORMALIZATION}
+
+
+def test_bi_dimension_candidates_skip_unknown_dimensions() -> None:
+    class_labels, inverted = _class_maps({1: [("01", None, "A")]})
+    assert (
+        bi_dimension_candidates(
+            "PARTNER",
+            {"01": "A"},
+            class_labels=class_labels,
+            inverted=inverted,
+            short_names={1: "GTİP 2026"},
+        )
+        == []
+    )
+    assert set(BI_DIMENSION_RULES) == {
+        "PRODUCT_HS",
+        "PRODUCT_SITC",
+        "PRODUCT_ISIC",
+        "PRODUCT_BEC",
+    }
 
 
 # --- client -----------------------------------------------------------------

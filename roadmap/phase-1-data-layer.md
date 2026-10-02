@@ -119,8 +119,8 @@ serilerle eşleşiyor.
 (`catalog_links`, method=manual). Turcat istihdam/işsizlikte ilk yayım
 değerini gösteriyor; güncel tabloya bağlandı (kullanıcı kararı). GSYH (13
 satır) databrowser2'de çeyreklik ulusal olmadığı için Task 1.3'te EVDS'e,
-dış ticaret (2 satır) 1.2g'ye, TCMB/Hazine satırları Task 1.3 sonrasına
-kaldı.
+TCMB/Hazine satırları Task 1.3 sonrasına kaldı. Dış ticaret (2 satır)
+2026-10-01'de Genel Ticaret toplamlarına bağlandı (ölçek ×1e6).
 
 ### Task 1.2d — MEDAS + CİP (bölgesel veri)
 
@@ -171,11 +171,25 @@ alınabilir). Aylık yenileme Task 1.5'te zamanlanacak.
 
 ### Task 1.2g — bi.tuik (Qlik) dış ticaret
 
-**Durum:** Başlamadı · **Bağımlılıklar:** Task 1.2a
+**Durum:** Tamamlandı (2026-10-01, canlıda doğrulandı) · **Bağımlılıklar:** Task 1.2a
 
-- [ ] Qlik protokolüyle dış ticaret raporları (4 ana kategori).
+- [x] Qlik protokolüyle dış ticaret raporları (4 ana kategori).
 
 **Kabul kriteri:** En az bir dış ticaret tablosu canlıda çekiliyor.
+
+**Not (2026-10-01):** Sihirbaz yerine Qlik motorunun kendi protokolü
+(anonim oturum + CSRF + WebSocket JSON-RPC) tarayıcısız kullanılıyor
+(kullanıcı kararı). İki veri seti: `TUIK_BI_GTS` (Genel Ticaret, 2013-,
+164,6 M satırlık olgu tablosu) ve `TUIK_BI_OTS` (Özel Ticaret, 1996-);
+bütün boyutlar `_T` toplam koduyla, ölçü boyutu USD/EUR/TRY/QTY1/QTY2. Her
+kombinasyon ilk istendiğinde çekilir; manşetler (akış, ülke, fasıl, BEC, il;
+USD) önceden yüklendi: 1.769 seri, ~389 bin gözlem. HS kodları GTİP gibi
+sıfır dolgulu saklanır (motor dolgusuz verir). Olmayan bir kod seçimi
+`not_found` verir (motor sessizce filtresiz toplam döndürüyordu). Bağlar:
+HS → bütün GTİP yılları (kapsama 1,0), ISIC → ISIC Rev.4, SITC → SITC Rev.4
+(yalnız kod; çeviriler farklı); BEC ad uyumu düşük, bağlanmadı. Paralel
+oturum hızlandırmıyor → tek oturum. `MEVSIMSEL_*` ve `ILFAALIYET_*` alanları
+anlamı kanıtlanamadığı için alınmadı.
 
 ### Task 1.2h — WAF kanalları: Veri Portalı toplu indirme + basın bültenleri
 

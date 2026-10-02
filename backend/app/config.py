@@ -122,6 +122,21 @@ class Settings(BaseSettings):
     siniflama_max_retries: int = 3
     siniflama_retry_backoff_s: float = 1.0
 
+    # TÜİK bi.tuik Qlik Sense foreign-trade engine (GTS + ÖTS). Measured
+    # 2026-09-30: anonymous session, no login; the engine answers no pings while
+    # computing a large cube, so pings are disabled and one session is used at a
+    # time. A wide cube page (one month x TARIFE8 x ULKE x IHRITH = 254,344 rows)
+    # is ~60 s, hence the generous per-call timeout.
+    tuik_bi_base_url: str = "https://bi.tuik.gov.tr"
+    tuik_bi_gts_app_id: str = "bd4b4757-a3c9-45ba-b4fb-5c8d7e2d2c42"
+    tuik_bi_ots_app_id: str = "8db826a9-59f2-4a33-a91e-88ca417dddf9"
+    tuik_bi_request_timeout_s: float = 300.0
+    tuik_bi_open_timeout_s: float = 60.0
+    tuik_bi_page_cells: int = 10_000
+    tuik_bi_max_size_bytes: int = 64 * 1024 * 1024
+    tuik_bi_max_retries: int = 3
+    tuik_bi_retry_backoff_s: float = 2.0
+
     minio_endpoint: str | None = None
     minio_access_key: str | None = None
     minio_secret_key: SecretStr | None = None

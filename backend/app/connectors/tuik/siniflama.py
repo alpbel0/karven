@@ -840,8 +840,44 @@ _MIN_TOTAL = 3
 _MIN_COVERAGE = 0.8
 _MIN_LABEL_AGREEMENT = 0.8
 
+# The bi.tuik Qlik channel whose product dimensions need dedicated rules.
+BI_CHANNEL = "bi_qlik"
+
+
+@dataclass(frozen=True)
+class DimensionLinkRule:
+    """How one bi.tuik dimension is scored against classification versions.
+
+    ``rule`` is ``normal`` (the databrowser2 scoring), ``union`` (score against
+    every version of a ``group`` at once) or ``code_only`` (coverage only). A
+    ``group`` is matched by the version short name's prefix.
+    """
+
+    rule: str
+    group: str | None = None
+    min_coverage: float = _MIN_COVERAGE
+    min_label_agreement: float | None = _MIN_LABEL_AGREEMENT
+    single: bool = False
+
+
+# The one place to change the trade-product matching rules. Dimensions absent
+# here are not linked on the bi.tuik channel.
+BI_DIMENSION_RULES: Mapping[str, DimensionLinkRule] = {
+    "PRODUCT_HS": DimensionLinkRule("union", group="GTİP", min_coverage=0.95),
+    "PRODUCT_SITC": DimensionLinkRule(
+        "code_only", group="SITC", min_coverage=0.95, min_label_agreement=None, single=True
+    ),
+    "PRODUCT_ISIC": DimensionLinkRule("normal"),
+    "PRODUCT_BEC": DimensionLinkRule("normal"),
+}
+
 # How a code is normalized before matching; recorded on every link's attributes.
 NORMALIZATION = "strip_dots_section_prefix"
+
+# Dataset channels whose dimensions are matched against classification versions.
+# ``databrowser2`` is the original SDMX channel; ``bi_qlik`` adds the bi.tuik
+# Qlik apps, whose product/SITC/ISIC dimensions use the same classifications.
+LINKED_CHANNELS = ("databrowser2", "bi_qlik")
 
 # A dimension whose own code names a classification is reported even when it
 # does not link (the near-misses of the ``--report`` TSV).
@@ -912,6 +948,30 @@ class ClassificationMatch:
         )
 
 
+@dataclass(frozen=True)
+class UnionMatch:
+    """One dimension scored against the union of a classification group."""
+
+    total: int
+    found: int
+    coverage: float
+    label_agreement: float
+    per_version: tuple[ClassificationMatch, ...] = ()
+
+
+@dataclass(frozen=True)
+class LinkCandidate:
+    """One link (or near-miss) a rule proposes for a dimension/version pair."""
+
+    classification_id: int
+    matched_codes: int
+    total_codes: int
+    coverage: float
+    label_agreement: float
+    attributes: Mapping[str, Any]
+    qualified: bool
+
+
 def dimension_classification_matches(
     codes: Iterable[str],
     labels: Mapping[str, str],
@@ -957,12 +1017,182 @@ def dimension_classification_matches(
     return matches
 
 
+def dimension_union_matches(
+    codes: Iterable[str],
+    labels: Mapping[str, str],
+    *,
+    group_ids: Iterable[int],
+    class_labels: Mapping[int, Mapping[str, set[str]]],
+    inverted: Mapping[str, set[int]],
+) -> UnionMatch:
+    """Score a dimension against the union of a set of classification versions.
+
+    ``coverage`` is the share of the dimension's meaningful codes present in at
+    least one group version; ``label_agreement`` is the share of those found
+    codes whose label matches the item of at least one version containing it.
+    ``per_version`` keeps every group version's own score.
+    """
+    group = set(group_ids)
+    meaningful = [code for code in codes if not is_aggregate_code(code)]
+    total = len(meaningful)
+    if not total or not group:
+        return UnionMatch(total=total, found=0, coverage=0.0, label_agreement=0.0)
+    found = agreed = 0
+    for code in meaningful:
+        normalized = normalize_classification_code(code)
+        versions = inverted.get(normalized)
+        if not versions:
+            continue
+        overlap = versions & group
+        if not overlap:
+            continue
+        found += 1
+        label = normalize_label(labels.get(code))
+        if label and any(
+            label in class_labels[classification_id].get(normalized, frozenset())
+            for classification_id in overlap
+        ):
+            agreed += 1
+    per_version = tuple(
+        match
+        for match in dimension_classification_matches(
+            meaningful, labels, class_labels=class_labels, inverted=inverted
+        )
+        if match.classification_id in group
+    )
+    return UnionMatch(
+        total=total,
+        found=found,
+        coverage=found / total,
+        label_agreement=agreed / found if found else 0.0,
+        per_version=per_version,
+    )
+
+
+def _group_ids(short_names: Mapping[int, str], prefix: str | None) -> set[int]:
+    if not prefix:
+        return set()
+    return {
+        classification_id
+        for classification_id, short_name in short_names.items()
+        if short_name.startswith(prefix)
+    }
+
+
+def _normal_candidates(
+    matches: Iterable[ClassificationMatch], *, attributes: Mapping[str, Any]
+) -> list[LinkCandidate]:
+    return [
+        LinkCandidate(
+            classification_id=match.classification_id,
+            matched_codes=match.found,
+            total_codes=match.total,
+            coverage=match.coverage,
+            label_agreement=match.label_agreement,
+            attributes=attributes,
+            qualified=match.qualified,
+        )
+        for match in matches
+    ]
+
+
+def bi_dimension_candidates(
+    dimension_code: str,
+    codes: Mapping[str, str],
+    *,
+    class_labels: Mapping[int, Mapping[str, set[str]]],
+    inverted: Mapping[str, set[int]],
+    short_names: Mapping[int, str],
+) -> list[LinkCandidate]:
+    """The link candidates of one bi.tuik dimension, per :data:`BI_DIMENSION_RULES`."""
+    rule = BI_DIMENSION_RULES.get(dimension_code)
+    if rule is None:
+        return []
+    labels = {code: label for code, label in codes.items() if not is_aggregate_code(code)}
+    if not labels:
+        return []
+    if rule.rule == "union":
+        union = dimension_union_matches(
+            labels,
+            labels,
+            group_ids=_group_ids(short_names, rule.group),
+            class_labels=class_labels,
+            inverted=inverted,
+        )
+        if union.coverage < rule.min_coverage:
+            return []
+        if rule.min_label_agreement is not None and union.label_agreement < (
+            rule.min_label_agreement
+        ):
+            return []
+        return [
+            LinkCandidate(
+                classification_id=match.classification_id,
+                matched_codes=match.found,
+                total_codes=union.total,
+                coverage=match.coverage,
+                label_agreement=match.label_agreement,
+                attributes={
+                    "rule": "union",
+                    "group": rule.group,
+                    "union_coverage": union.coverage,
+                    "version_coverage": match.coverage,
+                },
+                qualified=True,
+            )
+            for match in union.per_version
+            if match.found >= 1
+        ]
+    if rule.rule == "code_only":
+        group = _group_ids(short_names, rule.group)
+        matches = [
+            match
+            for match in dimension_classification_matches(
+                labels, labels, class_labels=class_labels, inverted=inverted
+            )
+            if match.classification_id in group and match.coverage >= rule.min_coverage
+        ]
+        if not matches:
+            return []
+        best = max(matches, key=lambda match: (match.coverage, match.label_agreement))
+        return [
+            LinkCandidate(
+                classification_id=best.classification_id,
+                matched_codes=best.found,
+                total_codes=best.total,
+                coverage=best.coverage,
+                label_agreement=best.label_agreement,
+                attributes={"rule": "code_only", "normalization": NORMALIZATION},
+                qualified=True,
+            )
+        ]
+    return _normal_candidates(
+        dimension_classification_matches(
+            labels, labels, class_labels=class_labels, inverted=inverted
+        ),
+        attributes={"rule": "normal", "normalization": NORMALIZATION},
+    )
+
+
 def stale_link_keys(
     existing: Mapping[tuple[int, int], Any],
     linked: Mapping[tuple[int, int], Any],
 ) -> list[tuple[int, int]]:
     """Keys present before a run but not produced by it; these links are deleted."""
     return [key for key in existing if key not in linked]
+
+
+def _attributes_changed(
+    current: Mapping[str, Any] | None, desired: Mapping[str, Any], *, bi: bool
+) -> bool:
+    """Whether a stored link's attributes differ from the desired ones.
+
+    ``databrowser2`` keeps the original normalization-only check (unchanged
+    behaviour); the bi.tuik rules carry extra keys and compare the whole dict.
+    """
+    if bi:
+        return dict(current or {}) != dict(desired)
+    return (current or {}).get("normalization") != NORMALIZATION
 
 
 def _classification_label_maps(
@@ -991,20 +1221,33 @@ def _classification_label_maps(
 def link_dimensions(
     session: Session, *, dry_run: bool = False, collect_report: bool = False
 ) -> DimensionLinkResult:
-    """Link databrowser2 dimensions to classification versions by normalized scores.
+    """Link dimension codes to classification versions by normalized scores.
 
-    A dimension links to a version when at least ``_MIN_TOTAL`` non-aggregate
-    codes exist in it (``coverage``) and at least ``_MIN_LABEL_AGREEMENT`` of the
-    found codes carry the version's label. Several versions may qualify and all
-    are kept. The table is derived data, recomputed from scratch on every run, so
-    links that no longer qualify (including links of dimensions that are gone)
-    are deleted; ``created_at`` of a surviving row is preserved.
+    Datasets of every channel in :data:`LINKED_CHANNELS` are scanned.
+    ``databrowser2`` keeps the original behaviour: a dimension links to a version
+    when at least ``_MIN_TOTAL`` non-aggregate codes exist in it (``coverage``)
+    and at least ``_MIN_LABEL_AGREEMENT`` of the found codes carry the version's
+    label. The bi.tuik Qlik channel uses the per-dimension
+    :data:`BI_DIMENSION_RULES` instead (union GTİP, code-only SITC, normal ISIC
+    and BEC); dimensions absent from that table are not linked. The table is
+    derived data, recomputed from scratch on every run, so links that no longer
+    qualify (including links of dimensions that are gone) are deleted;
+    ``created_at`` of a surviving row is preserved.
     """
     class_labels, inverted = _classification_label_maps(session)
 
     dimension_codes: dict[int, dict[str, str]] = {}
     dimension_meta: dict[int, tuple[str, str]] = {}
-    for dimension_id, dataset_code, dimension_code, code, label, attributes in session.execute(
+    dimension_channel: dict[int, str] = {}
+    for (
+        dimension_id,
+        dataset_code,
+        dimension_code,
+        code,
+        label,
+        attributes,
+        channel,
+    ) in session.execute(
         sa.select(
             DimensionCode.dimension_id,
             Dataset.external_code,
@@ -1012,22 +1255,25 @@ def link_dimensions(
             DimensionCode.code,
             DimensionCode.label,
             DimensionCode.attributes,
+            Dataset.attributes["channel"].astext,
         )
         .join(DatasetDimension, DatasetDimension.id == DimensionCode.dimension_id)
         .join(Dataset, Dataset.id == DatasetDimension.dataset_id)
-        .where(Dataset.attributes["channel"].astext == "databrowser2")
+        .where(Dataset.attributes["channel"].astext.in_(LINKED_CHANNELS))
     ):
         if (attributes or {}).get("removed_at"):
             continue
         dimension_codes.setdefault(dimension_id, {})[code] = label
         dimension_meta[dimension_id] = (dataset_code, dimension_code)
+        dimension_channel[dimension_id] = channel
 
-    classification_names = {
-        classification_id: short_name or name
-        for classification_id, short_name, name in session.execute(
-            sa.select(Classification.id, Classification.short_name, Classification.name)
-        )
-    }
+    classification_names: dict[int, str] = {}
+    classification_short_names: dict[int, str] = {}
+    for classification_id, short_name, name in session.execute(
+        sa.select(Classification.id, Classification.short_name, Classification.name)
+    ):
+        classification_names[classification_id] = short_name or name
+        classification_short_names[classification_id] = short_name or name or ""
 
     existing = {
         (link.dimension_id, link.classification_id): link
@@ -1039,13 +1285,25 @@ def link_dimensions(
     report: list[DimensionLinkRow] = []
     for dimension_id, codes in dimension_codes.items():
         dataset_code, dimension_code = dimension_meta[dimension_id]
-        matches = dimension_classification_matches(
-            codes, codes, class_labels=class_labels, inverted=inverted
-        )
+        if dimension_channel[dimension_id] == BI_CHANNEL:
+            candidates = bi_dimension_candidates(
+                dimension_code,
+                codes,
+                class_labels=class_labels,
+                inverted=inverted,
+                short_names=classification_short_names,
+            )
+        else:
+            candidates = _normal_candidates(
+                dimension_classification_matches(
+                    codes, codes, class_labels=class_labels, inverted=inverted
+                ),
+                attributes={"normalization": NORMALIZATION},
+            )
         class_like = collect_report and looks_like_classification(dimension_code)
         near_miss = 0
-        for match in matches:
-            if not match.qualified:
+        for candidate in candidates:
+            if not candidate.qualified:
                 if class_like and near_miss < 5:
                     near_miss += 1
                     report.append(
@@ -1054,24 +1312,24 @@ def link_dimensions(
                             dataset=dataset_code,
                             dimension=dimension_code,
                             classification=classification_names.get(
-                                match.classification_id, str(match.classification_id)
+                                candidate.classification_id, str(candidate.classification_id)
                             ),
-                            total=match.total,
-                            coverage=match.coverage,
-                            label_agreement=match.label_agreement,
+                            total=candidate.total_codes,
+                            coverage=candidate.coverage,
+                            label_agreement=candidate.label_agreement,
                         )
                     )
                 continue
             links += 1
-            key = (dimension_id, match.classification_id)
-            linked[key] = match
+            key = (dimension_id, candidate.classification_id)
+            linked[key] = candidate
             link = existing.get(key)
             values = {
-                "matched_codes": match.found,
-                "total_codes": match.total,
-                "coverage": match.coverage,
-                "label_agreement": match.label_agreement,
-                "attributes": {"normalization": NORMALIZATION},
+                "matched_codes": candidate.matched_codes,
+                "total_codes": candidate.total_codes,
+                "coverage": candidate.coverage,
+                "label_agreement": candidate.label_agreement,
+                "attributes": dict(candidate.attributes),
             }
             if link is None:
                 inserted += 1
@@ -1079,16 +1337,20 @@ def link_dimensions(
                     session.add(
                         DimensionClassificationLink(
                             dimension_id=dimension_id,
-                            classification_id=match.classification_id,
+                            classification_id=candidate.classification_id,
                             **values,
                         )
                     )
             elif (
-                link.matched_codes != match.found
-                or link.total_codes != match.total
-                or link.coverage != match.coverage
-                or link.label_agreement != match.label_agreement
-                or (link.attributes or {}).get("normalization") != NORMALIZATION
+                link.matched_codes != candidate.matched_codes
+                or link.total_codes != candidate.total_codes
+                or link.coverage != candidate.coverage
+                or link.label_agreement != candidate.label_agreement
+                or _attributes_changed(
+                    link.attributes,
+                    values["attributes"],
+                    bi=dimension_channel[dimension_id] == BI_CHANNEL,
+                )
             ):
                 updated += 1
                 if not dry_run:
@@ -1103,11 +1365,11 @@ def link_dimensions(
                         dataset=dataset_code,
                         dimension=dimension_code,
                         classification=classification_names.get(
-                            match.classification_id, str(match.classification_id)
+                            candidate.classification_id, str(candidate.classification_id)
                         ),
-                        total=match.total,
-                        coverage=match.coverage,
-                        label_agreement=match.label_agreement,
+                        total=candidate.total_codes,
+                        coverage=candidate.coverage,
+                        label_agreement=candidate.label_agreement,
                     )
                 )
 
@@ -1156,9 +1418,12 @@ def classification_codes_for(
 
 
 __all__ = [
+    "BI_CHANNEL",
+    "BI_DIMENSION_RULES",
     "DEFAULT_BASE_URL",
     "DATASET",
     "INSTITUTION",
+    "LINKED_CHANNELS",
     "NORMALIZATION",
     "SOURCE",
     "ClassificationData",
@@ -1170,10 +1435,15 @@ __all__ = [
     "CorrespondenceSummary",
     "DimensionLinkResult",
     "DimensionLinkRow",
+    "DimensionLinkRule",
+    "LinkCandidate",
     "SiniflamaClient",
     "SiniflamaVersion",
+    "UnionMatch",
+    "bi_dimension_candidates",
     "classification_codes_for",
     "dimension_classification_matches",
+    "dimension_union_matches",
     "discover_versions",
     "fetch_classification",
     "is_aggregate_code",

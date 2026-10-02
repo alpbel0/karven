@@ -19,7 +19,7 @@ import time
 from collections import Counter, deque
 from collections.abc import Iterator
 from concurrent.futures import Future, ThreadPoolExecutor
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -31,10 +31,23 @@ from app.connectors.base import (
     ROLE_TIME,
     ConnectorError,
     MinioObjectStore,
+    ensure_series,
     ingest_series,
     resolve_external_code,
     upsert_dataset,
     upsert_institution,
+)
+from app.connectors.tuik.bi_trade import (
+    HEADLINE_BY_NAME,
+    HEADLINES,
+    SYSTEM_KEYS,
+    BiTradeClient,
+    BiTradeConnector,
+    all_systems,
+    complete_codes,
+    dimension_codes,
+    get_system,
+    validate_codes,
 )
 from app.connectors.tuik.cip import CipClient, CipConnector
 from app.connectors.tuik.client import Databrowser2Client
@@ -60,6 +73,7 @@ from app.connectors.tuik.turcat import TurcatClient, TurcatConnector, ingest_sec
 from app.connectors.tuik.turcat_parsers import SECTORS
 from app.data.errors import SeriesDefinitionError, SeriesNotFoundError
 from app.data.models import Dataset, DatasetDimension, DimensionCode, Institution
+from app.data.observations import record_observations
 
 logger = logging.getLogger("app.connectors.tuik")
 
@@ -172,6 +186,37 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         metavar="FILE",
         help="write a TSV of every qualifying link plus the classification-like near-misses",
+    )
+
+    bi_catalog = subparsers.add_parser(
+        "bi-catalog",
+        help="sync the bi.tuik Qlik foreign-trade datasets (GTS/ÖTS) with full code lists",
+    )
+    bi_catalog.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and parse everything but write nothing (no DB, no MinIO)",
+    )
+    bi_catalog.add_argument(
+        "--system", default=None, choices=list(SYSTEM_KEYS), help="only this trade system"
+    )
+
+    bi_headlines = subparsers.add_parser(
+        "bi-headlines",
+        help="load the preconfigured bi.tuik headline series (MEASURE=USD, monthly)",
+    )
+    bi_headlines.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="fetch and split everything but write nothing (no DB, no MinIO)",
+    )
+    bi_headlines.add_argument(
+        "--system", default=None, choices=list(SYSTEM_KEYS), help="only this trade system"
+    )
+    bi_headlines.add_argument(
+        "--only", default=None, help="only this headline: " + ", ".join(HEADLINE_BY_NAME)
     )
 
     return parser
@@ -1110,12 +1155,320 @@ def _run_cip(args: argparse.Namespace, dry_run: bool) -> int:
         connector.close()
 
 
+def _unexpected(key: str, exc: Exception) -> tuple[str, ConnectorError]:
+    """Wrap an unexpected exception as a ``format_changed`` failure row."""
+    return (key, ConnectorError(FORMAT_CHANGED, f"{type(exc).__name__}: {exc}"))
+
+
+def _is_bi_command(args: argparse.Namespace) -> bool:
+    if args.command in ("bi-catalog", "bi-headlines"):
+        return True
+    if args.command != "fetch":
+        return False
+    dataset = getattr(args, "dataset", None) or ""
+    series = getattr(args, "series", None) or ""
+    return dataset.startswith("TUIK_BI_") or series.startswith("TUIK_BI_")
+
+
+def _build_bi_connector(dry_run: bool) -> BiTradeConnector:
+    """Create the bi.tuik connector; a dry run never touches MinIO."""
+    if dry_run:
+        return BiTradeConnector(client=BiTradeClient(store=None))
+    return BiTradeConnector()
+
+
+def _bi_systems(args: argparse.Namespace) -> list:
+    if getattr(args, "system", None):
+        return [get_system(args.system)]
+    return all_systems()
+
+
+def _cmd_bi_catalog(
+    session: Session | None, connector: BiTradeConnector, args: argparse.Namespace
+) -> int:
+    started = time.monotonic()
+    dry_run = session is None
+    institution_id: int | None = None
+    if not dry_run:
+        assert session is not None
+        institution = upsert_institution(
+            session, connector.institution_code, connector.institution_name
+        )
+        session.commit()
+        institution_id = institution.id
+
+    ok = failed = dimensions = codes = 0
+    failures: list[tuple[str, ConnectorError]] = []
+    for system in _bi_systems(args):
+        try:
+            meta = connector.dataset_meta(system)
+        except ConnectorError as exc:
+            if session is not None:
+                session.rollback()
+            failures.append((system.code, exc))
+            failed += 1
+            continue
+        except Exception as exc:  # noqa: BLE001 - one system must not abort the other
+            if session is not None:
+                session.rollback()
+            failures.append(_unexpected(system.code, exc))
+            failed += 1
+            continue
+        dimensions += len(meta.dimensions)
+        codes += sum(len(dimension.codes) for dimension in meta.dimensions)
+        if dry_run:
+            _print_dimensions(system.code, meta)
+        else:
+            assert session is not None and institution_id is not None
+            outcome, _ = upsert_dataset(session, institution_id, meta)
+            session.commit()
+            print(f"{system.code}: {outcome}")
+        ok += 1
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    print(f"bi-catalog{mode}: {ok} datasets ok, {failed} failed, runtime={runtime:.1f}s")
+    print(f"dimensions={dimensions} codes={codes}")
+    _print_failures(failures)
+    return 0
+
+
+def _record_headline(session: Session, dataset: Dataset, series) -> int:
+    """Write one headline series (created on first use) and widen its coverage."""
+    row = ensure_series(session, dataset, series.codes)
+    raw_key = series.raw_object_keys[0] if series.raw_object_keys else None
+    result = record_observations(
+        session, row.id, series.points, fetched_at=datetime.now(UTC), raw_object_key=raw_key
+    )
+    periods = [period for period, _ in series.points]
+    if periods:
+        first, last = min(periods), max(periods)
+        if row.coverage_start is None or first < row.coverage_start:
+            row.coverage_start = first
+        if row.coverage_end is None or last > row.coverage_end:
+            row.coverage_end = last
+    session.flush()
+    return result.inserted
+
+
+def _cmd_bi_headlines(
+    session: Session | None, connector: BiTradeConnector, args: argparse.Namespace
+) -> int:
+    started = time.monotonic()
+    dry_run = session is None
+    only = getattr(args, "only", None)
+    if only is not None and only not in HEADLINE_BY_NAME:
+        print(
+            f"bi-headlines: unknown --only {only!r}; choose from {sorted(HEADLINE_BY_NAME)}",
+            file=sys.stderr,
+        )
+        return 1
+    names = [only] if only else [spec.name for spec in HEADLINES]
+
+    institution_id: int | None = None
+    if not dry_run:
+        assert session is not None
+        institution = upsert_institution(
+            session, connector.institution_code, connector.institution_name
+        )
+        session.commit()
+        institution_id = institution.id
+
+    total_series = total_points = total_inserted = 0
+    failures: list[tuple[str, ConnectorError]] = []
+    for system in _bi_systems(args):
+        dataset: Dataset | None = None
+        if not dry_run:
+            assert session is not None and institution_id is not None
+            meta = connector.dataset_meta(system)
+            _, dataset = upsert_dataset(session, institution_id, meta)
+            session.commit()
+        for name in names:
+            try:
+                series_list = connector.headline_series(system, only=[name])
+            except ConnectorError as exc:
+                if session is not None:
+                    session.rollback()
+                failures.append((f"{system.code}:{name}", exc))
+                continue
+            except Exception as exc:  # noqa: BLE001 - one headline must not abort the rest
+                if session is not None:
+                    session.rollback()
+                failures.append(_unexpected(f"{system.code}:{name}", exc))
+                continue
+            points = sum(len(series.points) for series in series_list)
+            total_series += len(series_list)
+            total_points += points
+            if dry_run:
+                print(f"{system.code} {name}: series={len(series_list)} points={points}")
+                continue
+            assert session is not None and dataset is not None
+            try:
+                inserted = 0
+                for series in series_list:
+                    inserted += _record_headline(session, dataset, series)
+                session.commit()
+            except Exception as exc:  # noqa: BLE001 - one headline must not abort the rest
+                session.rollback()
+                failures.append(_unexpected(f"{system.code}:{name}", exc))
+                continue
+            total_inserted += inserted
+            print(
+                f"{system.code} {name}: series={len(series_list)} points={points} "
+                f"inserted={inserted}"
+            )
+
+    runtime = time.monotonic() - started
+    mode = " (dry-run)" if dry_run else ""
+    print(
+        f"bi-headlines{mode}: series={total_series} points={total_points} "
+        f"inserted={total_inserted} runtime={runtime:.1f}s"
+    )
+    _print_failures(failures)
+    return 0
+
+
+def _dry_run_bi_fetch(connector: BiTradeConnector, args: argparse.Namespace) -> int:
+    try:
+        start = date.fromisoformat(args.start)
+    except ValueError:
+        print(f"fetch: invalid --start {args.start!r} (want YYYY-MM-DD)", file=sys.stderr)
+        return 1
+    if args.series:
+        dataset_code, separator, key = args.series.partition(":")
+        if not separator or not key:
+            _print_error("fetch", ValueError(f"bad --series {args.series!r}"))
+            return 1
+        system = get_system(dataset_code)
+        order = dimension_codes(system)
+        parts = key.split(".")
+        if len(parts) != len(order):
+            _print_error("fetch", ValueError(f"expected {len(order)} codes {order}, got {key!r}"))
+            return 1
+        codes = dict(zip(order, parts, strict=True))
+    elif args.dataset:
+        dataset_code = args.dataset
+        system = get_system(dataset_code)
+        codes = _parse_codes(args.code)
+    else:
+        print(
+            "fetch: pass --series EXTERNAL_CODE or --dataset TUIK_BI_GTS --code DIM=CODE",
+            file=sys.stderr,
+        )
+        return 1
+
+    try:
+        codes = complete_codes(system, codes)
+        validate_codes(system, codes)
+        result = connector.fetch_series(dataset_code, codes, start=start)
+    except (ConnectorError, SeriesDefinitionError) as exc:
+        _print_error("fetch", exc)
+        return 1
+    print(
+        f"fetch {dataset_code}: points={len(result.points)} "
+        f"channel={result.channel} (dry-run, nothing written)"
+    )
+    if result.points:
+        print(f"periods: {result.points[0][0].isoformat()}..{result.points[-1][0].isoformat()}")
+        last_period, last_value = result.points[-1]
+        print(f"last: {last_period.isoformat()}={last_value}")
+        july = next((value for period, value in result.points if period == date(2026, 7, 1)), None)
+        if july is not None:
+            print(f"2026-07: {july}")
+    return 0
+
+
+def _cmd_bi_fetch(session: Session, connector: BiTradeConnector, args: argparse.Namespace) -> int:
+    try:
+        start = date.fromisoformat(args.start)
+    except ValueError:
+        print(f"fetch: invalid --start {args.start!r} (want YYYY-MM-DD)", file=sys.stderr)
+        return 1
+    try:
+        if args.series:
+            dataset_code = args.series.partition(":")[0]
+            dataset = _load_dataset(session, connector, dataset_code)
+            if dataset is None:
+                print(f"fetch: no catalogued dataset for {dataset_code!r}", file=sys.stderr)
+                return 1
+            codes = resolve_external_code(dataset, args.series)
+            if codes is None:
+                print(
+                    f"fetch: {args.series!r} does not match dataset {dataset_code!r}",
+                    file=sys.stderr,
+                )
+                return 1
+        elif args.dataset:
+            dataset = _load_dataset(session, connector, args.dataset)
+            if dataset is None:
+                print(f"fetch: no catalogued dataset {args.dataset!r}", file=sys.stderr)
+                return 1
+            codes = _parse_codes(args.code)
+        else:
+            print(
+                "fetch: pass --series EXTERNAL_CODE or --dataset TUIK_BI_GTS --code DIM=CODE",
+                file=sys.stderr,
+            )
+            return 1
+        system = get_system(dataset.external_code)
+        codes = complete_codes(system, codes)
+        validate_codes(system, codes)
+    except (ValueError, SeriesDefinitionError) as exc:
+        _print_error("fetch", exc)
+        return 1
+
+    try:
+        result = ingest_series(session, connector, dataset=dataset, codes=codes, start=start)
+    except (ConnectorError, SeriesDefinitionError, SeriesNotFoundError) as exc:
+        _print_error("fetch", exc)
+        return 1
+    session.commit()
+    print(
+        f"fetch {result.series_id}: inserted={result.inserted} unchanged={result.unchanged} "
+        f"points={result.point_count}"
+    )
+    if result.period_start is not None:
+        print(f"periods: {result.period_start.isoformat()}..{result.period_end.isoformat()}")
+    if result.raw_object_key is not None:
+        print(f"raw: {result.raw_object_key}")
+    return 0
+
+
+def _run_bi(args: argparse.Namespace, dry_run: bool) -> int:
+    connector = _build_bi_connector(dry_run)
+    try:
+        if args.command == "bi-catalog":
+            if dry_run:
+                return _cmd_bi_catalog(None, connector, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_bi_catalog(session, connector, args)
+        if args.command == "bi-headlines":
+            if dry_run:
+                return _cmd_bi_headlines(None, connector, args)
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_bi_headlines(session, connector, args)
+        if dry_run:
+            return _dry_run_bi_fetch(connector, args)
+        from app.db.session import SessionLocal
+
+        with SessionLocal() as session:
+            return _cmd_bi_fetch(session, connector, args)
+    finally:
+        connector.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the CLI. Returns a process exit code."""
     args = build_parser().parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     dry_run = bool(getattr(args, "dry_run", False))
+    if _is_bi_command(args):
+        return _run_bi(args, dry_run)
     if args.command in ("siniflama", "siniflama-link-dimensions"):
         return _run_siniflama(args, dry_run)
     if _is_cip_command(args):

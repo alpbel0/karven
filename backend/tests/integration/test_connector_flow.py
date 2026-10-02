@@ -147,8 +147,13 @@ def test_sync_catalog_and_ingest_series_roundtrip() -> None:
         assert dataset is not None
         assert dataset.obs_count == 2
         assert dataset.source_category == "Tests / Fake"
-        # No series rows are created by a catalog sync.
-        assert session.scalar(select(func.count()).select_from(Series)) == 0
+        # No series rows are created by a catalog sync for this dataset.
+        assert (
+            session.scalar(
+                select(func.count()).select_from(Series).where(Series.dataset_id == dataset.id)
+            )
+            == 0
+        )
         dataset_id = dataset.id
 
     with SessionLocal() as session:
