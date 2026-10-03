@@ -39,6 +39,8 @@ def test_build_parser_catalog() -> None:
 def test_build_parser_source() -> None:
     assert build_parser().parse_args(["catalog", "--source", "hmb"]).source == "hmb"
     assert build_parser().parse_args(["fetch", "--source", "hmb"]).source == "hmb"
+    assert build_parser().parse_args(["catalog", "--source", "tuik-evds"]).source == "tuik-evds"
+    assert build_parser().parse_args(["fetch", "--source", "tuik-evds"]).source == "tuik-evds"
     with pytest.raises(SystemExit):
         build_parser().parse_args(["catalog", "--source", "nope"])
     with pytest.raises(SystemExit):

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "693bdc8e8b24de7bb6a1227f",
+    "yayin_id": 33,
+    "rip": "R",
+    "period": "Aylık",
+    "donem": "Eylül 2026",
+    "tarih": "2026-10-30 23:00",
+    "arsiv": 0,
+    "yayinBilgi": {
+      "id": null,
+      "yayinId": 33,
+      "yayimAdi": "Bileşik Öncü Göstergeler Endeksi (TCMB)",
+      "yayimAdiIng": "Composite Leading Indicator Index (CBRT)",
+      "konuBasligiKodu": 1504,
+      "veriGrubuKodu": "bie_cli2",
+      "topicTitleTr": "BİLEŞİK ÖNCÜ GÖSTERGELER ENDEKSİ (TCMB)",
+      "topicTitleEng": "COMPOSITE LEADING INDICATORS INDEX (CBRT)"
+    }
+  },
+  {
+    "id": "693bdc8e8b24de7bb6a1201f",
+    "yayin_id": 1,
+    "rip": "R",
+    "period": "Üç Aylık",
+    "donem": "Temmuz-Eylül 2026",
+    "tarih": "2026-10-02 10:00",
+    "arsiv": 0,
+    "yayinBilgi": {
+      "id": null,
+      "yayinId": 1,
+      "yayimAdi": "Banka Kredileri Eğilim Anketi",
+      "yayimAdiIng": "Bank Loans Tendency Survey",
+      "konuBasligiKodu": 1001,
+      "veriGrubuKodu": "bie_bkea",
+      "topicTitleTr": "BANKA KREDİLERİ EĞİLİM ANKETİ (TCMB)\t",
+      "topicTitleEng": "BANK LOANS TENDENCY SURVEY (CBRT)"
+    }
+  },
+  {
+    "id": "synthetic-null",
+    "yayin_id": 999,
+    "rip": "R",
+    "period": "Aylık",
+    "donem": "Ekim 2026",
+    "tarih": "2026-10-15 10:00",
+    "arsiv": 0,
+    "yayinBilgi": {
+      "id": null,
+      "yayinId": 999,
+      "yayimAdi": "Null group row",
+      "yayimAdiIng": "Null group row",
+      "konuBasligiKodu": 1,
+      "veriGrubuKodu": null
+    }
+  },
+  {
+    "id": "synthetic-periodic",
+    "yayin_id": 998,
+    "rip": "R",
+    "period": "Periyodik güncellenir",
+    "donem": null,
+    "tarih": "2026-10-20 10:00",
+    "arsiv": 0,
+    "yayinBilgi": {
+      "id": null,
+      "yayinId": 998,
+      "yayimAdi": "Periodic row",
+      "yayimAdiIng": "Periodic row",
+      "konuBasligiKodu": 2,
+      "veriGrubuKodu": "bie_cli2"
+    }
+  }
+]

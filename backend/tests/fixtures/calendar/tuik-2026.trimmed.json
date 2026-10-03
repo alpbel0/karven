@@ -1,0 +1,61 @@
+{
+  "yayindaOlanlarList": [
+    {
+      "sorumluKisaAd": "TÜİK",
+      "sorumluKurum": "Türkiye İstatistik Kurumu",
+      "link": "https://data.tuik.gov.tr/Bulten/Index?p=Dönemsel-Gayrisafi-Yurt-İçi-Hasıla-II.-Çeyrek:-Nisan-Haziran-2026-58211&dil=1",
+      "dilId": 1,
+      "gTarih": "2026-08-31T10:00:00",
+      "donemi": "II. Çeyrek: Nisan-Haziran 2026",
+      "birimi": "DÖNEMSEL HESAPLAR GRUP BAŞKANLIĞI",
+      "adi": "Dönemsel Gayrisafi Yurt İçi Hasıla",
+      "id": 58211
+    },
+    {
+      "sorumluKisaAd": "TÜİK",
+      "sorumluKurum": "Türkiye İstatistik Kurumu",
+      "link": "https://data.tuik.gov.tr/Bulten/Index?p=Yapay-Zeka-İstatistikleri-2026-62066&dil=1",
+      "dilId": 1,
+      "gTarih": "2026-10-02T10:00:00",
+      "donemi": "2026",
+      "birimi": "BİLİM VE TEKNOLOJİ İSTATİSTİKLERİ GRUP BAŞKANLIĞI",
+      "adi": "Yapay Zeka İstatistikleri",
+      "id": 62066
+    },
+    {
+      "sorumluKisaAd": "SPK",
+      "sorumluKurum": "Sermaye Piyasası Kurulu",
+      "link": "https://spk.gov.tr/istatistikler/istatistiksel-veriler/gunluk-istatistikler",
+      "dilId": 1,
+      "gTarih": "2026-10-02T19:00:00",
+      "donemi": "01-10-2026",
+      "birimi": null,
+      "adi": "Menkul Kıymet Yatırım Fonlarına/Emeklilik Yatırım Fonlarına/Yatırım Ortaklıklarına İlişkin Günlük İstatistikler",
+      "id": 60041
+    }
+  ],
+  "yayindaOlmayanlarList": [
+    {
+      "sorumluKisaAd": "TÜİK",
+      "sorumluKurum": "Türkiye İstatistik Kurumu",
+      "link": null,
+      "dilId": 1,
+      "gTarih": "2026-12-01T10:00:00",
+      "donemi": "III. Çeyrek: Temmuz-Eylül 2026",
+      "birimi": "DÖNEMSEL HESAPLAR GRUP BAŞKANLIĞI",
+      "adi": "Dönemsel Gayrisafi Yurt İçi Hasıla",
+      "id": 0
+    },
+    {
+      "sorumluKisaAd": "SPK",
+      "sorumluKurum": "Sermaye Piyasası Kurulu",
+      "link": "https://data.tuik.gov.tr/Bulten/Index?p=Dönemsel-Gayrisafi-Yurt-İçi-Hasıla-II.-Çeyrek:-Nisan-Haziran-2026-58211&dil=1",
+      "dilId": 1,
+      "gTarih": "2026-08-31T10:00:00",
+      "donemi": "II. Çeyrek: Nisan-Haziran 2026",
+      "birimi": "DÖNEMSEL HESAPLAR GRUP BAŞKANLIĞI",
+      "adi": "Dönemsel Gayrisafi Yurt İçi Hasıla",
+      "id": 58211
+    }
+  ]
+}

@@ -2,7 +2,7 @@ name: karven
 
 # ---------------------------------------------------------------------------
 # Phase profiles: only the services the current phase needs start by default.
-#   default (no profile) : postgres, minio, migrator, api  (now)
+#   default (no profile) : postgres, minio, migrator, api, core-scheduler  (now)
 #   graph                : neo4j                            (Phase 3 — graph agent)
 #   queue                : redis, worker, beat              (Task 1.5 / 1.7)
 #   web                  : frontend                         (Phase 4-5)
@@ -186,6 +186,32 @@ services:
       timeout: 5s
       retries: 20
       start_period: 15s
+
+  # Core scheduler: one continuous process (calendar sync + release refresh).
+  # Default profile, so it starts with `docker compose up -d`. It writes a
+  # heartbeat file after every tick; the healthcheck fails when the file is
+  # missing or older than 3 ticks (CORE_TICK_MINUTES, default 15). The host can
+  # sit near 100% CPU, so the timings are deliberately generous.
+  core-scheduler:
+    <<: *backend-base
+    depends_on: *app-deps
+    command: ["python", "-m", "app.core.scheduler"]
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import os, sys, time;
+          path = os.environ.get('CORE_HEARTBEAT_PATH', '/tmp/core-scheduler.heartbeat');
+          limit = int(os.environ.get('CORE_TICK_MINUTES', '15')) * 60 * 3;
+          fresh = os.path.exists(path) and (time.time() - os.path.getmtime(path)) <= limit;
+          sys.exit(0 if fresh else 1)
+      interval: 60s
+      timeout: 20s
+      retries: 5
+      start_period: 120s
 
   # Celery worker — implemented in a later task (code does not exist yet).
   worker:

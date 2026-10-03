@@ -1,0 +1,148 @@
+[
+  {
+    "CATEGORY_ID": 15,
+    "SEVIYE": 1,
+    "UST_CATEGORY_ID": -1,
+    "TOPIC_TITLE_TR": "BÜYÜME, İSTİHDAM, KAMU MALİYESİ",
+    "TOPIC_TITLE_ENG": "GROWTH, EMPLOYMENT, PUBLIC FINANCE",
+    "DATAGROUPS": []
+  },
+  {
+    "CATEGORY_ID": 1502,
+    "SEVIYE": 2,
+    "UST_CATEGORY_ID": 15,
+    "TOPIC_TITLE_TR": "DÖNEMSEL GAYRİSAFİ YURT İÇİ HASILA (TÜİK)",
+    "TOPIC_TITLE_ENG": "QUATERLY GROSS DOMESTIC PRODUCT (TURKSTAT)",
+    "DATAGROUPS": []
+  },
+  {
+    "CATEGORY_ID": 150203,
+    "SEVIYE": 3,
+    "UST_CATEGORY_ID": 1502,
+    "TOPIC_TITLE_TR": "ÜRETİM YÖNTEMİ İLE GAYRİSAFİ YURT İÇİ HASILA",
+    "TOPIC_TITLE_ENG": "GROSS DOMESTIC PRODUCT BY PRODUCTION APPROACH",
+    "DATAGROUPS": [
+      {
+        "screenOrder": 20,
+        "DATAGROUP_CODE": "bie_gsyhuretcar",
+        "CATEGORY_ID": 150203,
+        "DATAGROUP_TYPE": "Gayrisafi Yurt İçi Hasıla - Üretim Yöntemiyle, İktisadi Faaliyet Kollarına (A10) Göre, Cari Fiyatlarla",
+        "DATAGROUP_TYPE_ENG": "Gross Domestic Product - Production Approach, By Economic Activity (A10), Current Prices",
+        "STATUS": 1,
+        "FREQUENCY": 13.0,
+        "FREQUENCY_STR": "ÜÇ AYLIK",
+        "DATASOURCE": "TÜİK",
+        "DATASOURCE_ENG": "TURKSTAT",
+        "METADATA_LINK": "https://veriportali.tuik.gov.tr/tr/press/54162/metadata",
+        "METADATA_LINK_ENG": "https://veriportali.tuik.gov.tr/en/press/54162/metadata",
+        "REV_POL_LINK": null,
+        "REV_POL_LINK_ENG": null,
+        "APP_CHA_LINK": null,
+        "APP_CHA_LINK_ENG": null,
+        "YEARABLE": 1,
+        "6MONTHABLE": 1,
+        "QUARTERABLE": 1,
+        "MONTHABLE": 0,
+        "2WEEKABLE": 0,
+        "WEEKABLE": 0,
+        "WORKDAYABLE": 0,
+        "DAYABLE": 0,
+        "BIRIMI": "bin TL",
+        "BIRIMI_EN": "thousand TRY",
+        "LAST_UPDATED": "23-07-2026"
+      }
+    ]
+  },
+  {
+    "CATEGORY_ID": 40,
+    "SEVIYE": 1,
+    "UST_CATEGORY_ID": -1,
+    "TOPIC_TITLE_TR": "ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER",
+    "TOPIC_TITLE_ENG": "BALANCE OF PAYMENTS AND EXTERNAL STATISTICS",
+    "DATAGROUPS": []
+  },
+  {
+    "CATEGORY_ID": 4007,
+    "SEVIYE": 2,
+    "UST_CATEGORY_ID": 40,
+    "TOPIC_TITLE_TR": "DIŞ TİCARET VE İLGİLİ İSTATİSTİKLER",
+    "TOPIC_TITLE_ENG": "FOREIGN TRADE AND RELATED STATISTICS",
+    "DATAGROUPS": []
+  },
+  {
+    "CATEGORY_ID": 400701,
+    "SEVIYE": 3,
+    "UST_CATEGORY_ID": 4007,
+    "TOPIC_TITLE_TR": "DIŞ TİCARET ENDEKSLERİ (TÜİK) \t",
+    "TOPIC_TITLE_ENG": "FOREIGN TRADE INDICES (TURKSAT)",
+    "DATAGROUPS": [
+      {
+        "screenOrder": 10,
+        "DATAGROUP_CODE": "bie_dtihfb10",
+        "CATEGORY_ID": 400701,
+        "DATAGROUP_TYPE": "Dış Ticaret İhracat Birim Değer Endeksi-BEC Sınıflamasına Göre (2015=100)",
+        "DATAGROUP_TYPE_ENG": "Foreign Trade Export Unit Value Index by Classification of BEC (2015=100)",
+        "STATUS": 1,
+        "FREQUENCY": 9.0,
+        "FREQUENCY_STR": "AYLIK",
+        "DATASOURCE": "TÜİK",
+        "DATASOURCE_ENG": "TURKSTAT",
+        "METADATA_LINK": "https://data.tuik.gov.tr/Search/Search?text=D%C4%B1%C5%9F%20Ticaret",
+        "METADATA_LINK_ENG": "https://data.tuik.gov.tr/Search/Search?text=Foreign%20Trade",
+        "REV_POL_LINK": "https://data.tuik.gov.tr/Search/Search?text=D%C4%B1%C5%9F%20Ticaret",
+        "REV_POL_LINK_ENG": "https://data.tuik.gov.tr/Search/Search?text=Foreign%20Trade",
+        "APP_CHA_LINK": "https://data.tuik.gov.tr/Search/Search?text=D%C4%B1%C5%9F%20Ticaret",
+        "APP_CHA_LINK_ENG": "https://data.tuik.gov.tr/Search/Search?text=Foreign%20Trade",
+        "YEARABLE": 0,
+        "6MONTHABLE": 0,
+        "QUARTERABLE": 1,
+        "MONTHABLE": 1,
+        "2WEEKABLE": 0,
+        "WEEKABLE": 0,
+        "WORKDAYABLE": 0,
+        "DAYABLE": 0,
+        "BIRIMI": "Endeks",
+        "BIRIMI_EN": "Index",
+        "LAST_UPDATED": "12-12-2025"
+      }
+    ]
+  },
+  {
+    "CATEGORY_ID": 2501,
+    "SEVIYE": 2,
+    "UST_CATEGORY_ID": 25,
+    "TOPIC_TITLE_TR": "TCMB DÖVİZ KURLARI",
+    "TOPIC_TITLE_ENG": "CENTRAL BANK EXCHANGE RATES",
+    "DATAGROUPS": [
+      {
+        "screenOrder": 20,
+        "DATAGROUP_CODE": "bie_dkefkytl",
+        "CATEGORY_ID": 2501,
+        "DATAGROUP_TYPE": "Efektif Kurlar",
+        "DATAGROUP_TYPE_ENG": "Effective Exchange Rates",
+        "STATUS": 1,
+        "FREQUENCY": 1.0,
+        "FREQUENCY_STR": "GÜNLÜK",
+        "DATASOURCE": "TCMB",
+        "DATASOURCE_ENG": "CBRT",
+        "METADATA_LINK": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Temel+Faaliyetler/Doviz+Efektif/",
+        "METADATA_LINK_ENG": "https://www.tcmb.gov.tr/wps/wcm/connect/EN/TCMB+EN/Main+Menu/Core+Functions/Exchange+Rate+Policy/",
+        "REV_POL_LINK": null,
+        "REV_POL_LINK_ENG": null,
+        "APP_CHA_LINK": null,
+        "APP_CHA_LINK_ENG": null,
+        "YEARABLE": 1,
+        "6MONTHABLE": 1,
+        "QUARTERABLE": 1,
+        "MONTHABLE": 1,
+        "2WEEKABLE": 0,
+        "WEEKABLE": 1,
+        "WORKDAYABLE": 1,
+        "DAYABLE": 1,
+        "BIRIMI": "Türk lirası",
+        "BIRIMI_EN": "Turkish lira",
+        "LAST_UPDATED": "02-03-2026"
+      }
+    ]
+  }
+]

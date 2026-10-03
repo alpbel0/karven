@@ -37,6 +37,8 @@ _FREQUENCY_CHECK = (
     "frequency IN ('daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual', 'irregular')"
 )
 _FETCH_JOB_STATUS_CHECK = "status IN ('requested', 'fetching', 'completed', 'failed')"
+_ALERT_KIND_CHECK = "kind IN ('no_new_period', 'format_changed', 'repeated_failure')"
+_ALERT_STATUS_CHECK = "status IN ('open', 'resolved')"
 _ACTIVE_JOB_PREDICATE = "status IN ('requested', 'fetching')"
 _DIMENSION_ROLE_CHECK = "role IN ('time', 'geo', 'frequency', 'other')"
 _JSON_OBJECT_DEFAULT = text("'{}'::jsonb")
@@ -686,4 +688,95 @@ class DocumentDatasetLink(Base):
         UniqueConstraint("document_id", "dataset_code", name="uq_document_dataset_links_pair"),
         Index("ix_document_dataset_links_dataset_id", "dataset_id"),
         Index("ix_document_dataset_links_dataset_code", "dataset_code"),
+    )
+
+
+class ReleaseCalendar(Base):
+    """One published release date for a source key (Task 1.4c).
+
+    A row is identified by ``(source, key, expected_on)`` and upserted on every
+    calendar sync: re-announcing the same release changes nothing, a moved date
+    is a new row (the old one is kept). ``source`` is ``evds3`` or ``tuik`` and
+    ``key`` is the source key the core registry maps to (an EVDS datagroup code
+    or the TÜİK bulletin ``adi``). ``expected_at`` is the raw published timestamp
+    string (kept verbatim); ``expected_on`` is only its date part. ``attributes``
+    keeps the full source item and ``raw_object_key`` points at the payload.
+    """
+
+    __tablename__ = "release_calendar"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    key: Mapped[str] = mapped_column(Text, nullable=False)
+    period_label: Mapped[str | None] = mapped_column(Text, nullable=True)
+    expected_on: Mapped[date] = mapped_column(Date, nullable=False)
+    expected_at: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    raw_object_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "source", "key", "expected_on", name="uq_release_calendar_identity"
+        ),
+        Index(
+            "ix_release_calendar_source_key_expected",
+            "source",
+            "key",
+            "expected_on",
+        ),
+    )
+
+
+class DataAlert(Base):
+    """A recorded data-cut-off alert (Task 1.4c; panel is Task 5.5).
+
+    One open row per ``(institution_id, scope, kind)`` (partial unique index);
+    ``scope`` is a series external code, or a source key for source-level alerts.
+    ``kind`` is ``no_new_period``, ``format_changed`` or ``repeated_failure``.
+    Alerts are records only: there is no notification channel yet, and
+    ``resolve_alerts`` closes the open row (``status='resolved'``) instead of
+    deleting it.
+    """
+
+    __tablename__ = "data_alerts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    institution_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("institutions.id", name="fk_data_alerts_institution"), nullable=False
+    )
+    series_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("series.id", name="fk_data_alerts_series"), nullable=True
+    )
+    scope: Mapped[str] = mapped_column(Text, nullable=False)
+    kind: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'open'"), default="open"
+    )
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    detail: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    opened_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(_ALERT_KIND_CHECK, name="ck_data_alerts_kind"),
+        CheckConstraint(_ALERT_STATUS_CHECK, name="ck_data_alerts_status"),
+        Index(
+            "uq_data_alerts_open_scope_kind",
+            "institution_id",
+            "scope",
+            "kind",
+            unique=True,
+            postgresql_where=text("status = 'open'"),
+        ),
+        Index("ix_data_alerts_status", "status"),
     )

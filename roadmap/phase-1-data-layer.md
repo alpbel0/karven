@@ -374,7 +374,7 @@ cevap `sources/hmb/...`; 2000 öncesinde biten arşiv serisi (`TP.DB.D01`, 1996'
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Kodlandı ve canlıda çalışıyor (2026-10-03); kabul kriterinin son şartı — zamanlayıcının GERÇEK yeni dönemi kendiliğinden eklemesi — bir sonraki yayını bekliyor (ilk fırsat: USD günlük, 2026-10-05 16:30 sonrası). Kutular o zamana kadar açık.
 **Bağımlılıklar:** Task 1.2, Task 1.3
 
 **Referanslar:** `docs/DECISIONS.md` §5; bilgi için
@@ -384,16 +384,39 @@ cevap `sources/hmb/...`; 2000 öncesinde biten arşiv serisi (`TP.DB.D01`, 1996'
 
 ### Checklist
 
-- [ ] Çekirdek seri listesini kullanıcıyla belirle (**proje içinde karar**,
-      `docs/DECISIONS.md` → Proje içinde verilecek kararlar #1).
-- [ ] Çekirdek serileri 2000-01-01'den itibaren yükle.
-- [ ] Çekirdek serileri düzenli güncelleyen zamanlanmış görevi kur.
-- [ ] Talep üzerine çekilen seriler otomatik olarak çekirdeğe **alınmaz**.
+- [x] Çekirdek seri listesini kullanıcıyla belirle: TCMB `TP.DK.USD.A.EF.YTL` +
+      `TP.CLI2.A01` + TÜİK GSYH 13 satırı (2026-10-03, `docs/DECISIONS.md` §5).
+- [x] Çekirdek serileri 2000-01-01'den itibaren yükle (15 seri, canlı; 2026-10-03).
+- [ ] Çekirdek serileri düzenli güncelleyen zamanlanmış görevi kur. (`core-scheduler` servisi canlıda çalışıyor, 15 dk'da bir tur, healthy; yeni dönemi otomatik ekleme gerçek yayında doğrulanacak.)
+- [x] Talep üzerine çekilen seriler otomatik olarak çekirdeğe **alınmaz** (canlıda `is_core` yalnız 15/22.460 seride; testle de güvenceli).
 - [ ] **Veri kesilme uyarısı:** bir kaynaktan veri sessizce gelmemeye başlarsa
       ya da cevabın biçimi değişirse uyarı kaydı oluşur (admin panelinde
-      görünür, Task 5.5). Hangi durumda uyarı verileceği kullanıcıyla
-      belirlenir (**proje içinde karar**, `docs/DECISIONS.md` → Proje içinde
-      verilecek kararlar #7).
+      görünür, Task 5.5). Kural kararlaştırıldı (2026-10-03): takvimden +2 gün
+      yeni dönem yok / biçim değişti (ilk görüşte) / üst üste 3 hatalı çekim
+      (`docs/DECISIONS.md` §5). Kod canlıda; `repeated_failure` canlıda açılıp kapandı, `no_new_period` ve `format_changed` yalnız entegrasyon testinde — gerçek kaynak gecikmesi/bozulması bekleniyor.
+
+**İlerleme (2026-10-03):**
+- 1.4a tamam (canlıda doğrulandı): EVDS3 kanalından `tuik-evds` kaynağı; `bie_gsyhuretcar`
+  (TÜİK GSYH, üretim yöntemi A10, cari fiyat, çeyreklik) `tuik` kurumu altında
+  kataloglandı (1 veri seti, 14 seri kodu; ikinci çalıştırma 0 değişiklik). Turcat
+  `TURCAT_REEL:2..14` ile 13/13 satır 2026-Q1/Q2 değerleriyle birebir eşleşti (ölçek 1×).
+  Tek seri (`TP.GSYIH040.IFK.B1GQ`) 2000-Q1..2026-Q2, 106 gözlem canlıya yazıldı.
+  Birim 638, entegrasyon 63 test geçti.
+- 1.4b tamam (canlıda doğrulandı): `python -m app.core load|link-turcat|status`. 15 çekirdek
+  seri 2000-01-01'den yüklü ve `is_core` (USD 6.734, `TP.CLI2.A01` 320, 13 GSYH serisi ×106
+  gözlem; ikinci yükleme 0 yeni). 13 Turcat↔EVDS bağlantısı değer doğrulamasıyla `accepted`
+  (`manual`, mapping `{}`), tekrar çalıştırma değişiklik yapmadı. Birim 649, entegrasyon 66 test geçti.
+  Not: EVDS efektif kur serisinde ertesi gün için ilan edilmiş (ileri tarihli) satır var; "yeni dönem"
+  kontrolü bugünün tarihine değil önceki en büyük döneme göre yapılmalı.
+- 1.4c tamam, kısmen canlıda doğrulandı: migration 0014 (`release_calendar`, `data_alerts`), EVDS3 +
+  TÜİK takvim adaptörleri (`calendar-sync`: 8 çekirdek satır, GSYH 2026-12-01 dahil), saf karar
+  mantığı (`decide`) ve yenileme motoru (`refresh`, `alerts`). Canlıda: takvim kalıcı, 14 takvimli
+  seri `satisfied`, USD hafta sonu bekliyor; kaynak erişilemez yapılıp 3 zorlu çalıştırmada tam
+  bir `repeated_failure` açıldı, normal çalıştırmada kapandı. Birim 697, entegrasyon 78 test geçti.
+  Canlıda doğrulanmadı: `no_new_period` ve `format_changed` uyarıları (yalnız entegrasyon testinde;
+  gerçek kaynak bozulması/gecikmesi bekleniyor). Canlıda yakalanan hata: `calendar-sync` commit
+  etmiyordu (testler kendi commit'leriyle maskeliyordu) — düzeltildi, yeni-oturumdan-geri-okuma testi eklendi.
+- 1.4d tamam, canlıda çalışıyor: `python -m app.core.scheduler` + compose `core-scheduler` servisi (15 dk tur, günlük takvim yenileme, takvim senkronu kaydı + uyarısı, kalp atışı dosyası + sağlık kontrolü, gerçek saatli iş zamanları). Birim 717, entegrasyon 81 test geçti; konteyner `healthy`, OOM/yeniden başlatma yok.
 
 **Kabul kriteri:** Kararlaştırılan çekirdek listenin tamamı yüklü ve güncelleme
 görevi yeni dönemi kendiliğinden ekliyor.

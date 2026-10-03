@@ -204,6 +204,30 @@ class Settings(BaseSettings):
     tcmb_max_retries: int = 3
     tcmb_retry_backoff_s: float = 1.0
 
+    # Core refresh engine (Task 1.4c). Calendar-driven: a calendar series is
+    # polled on its release date and retried at most every ``core_retry_hours``
+    # until the new period lands; a ``no_new_period`` alert opens once the
+    # release is ``core_grace_days`` late. A calendar-less daily series (USD) is
+    # polled once per weekday after ``core_daily_after`` (Europe/Istanbul) and
+    # alerts only when its latest period is older than ``core_daily_stale_days``
+    # (long holidays must not alert). ``core_failure_threshold`` consecutive
+    # failed/empty refresh jobs open a ``repeated_failure`` alert.
+    core_grace_days: int = 2
+    core_retry_hours: int = 2
+    core_daily_after: str = "16:30"
+    core_daily_stale_days: int = 10
+    core_failure_threshold: int = 3
+
+    # Core scheduler (Task 1.4d). One purpose-built process loops run_tick every
+    # ``core_tick_minutes``; the release calendar is re-synced when its newest
+    # ``fetched_at`` is older than ``core_calendar_refresh_hours`` (and the last
+    # attempt is older than ``core_retry_hours``). After each tick the process
+    # writes an ISO timestamp to ``core_heartbeat_path`` (the compose healthcheck
+    # reads its mtime). All three are env-overridable like the other core_* keys.
+    core_tick_minutes: int = 15
+    core_calendar_refresh_hours: int = 24
+    core_heartbeat_path: str = "/tmp/core-scheduler.heartbeat"
+
     minio_endpoint: str | None = None
     minio_access_key: str | None = None
     minio_secret_key: SecretStr | None = None

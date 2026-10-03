@@ -35,6 +35,9 @@ FIXTURES = Path(__file__).parent.parent / "fixtures" / "tcmb"
 USD = "TP.DK.USD.A.EF.YTL"
 USD_GROUP = "bie_dkefkytl"
 USD_COLUMN = "TP_DK_USD_A_EF_YTL"
+GSYH_GROUP = "bie_gsyhuretcar"
+GSYH_SERIE = "TP.GSYIH040.IFK.B1GQ"
+GSYH_COLUMN = "TP_GSYIH040_IFK_B1GQ"
 
 
 def _load(name: str):
@@ -339,3 +342,193 @@ def test_tcmb_hmb_catalog_is_separate_and_idempotent() -> None:
     assert again.inserted == 0
     assert again.updated == 0
     assert again.unchanged == 1
+
+
+class TuikFakeClient:
+    """Duck-typed EvdsClient serving the real TÜİK GYSH fixtures into MinIO.
+
+    Raw payloads use the connector's ``tuik`` institution so the test exercises
+    the same ``sources/tuik/<date>/<dataset>/evds3-<...>`` layout the live
+    connector produces.
+    """
+
+    def __init__(self) -> None:
+        self.catalog = _load("catalog-tuik.raw.json")
+        self.serie_lists = {GSYH_GROUP: _load(f"serielist-{GSYH_GROUP}.raw.json")}
+        self.bounds = {GSYH_SERIE: _load("bounds-gsyh.raw.json")}
+        self.fe = {GSYH_SERIE: _load("fe-gsyh.raw.json")}
+        self.closed = False
+
+    def _resp(self, dataset: str, channel: str, payload) -> _Resp:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        key = store_raw("tuik", dataset, channel, body, "json")
+        return _Resp(payload, key)
+
+    def get_catalog(self) -> _Resp:
+        return self._resp("catalog", "evds3-catalog", self.catalog)
+
+    def get_serie_list(self, group: str) -> _Resp:
+        return self._resp(group, "evds3-serielist", self.serie_lists.get(group, []))
+
+    def get_bounds(self, serie_code: str, **_kwargs) -> _Resp:
+        return self._resp(GSYH_GROUP, "evds3-bounds", self.bounds[serie_code])
+
+    def get_data(self, body: dict, **_kwargs) -> _Resp:
+        return self._resp(GSYH_GROUP, "evds3-data", self.fe[body["series"]])
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def test_tuik_evds_catalog_fetch_and_isolation_from_other_tuik_datasets() -> None:
+    """The TÜİK EVDS3 source writes the real path without disturbing TÜİK rows."""
+    client = TuikFakeClient()
+    connector = TcmbConnector(source="tuik-evds", client=client)
+    assert connector.institution_code == "tuik"
+    assert connector.institution_name == "Türkiye İstatistik Kurumu"
+
+    # A pre-existing TÜİK dataset (another channel) that must survive untouched.
+    with SessionLocal() as session:
+        institution = session.scalar(select(Institution).where(Institution.code == "tuik"))
+        if institution is None:
+            institution = Institution(code="tuik", name="Türkiye İstatistik Kurumu")
+            session.add(institution)
+            session.flush()
+        pre_existing = Dataset(
+            institution_id=institution.id,
+            external_code="tuik-pre-existing",
+            name="Pre-existing TÜİK dataset",
+            attributes={"databrowser2": {"kept": True}},
+        )
+        session.add(pre_existing)
+        session.commit()
+        pre_existing_id = pre_existing.id
+        institution_id = institution.id
+        institution_name = institution.name
+        # Snapshot the institution's datasets: another integration module may
+        # already have added the GYSH dataset (and the Turcat datasets) to this
+        # shared institution, so the isolation check must compare to pre-state.
+        pre_dataset_codes = {
+            row.external_code
+            for row in session.scalars(
+                select(Dataset).where(Dataset.institution_id == institution_id)
+            ).all()
+        }
+
+    # --- catalog: only the allow-listed datagroup, no series ----------------
+    with SessionLocal() as session:
+        first = sync_catalog(session, connector)
+        session.commit()
+    # The dataset may already exist from another module; either way this sync
+    # adds exactly the one allow-listed datagroup and updates nothing.
+    assert first.inserted + first.unchanged == 1
+    assert first.updated == 0
+    assert first.codes == 14
+
+    with SessionLocal() as session:
+        institution = session.scalar(select(Institution).where(Institution.code == "tuik"))
+        assert institution is not None
+        assert institution.id == institution_id
+        assert institution.name == institution_name  # the name is not renamed
+
+        datasets = {
+            dataset.external_code: dataset
+            for dataset in session.scalars(
+                select(Dataset).where(Dataset.institution_id == institution_id)
+            ).all()
+        }
+        # The sync added only the allow-listed datagroup; every dataset already
+        # present (including the pre-existing one) is still there.
+        assert set(datasets) == pre_dataset_codes | {GSYH_GROUP}
+        assert datasets["tuik-pre-existing"].id == pre_existing_id
+        assert datasets["tuik-pre-existing"].name == "Pre-existing TÜİK dataset"
+        assert datasets["tuik-pre-existing"].attributes == {"databrowser2": {"kept": True}}
+
+        dataset = datasets[GSYH_GROUP]
+        assert dataset.attributes["channel"] == "evds3"
+        assert dataset.attributes["data_source_en"] == "TURKSTAT"
+        (dimension,) = dataset.dimensions
+        assert dimension.code == "SERIE"
+        codes = {code.code: code for code in dimension.codes}
+        assert len(codes) == 14
+        assert codes[GSYH_SERIE].attributes["frequency"] == "quarterly"
+        assert codes[GSYH_SERIE].attributes["aggregation"] == "last"
+        gsyh_dataset_id = dataset.id
+
+    # --- second catalog sync: nothing changes ------------------------------
+    with SessionLocal() as session:
+        again = sync_catalog(session, connector)
+        session.commit()
+    assert again.inserted == 0
+    assert again.updated == 0
+    assert again.unchanged == 1
+
+    # The B1GQ series may already carry observations from another module; the
+    # fetch below must append exactly ``inserted`` new revision rows on top.
+    with SessionLocal() as session:
+        existing_series = session.scalar(
+            select(Series).where(
+                Series.institution_id == institution_id,
+                Series.external_code == f"{GSYH_GROUP}:{GSYH_SERIE}",
+            )
+        )
+        pre_observations = (
+            session.scalar(
+                select(func.count())
+                .select_from(Observation)
+                .where(Observation.series_id == existing_series.id)
+            )
+            if existing_series is not None
+            else 0
+        )
+
+    # --- fetch one series through the real write path ----------------------
+    with SessionLocal() as session:
+        dataset = session.get(Dataset, gsyh_dataset_id)
+        assert dataset is not None
+        result = ingest_series(
+            session,
+            connector,
+            dataset=dataset,
+            codes={"SERIE": GSYH_SERIE},
+            start=date(1995, 1, 1),
+        )
+        session.commit()
+    # Every fetched point is either appended or already stored.
+    assert result.inserted + result.unchanged == result.point_count
+    assert result.point_count == 4
+    assert result.period_start == date(1995, 1, 1)
+    assert result.period_end == date(2026, 4, 1)
+    assert result.raw_object_key is not None
+    assert result.raw_object_key.startswith("sources/tuik/")
+
+    with SessionLocal() as session:
+        series = session.get(Series, result.series_id)
+        assert series is not None
+        assert series.external_code == f"{GSYH_GROUP}:{GSYH_SERIE}"
+        assert series.frequency == "quarterly"
+        assert series.attributes["aggregation"] == "last"
+        assert series.coverage_start == date(1995, 1, 1)
+        assert series.coverage_end == date(2026, 4, 1)
+        rows = session.scalars(
+            select(Observation).where(Observation.series_id == result.series_id)
+        ).all()
+        # ``inserted`` rows were appended to whatever the series already had.
+        assert len(rows) == pre_observations + result.inserted
+        fetched_rows = [
+            row for row in rows if row.raw_object_key == result.raw_object_key
+        ]
+        assert len(fetched_rows) == result.inserted
+        assert all(
+            row.raw_object_key and row.raw_object_key.startswith("sources/tuik/")
+            for row in fetched_rows
+        )
+        latest = {row.period: row.value for row in get_latest(session, result.series_id)}
+        assert latest[date(2026, 4, 1)] == Decimal("19869747341.4119000000")
+
+    # --- the pre-existing TÜİK dataset is untouched after the fetch ---------
+    with SessionLocal() as session:
+        unchanged = session.get(Dataset, pre_existing_id)
+        assert unchanged is not None
+        assert unchanged.name == "Pre-existing TÜİK dataset"
+        assert unchanged.attributes == {"databrowser2": {"kept": True}}

@@ -2,11 +2,12 @@
 
 Commands:
 
-- ``catalog [--source {tcmb,hmb}] [--limit N] [--group CODE] [--dry-run]`` — sync
-  the institution and its datagroups (datasets/dimensions/codes; no values).
-  ``--dry-run`` fetches and parses everything but writes nothing.
-- ``fetch [--source {tcmb,hmb}] --series bie_dkefkytl:TP.DK.USD.A.EF.YTL`` or
-  ``fetch --dataset G --code SERIE=CODE [--start YYYY-MM-DD]`` — ingest one series.
+- ``catalog [--source {tcmb,hmb,tuik-evds}] [--limit N] [--group CODE]
+  [--dry-run]`` — sync the institution and its datagroups
+  (datasets/dimensions/codes; no values). ``--dry-run`` fetches and parses
+  everything but writes nothing.
+- ``fetch [--source {tcmb,hmb,tuik-evds}] --series bie_dkefkytl:TP.DK.USD.A.EF.YTL``
+  or ``fetch --dataset G --code SERIE=CODE [--start YYYY-MM-DD]`` — ingest one series.
 """
 
 from __future__ import annotations

@@ -41,6 +41,7 @@ CATALOG_CHANNEL = "evds3-catalog"
 SERIELIST_CHANNEL = "evds3-serielist"
 BOUNDS_CHANNEL = "evds3-bounds"
 DATA_CHANNEL = "evds3-data"
+CALENDAR_CHANNEL = "evds3-calendar"
 
 
 @dataclass(frozen=True)
@@ -258,9 +259,20 @@ class EvdsClient:
         response = self._request("POST", "fe", dataset=group, channel=DATA_CHANNEL, json_body=body)
         return self._success(response, group, DATA_CHANNEL)
 
+    def get_calendar(self, year: int, month: int) -> EvdsResponse:
+        """Monthly release calendar (``calendar/aylikYayinlar``) for one month."""
+        response = self._request(
+            "GET",
+            f"calendar/aylikYayinlar?yil={int(year)}&ay={int(month)}",
+            dataset="calendar",
+            channel=CALENDAR_CHANNEL,
+        )
+        return self._success(response, "calendar", CALENDAR_CHANNEL)
+
 
 __all__ = [
     "BOUNDS_CHANNEL",
+    "CALENDAR_CHANNEL",
     "CATALOG_CHANNEL",
     "DATA_CHANNEL",
     "DEFAULT_BASE_URL",

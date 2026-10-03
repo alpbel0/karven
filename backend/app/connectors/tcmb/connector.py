@@ -2,8 +2,10 @@
 
 The catalog lists category/datagroup pairs for several agencies on one channel.
 The connector serves one of them per instance (see :data:`SOURCES`): ``tcmb``
-keeps groups whose ``DATASOURCE_ENG`` is exactly ``CBRT`` (243 live) and ``hmb``
-keeps the Ministry of Treasury and Finance groups (24 live). Each such group
+keeps groups whose ``DATASOURCE_ENG`` is exactly ``CBRT`` (243 live), ``hmb``
+keeps the Ministry of Treasury and Finance groups (24 live), and ``tuik-evds``
+keeps one TÜİK-owned statistics group (``bie_gsyhuretcar``, datagroup code
+allow-listed). Each such group
 becomes one dataset whose single ``SERIE`` dimension carries one code per series
 (frequency, unit and aggregation live in the code's attributes, as on the Turcat
 datasets). Every series is fetched at its own native frequency with its own
@@ -57,15 +59,22 @@ SERIE_DIMENSION = "SERIE"
 
 @dataclass(frozen=True)
 class SourceSpec:
-    """One institution publishing groups on the shared EVDS3 channel."""
+    """One institution publishing groups on the shared EVDS3 channel.
+
+    ``groups`` is an optional allow-list of ``DATAGROUP_CODE`` values: when set,
+    only those groups are ever listed or fetched. ``None`` keeps the current
+    behaviour (every group matching ``data_source``), used by ``tcmb``/``hmb``.
+    """
 
     institution_code: str
     institution_name: str
     data_source: str
+    groups: frozenset[str] | None = None
 
 
-# The same EVDS3 channel publishes both the central bank's and the ministry's
-# datagroups; ``data_source`` is the exact ``DATASOURCE_ENG`` they are filtered by.
+# The same EVDS3 channel publishes the central bank's, the ministry's and the
+# statistics agency's datagroups; ``data_source`` is the exact ``DATASOURCE_ENG``
+# they are filtered by, and ``groups`` narrows a source to specific datagroups.
 SOURCES: dict[str, SourceSpec] = {
     "tcmb": SourceSpec(
         institution_code=INSTITUTION,
@@ -76,6 +85,12 @@ SOURCES: dict[str, SourceSpec] = {
         institution_code="hmb",
         institution_name="T.C. Hazine ve Maliye Bakanlığı",
         data_source="Ministry of Treasury and Finance",
+    ),
+    "tuik-evds": SourceSpec(
+        institution_code="tuik",
+        institution_name="Türkiye İstatistik Kurumu",
+        data_source="TURKSTAT",
+        groups=frozenset({"bie_gsyhuretcar"}),
     ),
 }
 
@@ -154,6 +169,7 @@ class TcmbConnector(SourceConnector):
         self.institution_code = spec.institution_code
         self.institution_name = spec.institution_name
         self._data_source = spec.data_source
+        self._allowed_groups = spec.groups
         if client is None:
             if store is None:
                 store = MinioObjectStore(settings_obj)
@@ -180,7 +196,17 @@ class TcmbConnector(SourceConnector):
         self._client.close()
 
     def _serie_list(self, group_code: str) -> list[SerieInfo]:
-        """Fetch (and cache) one group's series list; an unknown group is NOT_FOUND."""
+        """Fetch (and cache) one group's series list; an unknown group is NOT_FOUND.
+
+        A group outside this source's allow-list is rejected before any request:
+        ``--group``/``fetch`` on another agency's datagroup must never silently
+        reach it.
+        """
+        if not self._is_allowed_group(group_code):
+            raise ConnectorError(
+                NOT_FOUND,
+                f"datagroup {group_code!r} is not in source {self.source!r}",
+            )
         if group_code in self._cache:
             return self._cache[group_code]
         try:
@@ -197,10 +223,17 @@ class TcmbConnector(SourceConnector):
 
     # --- catalog -----------------------------------------------------------
 
+    def _is_allowed_group(self, code: str) -> bool:
+        """Whether ``code`` is inside this source's allow-list (``None`` = all)."""
+        return self._allowed_groups is None or code in self._allowed_groups
+
     def list_datasets(self) -> Iterator[DatasetMeta]:
         catalog = parse_catalog(self._client.get_catalog().json(), data_source=self._data_source)
         selected = [
-            group for group in catalog if self._only_group is None or group.code == self._only_group
+            group
+            for group in catalog
+            if self._is_allowed_group(group.code)
+            and (self._only_group is None or group.code == self._only_group)
         ]
         if self._limit is not None:
             selected = selected[: self._limit]

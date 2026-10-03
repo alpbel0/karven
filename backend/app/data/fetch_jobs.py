@@ -54,16 +54,40 @@ def mark_status(
     status: str,
     *,
     error_reason: str | None = None,
+    now: datetime | None = None,
 ) -> FetchJob:
     """Move ``job`` to ``status`` and stamp the matching timestamps."""
     if status not in STATUSES:
         raise ValueError(f"unknown fetch job status {status!r}")
-    now = datetime.now(UTC)
+    moment = now or datetime.now(UTC)
     job.status = status
     job.error_reason = error_reason
-    if status == FETCHING and job.started_at is None:
-        job.started_at = now
+    if status == FETCHING:
+        if job.started_at is None:
+            job.started_at = moment
+        job.heartbeat_at = moment
     if status in TERMINAL_STATUSES:
-        job.finished_at = now
+        job.finished_at = moment
     session.flush()
     return job
+
+
+def mark_fetching(session: Session, job: FetchJob, *, now: datetime | None = None) -> FetchJob:
+    """Start fetching ``job`` and stamp ``started_at``/``heartbeat_at``."""
+    return mark_status(session, job, FETCHING, now=now)
+
+
+def mark_completed(session: Session, job: FetchJob, *, now: datetime | None = None) -> FetchJob:
+    """Finish ``job`` successfully and stamp ``finished_at``."""
+    return mark_status(session, job, COMPLETED, now=now)
+
+
+def mark_failed(
+    session: Session,
+    job: FetchJob,
+    *,
+    error_reason: str | None = None,
+    now: datetime | None = None,
+) -> FetchJob:
+    """Fail ``job`` with ``error_reason`` and stamp ``finished_at``."""
+    return mark_status(session, job, FAILED, error_reason=error_reason, now=now)

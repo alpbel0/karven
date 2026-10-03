@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "Tarih": "1995-1Ç",
+      "TP_GSYIH040_IFK_B1GQ": "2090194.1285965700",
+      "UNIXTIME": {
+        "$numberLong": "788914800"
+      }
+    },
+    {
+      "Tarih": "1995-2Ç",
+      "TP_GSYIH040_IFK_B1GQ": "2495184.4492870300",
+      "UNIXTIME": {
+        "$numberLong": "796687200"
+      }
+    },
+    {
+      "Tarih": "2026-1Ç",
+      "TP_GSYIH040_IFK_B1GQ": "17098138220.9303000000",
+      "UNIXTIME": {
+        "$numberLong": "1767214800"
+      }
+    },
+    {
+      "Tarih": "2026-2Ç",
+      "TP_GSYIH040_IFK_B1GQ": "19869747341.4119000000",
+      "UNIXTIME": {
+        "$numberLong": "1774990800"
+      }
+    }
+  ]
+}

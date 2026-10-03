@@ -168,7 +168,19 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
   kullanıcı kararıyla yapılır (çekirdek seriler bu kararın parçasıdır).
 - **Veri kesilme uyarısı:** bir kaynaktan veri sessizce gelmemeye başlarsa ya
   da cevabın biçimi değişirse **admin panelinde uyarı** görünür (bildirim yok).
-  Hangi durumda uyarı verileceği Faz 1'de kararlaştırılır.
+  Kural (kullanıcı, 2026-10-03, Task 1.4) üç durumdan biri olunca uyarı kaydı
+  açılır: (1) **yeni dönem gelmedi** — yayın takvimindeki tarihten 2 gün
+  geçti, değer hâlâ yok; (2) **biçim değişti** — cevapta beklenen alan yok ya
+  da HTML throttle sayfası geldi, ilk görüşte; (3) **art arda hata** — üst
+  üste 3 çekim hata verdi ya da boş döndü.
+- **Çekirdek seriler (2026-10-03, Task 1.4):** en dar liste — TCMB
+  `TP.DK.USD.A.EF.YTL` (günlük) ve `TP.CLI2.A01` (aylık), artı TÜİK GSYH 13
+  satırı (Turcat → EVDS, çeyreklik). Toplulaştırma yöntemi kaynağın
+  `DEFAULT_AGG_METHOD` değeri. Yeni seri ihtiyaç doğdukça eklenir. Güncelleme
+  **takvimli yoklama**: EVDS3 `aylikYayinlar` + TÜİK `GetYillikHaberBulteniListesi`
+  takvimleri yeni dönemi bekleme zamanını verir (`appg` takvimi alınmaz).
+  Zamanlayıcı Task 1.4'te basit tek amaçlı döngü; Celery `worker`/`beat`
+  Task 1.5/1.7'de.
 
 ## 6. Haberler
 
@@ -381,10 +393,10 @@ sorunlardır; ilgili fazlarda kabul kriteri olarak kullanılır.
 Bunlar açık soru değildir; bilinçli olarak ilgili faz sırasında kullanıcıyla
 kararlaştırılacaktır. Karar verilince yukarıdaki ilgili bölüme yazılır.
 
-1. **Çekirdek seri listesi** — Faz 1, Task 1.4.
+1. ~~**Çekirdek seri listesi**~~ — karar verildi (§5, 2026-10-03).
 2. **Kavram ağacı** — Faz 2, Task 2.1.
 3. **Jev etiketleme eşiği** (kalibrasyon sonucu) — Faz 2, Task 2.3.
 4. **Arama test setinin başarı eşiği** — Faz 2, Task 2.6.
 5. **Site tasarımı ve ana sayfa** — Faz 5, Task 5.1.
 6. **Elle girilen göstergeler** (hangileri, nasıl girilecek) — Faz 1, Task 1.8.
-7. **Veri kesilme uyarısının kuralı** (hangi durumda uyarı) — Faz 1, Task 1.4.
+7. ~~**Veri kesilme uyarısının kuralı**~~ — karar verildi (§5, 2026-10-03).

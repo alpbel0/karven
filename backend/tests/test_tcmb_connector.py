@@ -20,13 +20,17 @@ def _load(name: str):
 
 
 CATALOG = _load("catalog.raw.json")
+CATALOG_TUIK = _load("catalog-tuik.raw.json")
 CLI2 = _load("serielist-bie_cli2.raw.json")
 DKEF = _load("serielist-bie_dkefkytl.raw.json")
 DBDIS = _load("serielist-bie_dbdisborc.raw.json")
+GSYH = _load("serielist-bie_gsyhuretcar.raw.json")
 BOUNDS_USD = _load("bounds-usd.raw.json")
 BOUNDS_CLI2 = _load("bounds-cli2.raw.json")
 BOUNDS_EMPTY = _load("bounds-empty.raw.json")
+BOUNDS_GSYH = _load("bounds-gsyh.raw.json")
 FE_USD = _load("fe-usd.raw.json")
+FE_GSYH = _load("fe-gsyh.raw.json")
 
 
 class _Resp:
@@ -193,6 +197,109 @@ def test_hmb_fetch_series_works_without_cbrt_membership() -> None:
     result = connector.fetch_series("bie_dbdisborc", {"SERIE": "TP.DB.D01"})
     assert result.points == [(date(2000, 1, 1), Decimal("1.5"))]
     assert connector.client.data_bodies[-1]["frequency"] == "6"
+
+
+def test_tuik_evds_source_institution_and_single_allowed_group() -> None:
+    connector = TcmbConnector(
+        source="tuik-evds",
+        client=FakeClient(catalog=CATALOG_TUIK, serie_lists={"bie_gsyhuretcar": GSYH}),
+    )
+    assert connector.institution_code == "tuik"
+    assert connector.institution_name == "Türkiye İstatistik Kurumu"
+
+    metas = list(connector.list_datasets())
+    # Only the allow-listed group, though the TURKSTAT catalog carries two.
+    assert [meta.external_code for meta in metas] == ["bie_gsyhuretcar"]
+    meta = metas[0]
+    assert meta.attributes["channel"] == "evds3"
+    assert meta.attributes["data_source_en"] == "TURKSTAT"
+    assert meta.attributes["source_frequency"] == "ÜÇ AYLIK"
+    assert meta.attributes["unit"] == "bin TL"
+    assert [entry["id"] for entry in meta.attributes["category_path"]] == [15, 1502, 150203]
+    (dimension,) = meta.dimensions
+    assert dimension.code == "SERIE"
+    assert len(dimension.codes) == 14
+    assert [code.code for code in dimension.codes] == [
+        "TP.GSYIH040.IFK.B1GQ",
+        "TP.GSYIH040.IFK.A",
+        "TP.GSYIH040.IFK.BTE",
+        "TP.GSYIH040.IFK.C",
+        "TP.GSYIH040.IFK.F",
+        "TP.GSYIH040.IFK.GTI",
+        "TP.GSYIH040.IFK.J",
+        "TP.GSYIH040.IFK.K",
+        "TP.GSYIH040.IFK.L",
+        "TP.GSYIH040.IFK.MN",
+        "TP.GSYIH040.IFK.OTQ",
+        "TP.GSYIH040.IFK.RTU",
+        "TP.GSYIH040.IFK.B1G",
+        "TP.GSYIH040.IFK.D21X31",
+    ]
+    b1gq = dimension.codes[0]
+    assert b1gq.attributes["frequency"] == "quarterly"
+    assert b1gq.attributes["aggregation"] == "last"
+    assert b1gq.attributes["source_frequency"] == "ÜÇ AYLIK"
+    assert b1gq.attributes["unit"] == "bin TL"
+
+
+def test_tuik_evds_group_outside_allow_list_yields_nothing() -> None:
+    connector = TcmbConnector(
+        source="tuik-evds",
+        client=FakeClient(catalog=CATALOG_TUIK, serie_lists={"bie_gsyhuretcar": GSYH}),
+        only_group="bie_dtihfb10",
+    )
+    # A --group on the other TURKSTAT group is never silently served.
+    assert list(connector.list_datasets()) == []
+    # fetch on that group is not_found, without ever calling the source.
+    with pytest.raises(ConnectorError) as excinfo:
+        connector.fetch_series("bie_dtihfb10", {"SERIE": "X"})
+    assert excinfo.value.kind == NOT_FOUND
+
+
+def test_tuik_evds_group_on_cbrt_group_yields_nothing() -> None:
+    connector = TcmbConnector(
+        source="tuik-evds",
+        client=FakeClient(catalog=CATALOG_TUIK, serie_lists={"bie_dkefkytl": DKEF}),
+        only_group="bie_dkefkytl",
+    )
+    assert list(connector.list_datasets()) == []
+
+
+def test_tuik_evds_fetch_series() -> None:
+    connector = TcmbConnector(
+        source="tuik-evds",
+        client=FakeClient(
+            catalog=CATALOG_TUIK,
+            serie_lists={"bie_gsyhuretcar": GSYH},
+            bounds={"TP.GSYIH040.IFK.B1GQ": BOUNDS_GSYH},
+            fe={"TP.GSYIH040.IFK.B1GQ": FE_GSYH},
+        ),
+    )
+    result = connector.fetch_series(
+        "bie_gsyhuretcar",
+        {"SERIE": "TP.GSYIH040.IFK.B1GQ"},
+        order=["SERIE"],
+        start=date(1995, 1, 1),
+    )
+    assert result.external_code == "TP.GSYIH040.IFK.B1GQ"
+    assert result.channel == "evds3"
+    values = dict(result.points)
+    assert values[date(1995, 1, 1)] == Decimal("2090194.1285965700")
+    assert values[date(2026, 1, 1)] == Decimal("17098138220.9303000000")
+    assert values[date(2026, 4, 1)] == Decimal("19869747341.4119000000")
+    body = connector.client.data_bodies[-1]
+    assert body["frequency"] == "6"
+    assert body["aggregationTypes"] == "last"
+    assert body["startDate"] == "01-01-1995"
+
+
+def test_tuik_evds_fetch_outside_allow_list_never_calls_source() -> None:
+    client = FakeClient(catalog=CATALOG_TUIK, serie_lists={"bie_gsyhuretcar": GSYH})
+    connector = TcmbConnector(source="tuik-evds", client=client)
+    with pytest.raises(ConnectorError) as excinfo:
+        connector.fetch_series("bie_dkefkytl", {"SERIE": "TP.DK.USD.A.EF.YTL"})
+    assert excinfo.value.kind == NOT_FOUND
+    assert client.data_bodies == []
 
 
 def test_unknown_source_is_value_error() -> None:
