@@ -626,6 +626,16 @@ def build_series_definition(dataset: Dataset, codes: dict[str, str]) -> SeriesDe
     external_code = f"{dataset.external_code}:" + ".".join(
         codes[dimension.code] for dimension in non_time
     )
+    attributes: dict[str, Any] = {"dataset_external_code": dataset.external_code}
+    # Sources without a FREQ/AGG dimension (TCMB) carry the series aggregation on
+    # the selected code; it becomes a series attribute the fetch reads.
+    selected = _selected_code(non_time, codes)
+    for dimension in non_time:
+        row = selected.get(dimension.code)
+        aggregation = (row.attributes or {}).get("aggregation") if row is not None else None
+        if aggregation:
+            attributes["aggregation"] = aggregation
+            break
     return SeriesDefinition(
         external_code=external_code,
         name=name,
@@ -633,7 +643,7 @@ def build_series_definition(dataset: Dataset, codes: dict[str, str]) -> SeriesDe
         unit=unit,
         breakdown=breakdown,
         dimension_codes={dimension.code: codes[dimension.code] for dimension in non_time},
-        attributes={"dataset_external_code": dataset.external_code},
+        attributes=attributes,
     )
 
 
@@ -734,6 +744,12 @@ def ensure_series(session: Session, dataset: Dataset, codes: dict[str, str]) -> 
     series.source_category = dataset.source_category
     series.breakdown = definition.breakdown
     series.dimension_codes = definition.dimension_codes
+    # Derived keys (today the aggregation) are refreshed on an existing row, but
+    # other attribute keys are preserved: a changed aggregation must not be
+    # ignored, yet a channel-specific key must not be dropped.
+    merged = dict(series.attributes or {})
+    merged.update(definition.attributes)
+    series.attributes = merged
     session.flush()
     return series
 
@@ -743,10 +759,18 @@ def resolve_external_code(dataset: Dataset, external_code: str) -> dict[str, str
     prefix, separator, key = external_code.partition(":")
     if not separator or prefix != dataset.external_code:
         return None
-    parts = key.split(".")
     non_time = [
         dimension.code for dimension in _ordered_dimensions(dataset) if dimension.role != ROLE_TIME
     ]
+    # A single non-time dimension takes the whole remainder as its code: TCMB
+    # series codes (TP.DK.USD.A.EF.YTL) contain dots, so splitting on them would
+    # make every series unresolvable. With two or more dimensions the dotted
+    # breakdown still applies.
+    if len(non_time) == 1:
+        if key == "":
+            return None
+        return {non_time[0]: key}
+    parts = key.split(".")
     if len(parts) != len(non_time) or any(part == "" for part in parts):
         return None
     return dict(zip(non_time, parts, strict=True))

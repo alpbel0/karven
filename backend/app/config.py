@@ -195,6 +195,15 @@ class Settings(BaseSettings):
     tuik_veriportali_retry_backoff_s: float = 1.0
     tuik_veriportali_throttle_wait_s: float = 5.0
 
+    # TCMB EVDS3 (key-less plain JSON, base .../igmevdsms-dis). Measured live
+    # 2026-10-03: no throttle seen and the rate limit is unknown, so requests are
+    # spaced at least ``tcmb_request_interval_s`` apart with one worker.
+    tcmb_base_url: str = "https://evds3.tcmb.gov.tr/igmevdsms-dis"
+    tcmb_request_interval_s: float = 0.25
+    tcmb_request_timeout_s: float = 60.0
+    tcmb_max_retries: int = 3
+    tcmb_retry_backoff_s: float = 1.0
+
     minio_endpoint: str | None = None
     minio_access_key: str | None = None
     minio_secret_key: SecretStr | None = None

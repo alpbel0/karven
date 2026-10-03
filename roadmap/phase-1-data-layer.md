@@ -279,7 +279,7 @@ aynı (260 unchanged). nsiws → veriportali sıçraması yalnız birim testte
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-10-03, canlıda doğrulandı)
 **Bağımlılıklar:** Task 1.1
 
 **Referanslar:** `docs/source-profiles/tcmb.md`, `docs/DECISIONS.md` §5;
@@ -288,16 +288,87 @@ bilgi için `docs/source-profiles/reference/tcmb-connector-completion-implementa
 
 **Hedef dosyalar:** Faz 0 yapısına göre belirlenir.
 
+**Kanal kararı (kullanıcı, 2026-10-03):** Koda yalnız **EVDS3** (katalog → seri
+listesi → bounds → `/fe`) alınır. Aşağıdaki kanallar araştırıldı, bu task'ta
+alınmadı; ihtiyaç olunca eklenir (ayrıntı `docs/source-profiles/tcmb.md` §2, §6):
+- Günlük kur XML'i (`kurlar/today.xml`): yalnız güncel gün; EVDS3 `TP.DK.*`
+  serileri aynı değeri tarihçesiyle veriyor.
+- Saatlik reeskont kuru XML'leri: dar kullanım.
+- Ana sayfa oranları (`anasayfa_faizorani.json`): politika faizi anlık
+  görüntüsü; tarihçe EVDS3'te.
+- EVDS3 duyuruları, EVDS3/appg yayın takvimi, RSS (Atom): belge/takvim türü.
+  Takvim Task 1.4'te "yeni dönem yayınlandı mı" kontrolü için gerekirse eklenir.
+- EVDS2 legacy: EVDS3'e yönleniyor, ihtiyaç yok.
+- PDF arşivi (4.063 PDF; Enflasyon Raporu, PPK metinleri): ayrı belge iş akışı,
+  ileri faz.
+- Vintage/revizyon: kaynakta geçmiş API'si kanıtlanmadı; revizyonlar kendi
+  çekimlerimizle yeni kayıt olarak yakalanır (`docs/DECISIONS.md` §5).
+
+**Kapsam kararları (kullanıcı, 2026-10-03):**
+- Katalog: 243 saf TCMB grubu (veri seti) + her grubun seri listesi meta bilgisi;
+  `data_series` satırı seri ilk kullanıldığında açılır (27.272 seri toptan
+  yazılmaz).
+- Kabul testi için yalnız iki seri çekilir (toplu yükleme yok; çekirdek seriler
+  Task 1.4).
+- Canlı keşif (2026-10-03, 243 seri listesi + bounds/FE ölçümleri): `baslangicBitis`
+  cevabında `startDate`/`endDate` yalnız arayüzün varsayılan penceresidir;
+  serinin gerçek kapsamı `maxStartDate`..`minEndDate`'tir (USD 02-01-1990,
+  `TP.CLI2.A01` 01-12-1987). Bounds'tan FE frekans kodu da alınır (1 günlük,
+  2 iş günü, 3 haftalık, 4 ayda iki, 5 aylık, 6 üç aylık, 8 yıllık). FE istenen
+  aralıktaki **her** takvim dönemi için satır döndürür, veri yoksa değer `null`
+  (hafta sonu/tatil ve seri başlamadan önceki dönemler); `totalCount` dönem
+  sayısıdır, gözlem sayısı değil.
+- Boş (`null`) satırlar yazılmaz (kullanıcı, 2026-10-03); satır yok = o dönemde
+  değer yok. Ham cevap MinIO'da durur.
+- "Eksiksiz" = 2000-01-01 (veya serinin `maxStartDate`'i, hangisi sonraysa) →
+  `minEndDate` arasındaki bütün dolu değerler yazıldı ve sayısı FE cevabındaki
+  dolu değer sayısına eşit.
+- Toplulaştırma (F1): her seri kendi frekansında, `DEFAULT_AGG_METHOD`
+  (last/avg/sum/min/max) ile çekilir; yöntem seri `attributes`'ında saklanır;
+  frekans dönüşümü yok. Yöntem seçimi çekirdek seriler için Task 1.4'te.
+- Kabul serileri: günlük `TP.DK.USD.A.EF.YTL` (avg), aylık `TP.CLI2.A01` (avg),
+  ikisi de 2000-01-01'den itibaren (1987'den değil).
+- TÜİK GDP 13 satırı (Turcat → EVDS) Task 1.4'te bağlanır.
+- Ek karar (kullanıcı, 2026-10-03, tamamlandıktan sonra): aynı EVDS3 kanalının Hazine ve
+  Maliye Bakanlığı grupları (`DATASOURCE_ENG == "Ministry of Treasury and Finance"`, 24
+  grup, 1.215 seri) **ayrı kurum `hmb`** altında kataloglanır (`--source hmb`); karma
+  kaynaklı gruplar iki kaynakta da dışarıda. Her veri setinin `attributes.category_path`
+  alanında EVDS3 kategori ağacı yolu (kökten gruba, id/seviye/ad TR-EN) tutulur; ağacın
+  ayrı tabloya çevrilmesi Faz 2'de (Task 2.1/2.2) karara bağlanır.
+
 ### Checklist
 
-- [ ] TCMB EVDS seri listesini (katalog için meta bilgi) çek.
-- [ ] Bir seriyi 2000-01-01'den itibaren çek; frekans bilgisini doğru kaydet.
-- [ ] Her yazılan gözleme çekilme zamanını kaydet.
-- [ ] TCMB'den gelen ham cevabı MinIO'da sakla.
-- [ ] Hataları anlaşılır biçimde döndür.
+- [x] TCMB EVDS seri listesini (katalog için meta bilgi) çek.
+- [x] Bir seriyi 2000-01-01'den itibaren çek; frekans bilgisini doğru kaydet.
+- [x] Her yazılan gözleme çekilme zamanını kaydet.
+- [x] TCMB'den gelen ham cevabı MinIO'da sakla.
+- [x] Hataları anlaşılır biçimde döndür.
 
 **Kabul kriteri:** Gerçek EVDS'ten en az bir günlük ve bir aylık seri 2000'den
 itibaren eksiksiz çekiliyor; seri listesi meta bilgisiyle kaydediliyor.
+
+**Canlı doğrulama (2026-10-03):** `python -m app.connectors.tcmb catalog`: 243 veri seti,
+27.272 kod, 244 istek, 70 sn, hata/429 yok (seri satırı açılmadı). `fetch`: günlük
+`bie_dkefkytl:TP.DK.USD.A.EF.YTL` 2000-01-03..2026-10-05 6.734 gözlem, aylık
+`bie_cli2:TP.CLI2.A01` 2000-01-01..2026-08-01 320 gözlem; ikisi de MinIO'daki ham
+FE cevabındaki dolu değer sayısıyla birebir (6.734 / 320), boş satır yok, her
+gözlemde `fetched_at` ve `raw_object_key` var, ikinci çekimde 0 yeni / hepsi
+değişmemiş. Seri `attributes.aggregation = avg`, frekans `daily`/`monthly`. Hatalar:
+bilinmeyen seri/veri grubu → `not_found`, kapsamı olmayan seri
+(`bie_dovefdep:TP.1Y.DOVDEP02.DEM`) → `empty`. USD'de 2026-10-05 değeri 03.10.2026'da
+zaten yayımlıydı (TCMB bir sonraki iş gününün kurunu önceden yayımlar). Katalog
+çalışması bir grubun seri listesi hata verirse o grubu atlamaz, raporlar ve çıkış
+kodu 1 verir. Ham cevap klasörü veri grubu koduyla (`sources/tcmb/YYYY/MM/DD/<grup>/`).
+Birim 620, entegrasyon 61 test geçti.
+
+**Canlı doğrulama, Hazine + kategori yolu (2026-10-03):** `catalog --source hmb`: 24 veri
+seti, 1.215 kod, ikinci çalıştırma 0 değişiklik. `catalog --source tcmb` yeniden: 243
+veri seti `updated` (yalnız `category_path` eklendi), üçüncü çalıştırma 243 `unchanged`;
+243 + 24 veri setinin hepsinde `category_path` var. TCMB'nin 2 serisi ve 7.054 gözlemi
+dokunulmadan duruyor. `fetch --source hmb`: `bie_finhestnks13:TP.FINHESTNKS13.ZP1` 50
+gözlem (2010-10..2026-01), `bie_kbkons:TP.KB.K01` 48 gözlem (2000-01..2003-12), ham
+cevap `sources/hmb/...`; 2000 öncesinde biten arşiv serisi (`TP.DB.D01`, 1996'da biter)
+`empty` (kapsam penceresi boş) döner. Birim 633, entegrasyon 62 test geçti.
 
 ## Task 1.4 — Çekirdek seriler
 

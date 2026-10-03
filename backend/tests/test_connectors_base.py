@@ -14,10 +14,12 @@ from app.connectors.base import (
     SeriesMeta,
     SourceConnector,
     build_series_definition,
+    ensure_series,
+    resolve_external_code,
     store_raw,
 )
 from app.data.errors import SeriesDefinitionError
-from app.data.models import Dataset, DatasetDimension, DimensionCode
+from app.data.models import Dataset, DatasetDimension, DimensionCode, Series
 
 
 def _dataset() -> Dataset:
@@ -163,3 +165,87 @@ def test_store_raw_sanitizes_path_segments() -> None:
     assert key.startswith("sources/tuik_x/")
     assert "/catalog/" in key
     assert "chan_nel-" in key
+
+
+def _single_dim_dataset() -> Dataset:
+    dataset = Dataset(institution_id=1, external_code="bie_dkefkytl", name="Efektif Kurlar")
+    dataset.dimensions = [
+        DatasetDimension(
+            code="SERIE",
+            label="Seri",
+            position=0,
+            role="other",
+            codes=[
+                DimensionCode(
+                    code="TP.DK.USD.A.EF.YTL",
+                    label="(USD) ABD Doları (Efektif Alış)",
+                    attributes={"frequency": "daily", "unit": "Türk lirası", "aggregation": "avg"},
+                )
+            ],
+        )
+    ]
+    return dataset
+
+
+class _SeriesSession:
+    """Minimal session double for ``ensure_series`` (no database)."""
+
+    def __init__(self, series: Series | None = None) -> None:
+        self._series = series
+        self.added: list[object] = []
+
+    def scalar(self, statement: object) -> Series | None:
+        return self._series
+
+    def add(self, obj: object) -> None:
+        self.added.append(obj)
+        self._series = obj  # type: ignore[assignment]
+
+    def flush(self) -> None:
+        return None
+
+
+def test_resolve_external_code_single_dimension_keeps_dots() -> None:
+    dataset = _single_dim_dataset()
+    assert resolve_external_code(dataset, "bie_dkefkytl:TP.DK.USD.A.EF.YTL") == {
+        "SERIE": "TP.DK.USD.A.EF.YTL"
+    }
+    assert resolve_external_code(dataset, "bie_dkefkytl:") is None
+    assert resolve_external_code(dataset, "other:TP.DK.USD.A.EF.YTL") is None
+
+
+def test_resolve_external_code_multiple_dimensions_still_splits_on_dots() -> None:
+    assert resolve_external_code(_dataset(), "DF_X:TR.A.TTRY") == {
+        "REF_AREA": "TR",
+        "FREQ": "A",
+        "UNIT_MEASURE": "TTRY",
+    }
+
+
+def test_build_series_definition_reads_aggregation_attribute() -> None:
+    definition = build_series_definition(_single_dim_dataset(), {"SERIE": "TP.DK.USD.A.EF.YTL"})
+    assert definition.frequency == "daily"
+    assert definition.unit == "Türk lirası"
+    assert definition.attributes["aggregation"] == "avg"
+
+
+def test_ensure_series_copies_aggregation_on_create() -> None:
+    session = _SeriesSession()
+    series = ensure_series(session, _single_dim_dataset(), {"SERIE": "TP.DK.USD.A.EF.YTL"})
+    assert series.attributes["aggregation"] == "avg"
+
+
+def test_ensure_series_refreshes_aggregation_on_existing_row() -> None:
+    existing = Series(
+        institution_id=1,
+        dataset_id=1,
+        external_code="bie_dkefkytl:TP.DK.USD.A.EF.YTL",
+        name="old",
+        frequency="daily",
+        attributes={"dataset_external_code": "bie_dkefkytl", "keep": "me", "aggregation": "last"},
+    )
+    session = _SeriesSession(existing)
+    series = ensure_series(session, _single_dim_dataset(), {"SERIE": "TP.DK.USD.A.EF.YTL"})
+    assert series is existing
+    assert series.attributes["aggregation"] == "avg"
+    assert series.attributes["keep"] == "me"
