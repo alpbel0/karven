@@ -31,6 +31,7 @@ from app.connectors.base import (
     ROLE_TIME,
     ConnectorError,
     MinioObjectStore,
+    ObjectStore,
     ensure_series,
     ingest_series,
     resolve_external_code,
@@ -2721,6 +2722,31 @@ def main(argv: list[str] | None = None) -> int:
         connector.close()
 
 
+def build_tuik_connector(
+    *, store: ObjectStore | None, known_dataflows: list[DataflowInfo] | None = None
+) -> TuikConnector:
+    """Build the databrowser2 connector; ``store=None`` never touches MinIO.
+
+    Public so on-demand fetching (Task 1.5) can build exactly what the CLI does.
+    """
+    try:
+        nsiws = build_nsiws_client(store=store)
+    except Exception:  # noqa: BLE001 - the backup must never stop the primary path
+        logger.warning("tuik nsiws backup unavailable", exc_info=True)
+        nsiws = None
+    veriportali = VeriPortaliClient(store=store)
+    if store is None:
+        return TuikConnector(
+            client=Databrowser2Client(store=None),
+            nsiws=nsiws,
+            veriportali=veriportali,
+            known_dataflows=known_dataflows or (),
+        )
+    return TuikConnector(
+        nsiws=nsiws, veriportali=veriportali, known_dataflows=known_dataflows or ()
+    )
+
+
 def _build_connector(
     command: str, dry_run: bool, known: list[DataflowInfo] | None = None
 ) -> TuikConnector | TurcatConnector:
@@ -2729,20 +2755,9 @@ def _build_connector(
         if dry_run:
             return TurcatConnector(client=TurcatClient(store=None))
         return TurcatConnector()
-    try:
-        nsiws = build_nsiws_client(store=None if dry_run else MinioObjectStore())
-    except Exception:  # noqa: BLE001 - the backup must never stop the primary CLI
-        logger.warning("tuik nsiws backup unavailable", exc_info=True)
-        nsiws = None
-    veriportali = _build_veriportali_client(dry_run)
-    if dry_run:
-        return TuikConnector(
-            client=Databrowser2Client(store=None),
-            nsiws=nsiws,
-            veriportali=veriportali,
-            known_dataflows=known or (),
-        )
-    return TuikConnector(nsiws=nsiws, veriportali=veriportali, known_dataflows=known or ())
+    return build_tuik_connector(
+        store=None if dry_run else MinioObjectStore(), known_dataflows=known
+    )
 
 
 if __name__ == "__main__":

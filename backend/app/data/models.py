@@ -40,9 +40,17 @@ _FETCH_JOB_STATUS_CHECK = "status IN ('requested', 'fetching', 'completed', 'fai
 _ALERT_KIND_CHECK = "kind IN ('no_new_period', 'format_changed', 'repeated_failure')"
 _ALERT_STATUS_CHECK = "status IN ('open', 'resolved')"
 _ACTIVE_JOB_PREDICATE = "status IN ('requested', 'fetching')"
+_WAITER_STATUS_CHECK = "status IN ('waiting', 'ready', 'dropped')"
 _DIMENSION_ROLE_CHECK = "role IN ('time', 'geo', 'frequency', 'other')"
+_FAILURE_CATEGORY_CHECK = (
+    "category IN ('no_connector', 'not_in_source', 'bad_request', 'source_error', "
+    "'transient', 'unknown')"
+)
+_FAILURE_OUTCOME_CHECK = "outcome IN ('retry_requested', 'recorded', 'agent_error')"
 _JSON_OBJECT_DEFAULT = text("'{}'::jsonb")
+_JSON_ARRAY_DEFAULT = text("'[]'::jsonb")
 _EMPTY_OBJECT = dict
+_EMPTY_LIST = list
 
 
 class Institution(Base):
@@ -242,6 +250,12 @@ class FetchJob(Base):
         JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
     )
 
+    waiters: Mapped[list[FetchJobWaiter]] = relationship(
+        back_populates="job",
+        order_by="FetchJobWaiter.id",
+        cascade="all, delete-orphan",
+    )
+
     __table_args__ = (
         CheckConstraint(_FETCH_JOB_STATUS_CHECK, name="ck_fetch_jobs_status"),
         # One active job per (institution, external_code); requests attach to it.
@@ -252,6 +266,119 @@ class FetchJob(Base):
             unique=True,
             postgresql_where=text(_ACTIVE_JOB_PREDICATE),
         ),
+    )
+
+
+class FetchJobWaiter(Base):
+    """A parked idea/visual waiting for one fetch job (Task 1.5; Task 1.7 reads).
+
+    ``waiting`` means parked; ``ready`` means the job completed and the waiter may
+    resume; ``dropped`` means the job failed. The future idea/visual tables do not
+    exist yet, so ``waiter_id`` is text with no foreign key: it avoids coupling to
+    their key type, and the pair ``(waiter_type, waiter_id)`` identifies a waiter.
+    A job resolving its waiters moves every ``waiting`` row to ``ready``/
+    ``dropped`` with ``resolved_at`` (see :mod:`app.data.fetch_jobs`).
+    """
+
+    __tablename__ = "fetch_job_waiters"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    fetch_job_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("fetch_jobs.id", name="fk_fetch_job_waiters_job", ondelete="CASCADE"),
+        nullable=False,
+    )
+    waiter_type: Mapped[str] = mapped_column(Text, nullable=False)
+    waiter_id: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'waiting'"), default="waiting"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    job: Mapped[FetchJob] = relationship(back_populates="waiters")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "fetch_job_id",
+            "waiter_type",
+            "waiter_id",
+            name="uq_fetch_job_waiters_identity",
+        ),
+        CheckConstraint(_WAITER_STATUS_CHECK, name="ck_fetch_job_waiters_status"),
+        Index("ix_fetch_job_waiters_waiter", "waiter_type", "waiter_id"),
+        Index("ix_fetch_job_waiters_job", "fetch_job_id"),
+    )
+
+
+class FetchFailure(Base):
+    """One diagnosis record for a failed on-demand fetch (Task 1.6).
+
+    The data-fetch agent writes exactly one row per ``(fetch_job_id, round)``
+    (the unique constraint makes the diagnose task idempotent). It is the single
+    place where a non-fetched series is recorded for the admin list (Task 5.3).
+
+    ``outcome`` is ``recorded`` (diagnosed, no retry), ``retry_requested`` (a
+    retry job was opened/attached) or ``agent_error`` (the agent itself failed,
+    recorded so the job is never re-diagnosed). ``retry_job_id`` points at the
+    job a retry created/attached. ``alternatives`` is stored only and is never
+    auto-fetched. Prompt/LLM fields are null when the agent errored before a
+    prompt was loaded.
+    """
+
+    __tablename__ = "fetch_failures"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    fetch_job_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("fetch_jobs.id", name="fk_fetch_failures_job", ondelete="CASCADE"),
+        nullable=False,
+    )
+    round: Mapped[int] = mapped_column(Integer, nullable=False)
+    institution_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("institutions.id", name="fk_fetch_failures_institution"), nullable=False
+    )
+    external_code: Mapped[str] = mapped_column(Text, nullable=False)
+    series_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("series.id", name="fk_fetch_failures_series"), nullable=True
+    )
+    dataset_code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    codes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    error_reason: Mapped[str] = mapped_column(Text, nullable=False)
+    category: Mapped[str] = mapped_column(Text, nullable=False)
+    outcome: Mapped[str] = mapped_column(Text, nullable=False)
+    diagnosis: Mapped[str | None] = mapped_column(Text, nullable=True)
+    suggestion: Mapped[str | None] = mapped_column(Text, nullable=True)
+    alternatives: Mapped[list[Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_ARRAY_DEFAULT, default=_EMPTY_LIST
+    )
+    retry_job_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("fetch_jobs.id", name="fk_fetch_failures_retry_job", ondelete="SET NULL"),
+        nullable=True,
+    )
+    prompt_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    prompt_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    prompt_checksum: Mapped[str | None] = mapped_column(Text, nullable=True)
+    llm_provider: Mapped[str | None] = mapped_column(Text, nullable=True)
+    llm_model: Mapped[str | None] = mapped_column(Text, nullable=True)
+    llm_usage: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    agent_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("fetch_job_id", "round", name="uq_fetch_failures_job_round"),
+        CheckConstraint(_FAILURE_CATEGORY_CHECK, name="ck_fetch_failures_category"),
+        CheckConstraint(_FAILURE_OUTCOME_CHECK, name="ck_fetch_failures_outcome"),
+        Index("ix_fetch_failures_fetch_job", "fetch_job_id"),
     )
 
 
@@ -718,9 +845,7 @@ class ReleaseCalendar(Base):
     raw_object_key: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     __table_args__ = (
-        UniqueConstraint(
-            "source", "key", "expected_on", name="uq_release_calendar_identity"
-        ),
+        UniqueConstraint("source", "key", "expected_on", name="uq_release_calendar_identity"),
         Index(
             "ix_release_calendar_source_key_expected",
             "source",

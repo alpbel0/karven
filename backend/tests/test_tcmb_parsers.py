@@ -322,6 +322,55 @@ def test_parse_data_quarterly_and_yearly_synthetic() -> None:
     ]
 
 
+REAL_YEARLY_DATA = {
+    "items": [
+        {
+            "Tarih": 2009,
+            "TP_SEKBIL3051_03": "63057.3000000000",
+            "UNIXTIME": {"$numberLong": "1230764400"},
+        },
+        {
+            "Tarih": 2010,
+            "TP_SEKBIL3051_03": "68065.2000000000",
+            "UNIXTIME": {"$numberLong": "1262300400"},
+        },
+        {
+            "Tarih": 2011,
+            "TP_SEKBIL3051_03": "93764.9000000000",
+            "UNIXTIME": {"$numberLong": "1293836400"},
+        },
+    ]
+}
+
+
+def test_parse_data_real_yearly_integer_tarih() -> None:
+    points = parse_data(REAL_YEARLY_DATA, "TP.SEKBIL3051.03", "8")
+    assert points == [
+        (date(2009, 1, 1), Decimal("63057.3000000000")),
+        (date(2010, 1, 1), Decimal("68065.2000000000")),
+        (date(2011, 1, 1), Decimal("93764.9000000000")),
+    ]
+
+
+def test_parse_period_yearly_accepts_int_and_string() -> None:
+    assert parse_period(2009, "8") == date(2009, 1, 1)
+    assert parse_period("2009", "8") == date(2009, 1, 1)
+
+
+@pytest.mark.parametrize("frequency_code", ["1", "2", "3", "4", "5", "6"])
+def test_parse_period_non_yearly_integer_is_format_changed(frequency_code: str) -> None:
+    with pytest.raises(ConnectorError) as excinfo:
+        parse_period(2009, frequency_code)
+    assert excinfo.value.kind == FORMAT_CHANGED
+
+
+@pytest.mark.parametrize("bad", [True, False, 999, 10000, -1, 0])
+def test_parse_period_yearly_rejects_bool_and_out_of_range(bad: object) -> None:
+    with pytest.raises(ConnectorError) as excinfo:
+        parse_period(bad, "8")
+    assert excinfo.value.kind == FORMAT_CHANGED
+
+
 def test_parse_data_unknown_key_is_format_changed() -> None:
     items = [{"Tarih": "2000-1Ç", "S_X": "1.0", "OTHER": "x"}]
     with pytest.raises(ConnectorError) as excinfo:

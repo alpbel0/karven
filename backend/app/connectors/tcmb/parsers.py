@@ -382,9 +382,19 @@ def parse_bounds(payload: Any) -> Bounds:
 
 
 def parse_period(text: Any, frequency_code: str) -> date:
-    """Turn a ``Tarih`` string into the period start date for ``frequency_code``."""
+    """Turn a ``Tarih`` value into the period start date for ``frequency_code``.
+
+    Daily/weekly/irregular and monthly/quarterly ``Tarih`` values are strings.
+    The yearly frequency (code ``8``) arrives as a JSON integer from the live
+    EVDS3 API; an integer in ``1000..9999`` is accepted there alongside the
+    string form, and rejected (never guessed) for every other frequency.
+    """
     if frequency_code not in FREQUENCY_BY_CODE:
         raise ConnectorError(FORMAT_CHANGED, f"unknown TCMB frequency code {frequency_code!r}")
+    if frequency_code == "8" and isinstance(text, int) and not isinstance(text, bool):
+        if not 1000 <= text <= 9999:
+            raise ConnectorError(FORMAT_CHANGED, f"unrecognized yearly TCMB Tarih {text!r}")
+        return date(text, 1, 1)
     if not isinstance(text, str):
         raise ConnectorError(FORMAT_CHANGED, f"TCMB Tarih must be a string, got {text!r}")
     value = text.strip()

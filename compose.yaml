@@ -4,7 +4,7 @@ name: karven
 # Phase profiles: only the services the current phase needs start by default.
 #   default (no profile) : postgres, minio, migrator, api, core-scheduler  (now)
 #   graph                : neo4j                            (Phase 3 — graph agent)
-#   queue                : redis, worker, beat              (Task 1.5 / 1.7)
+#   queue                : redis, worker, beat              (on-demand fetch, 1.5)
 #   web                  : frontend                         (Phase 4-5)
 # Enable a group via COMPOSE_PROFILES (e.g. COMPOSE_PROFILES=graph,queue) or
 # `docker compose --profile graph up -d`. Enabling `graph` also requires
@@ -213,20 +213,67 @@ services:
       retries: 5
       start_period: 120s
 
-  # Celery worker — implemented in a later task (code does not exist yet).
+  # Celery worker: runs on-demand fetch jobs from the `fetch` queue (Task 1.5).
+  # FETCH_* env comes from .env via the backend-base anchor (like CORE_*); the
+  # concurrency can be overridden at compose time. The host can sit near 100% CPU,
+  # so the healthcheck timings are deliberately generous.
   worker:
     <<: *backend-base
     depends_on: *app-deps
     profiles: ["queue"]
-    command: ["python", "-c", "print('worker: not implemented yet'); raise SystemExit(1)"]
+    command:
+      [
+        "celery",
+        "-A",
+        "app.fetching.celery_app",
+        "worker",
+        "-Q",
+        "fetch",
+        "--concurrency",
+        "${FETCH_WORKER_CONCURRENCY:-2}",
+        "--loglevel",
+        "INFO",
+      ]
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A app.fetching.celery_app inspect ping -d celery@$${HOSTNAME}",
+        ]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 120s
 
-  # Celery beat — implemented in a later task (code does not exist yet).
+  # Celery beat: schedules the fetch watchdog only (Task 1.5). The schedule file
+  # lives in /tmp because the container user is non-root. The healthcheck watches
+  # the beat process itself (its exact argv in /proc) via a module that skips its
+  # own pid, so it cannot match itself; the schedule file's mtime does not change
+  # often enough to prove liveness.
   beat:
     <<: *backend-base
     profiles: ["queue"]
     mem_limit: 512m
-    command: ["python", "-c", "print('beat: not implemented yet'); raise SystemExit(1)"]
+    command:
+      [
+        "celery",
+        "-A",
+        "app.fetching.celery_app",
+        "beat",
+        "--loglevel",
+        "INFO",
+        "-s",
+        "/tmp/celerybeat-schedule",
+      ]
+    restart: unless-stopped
     depends_on: *app-deps
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.fetching.healthcheck", "beat"]
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 120s
 
   # Schema migrator: runs once (postgres -> neo4j if enabled -> minio) and
   # exits 0. Application services wait for it via

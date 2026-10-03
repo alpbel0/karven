@@ -66,7 +66,7 @@ stays in `compose.yaml`; the rest are behind compose profiles:
 |---|---|---|
 | default (no profile) | postgres, minio, migrator, api | now |
 | `graph` | neo4j | Phase 3 (graph agent) |
-| `queue` | redis, worker, beat | Task 1.5 / 1.7 |
+| `queue` | redis, worker, beat | Task 1.5 (on-demand fetch) |
 | `web` | frontend | Phase 4-5 |
 
 Enable a group with `COMPOSE_PROFILES` (comma-separated), either inline:

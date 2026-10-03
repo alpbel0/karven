@@ -27,7 +27,7 @@ def test_alembic_version_is_at_head() -> None:
     finally:
         engine.dispose()
 
-    assert version == "0014"
+    assert version == "0016"
 
 
 def test_neo4j_migration_node_and_constraint() -> None:

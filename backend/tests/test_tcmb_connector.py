@@ -411,3 +411,80 @@ def test_fetch_series_effective_start_uses_later_bounds_start() -> None:
     connector = _connector(bounds=bounds)
     connector.fetch_series("bie_dkefkytl", {"SERIE": "TP.DK.USD.A.EF.YTL"}, start=date(2000, 1, 1))
     assert connector.client.data_bodies[-1]["startDate"] == "02-06-2000"
+
+
+def test_fetch_series_yearly_integer_tarih_end_to_end() -> None:
+    catalog = [
+        {
+            "CATEGORY_ID": 1,
+            "SEVIYE": 1,
+            "UST_CATEGORY_ID": -1,
+            "TOPIC_TITLE_TR": "Cat",
+            "TOPIC_TITLE_ENG": "Cat EN",
+            "DATAGROUPS": [
+                {
+                    "DATAGROUP_CODE": "bie_sekbil3051",
+                    "DATAGROUP_TYPE": "Sekbil 3051",
+                    "DATASOURCE_ENG": "CBRT",
+                    "FREQUENCY_STR": "YILLIK",
+                }
+            ],
+        }
+    ]
+    serie_list = [
+        {
+            "SERIE_CODE": "TP.SEKBIL3051.03",
+            "SERIE_NAME": "Sekbil 3051.03",
+            "SERIE_NAME_ENG": "Sekbil 3051.03 EN",
+            "FREQUENCY_STR": "YILLIK",
+            "DEFAULT_AGG_METHOD": "last",
+            "UST_SERIE_CODE": "-1",
+            "SEVIYE": 1,
+            "SCREEN_ORDER": 1,
+        }
+    ]
+    bounds = {
+        "TP.SEKBIL3051.03": {
+            "startDate": "01-01-2009",
+            "endDate": "01-01-2023",
+            "maxStartDate": "01-01-2009",
+            "minEndDate": "01-01-2023",
+            "frequency": "8",
+        }
+    }
+    fe = {
+        "TP.SEKBIL3051.03": {
+            "items": [
+                {
+                    "Tarih": 2009,
+                    "TP_SEKBIL3051_03": "63057.3000000000",
+                    "UNIXTIME": {"$numberLong": "1230764400"},
+                },
+                {
+                    "Tarih": 2010,
+                    "TP_SEKBIL3051_03": "68065.2000000000",
+                    "UNIXTIME": {"$numberLong": "1262300400"},
+                },
+                {
+                    "Tarih": 2011,
+                    "TP_SEKBIL3051_03": "93764.9000000000",
+                    "UNIXTIME": {"$numberLong": "1293836400"},
+                },
+            ]
+        }
+    }
+    connector = _connector(
+        catalog=catalog,
+        serie_lists={"bie_sekbil3051": serie_list},
+        bounds=bounds,
+        fe=fe,
+    )
+    result = connector.fetch_series("bie_sekbil3051", {"SERIE": "TP.SEKBIL3051.03"})
+    assert result.points == [
+        (date(2009, 1, 1), Decimal("63057.3000000000")),
+        (date(2010, 1, 1), Decimal("68065.2000000000")),
+        (date(2011, 1, 1), Decimal("93764.9000000000")),
+    ]
+    body = connector.client.data_bodies[-1]
+    assert body["frequency"] == "8"
+    assert body["aggregationTypes"] == "last"

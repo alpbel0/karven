@@ -49,8 +49,10 @@ TIMEOUT = "timeout"
 FORMAT_CHANGED = "format_changed"
 SOURCE_ERROR = "source_error"
 THROTTLED = "throttled"
+#: The series is catalogued, but no on-demand connector is wired for its channel.
+NO_CONNECTOR = "no_connector"
 
-ERROR_KINDS = (NOT_FOUND, EMPTY, TIMEOUT, FORMAT_CHANGED, SOURCE_ERROR, THROTTLED)
+ERROR_KINDS = (NOT_FOUND, EMPTY, TIMEOUT, FORMAT_CHANGED, SOURCE_ERROR, THROTTLED, NO_CONNECTOR)
 
 # Catalog-sync outcomes.
 INSERTED = "inserted"
@@ -862,6 +864,7 @@ __all__ = [
     "FORMAT_CHANGED",
     "INSERTED",
     "NOT_FOUND",
+    "NO_CONNECTOR",
     "ROLE_FREQUENCY",
     "ROLE_GEO",
     "ROLE_OTHER",

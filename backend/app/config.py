@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Annotated
 from urllib.parse import quote_plus
 
-from pydantic import SecretStr, field_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -227,6 +227,41 @@ class Settings(BaseSettings):
     core_tick_minutes: int = 15
     core_calendar_refresh_hours: int = 24
     core_heartbeat_path: str = "/tmp/core-scheduler.heartbeat"
+
+    # On-demand fetch (Task 1.5). A running on-demand job writes ``heartbeat_at``
+    # every ``fetch_heartbeat_interval_seconds``; the watchdog fails a job only
+    # after ``fetch_heartbeat_stall_minutes`` without a beat (there is no fixed
+    # 20-minute cap) and runs every ``fetch_watchdog_interval_seconds``. The
+    # interval must be well below the stall threshold so a live job is never
+    # declared dead. ``fetch_worker_concurrency`` is the Celery worker's
+    # ``--concurrency``. All four are env-overridable like the other core_* keys.
+    fetch_heartbeat_stall_minutes: int = 5
+    fetch_heartbeat_interval_seconds: int = 30
+    fetch_watchdog_interval_seconds: int = 60
+    fetch_worker_concurrency: int = 2
+    # Data-fetch agent (Task 1.6): the number of diagnosis rounds allowed per job
+    # chain. The first failed job is round 1; a retry it opens is round 2, which
+    # may still be diagnosed but cannot request another retry (round < max_rounds).
+    fetch_agent_max_rounds: int = 2
+
+    @model_validator(mode="after")
+    def _validate_fetch_settings(self) -> "Settings":
+        if self.fetch_heartbeat_stall_minutes <= 0:
+            raise ValueError("FETCH_HEARTBEAT_STALL_MINUTES must be positive")
+        if self.fetch_heartbeat_interval_seconds <= 0:
+            raise ValueError("FETCH_HEARTBEAT_INTERVAL_SECONDS must be positive")
+        if self.fetch_watchdog_interval_seconds <= 0:
+            raise ValueError("FETCH_WATCHDOG_INTERVAL_SECONDS must be positive")
+        if self.fetch_worker_concurrency <= 0:
+            raise ValueError("FETCH_WORKER_CONCURRENCY must be positive")
+        if self.fetch_agent_max_rounds < 1:
+            raise ValueError("FETCH_AGENT_MAX_ROUNDS must be at least 1")
+        if self.fetch_heartbeat_interval_seconds >= self.fetch_heartbeat_stall_minutes * 60:
+            raise ValueError(
+                "FETCH_HEARTBEAT_INTERVAL_SECONDS must be less than "
+                "FETCH_HEARTBEAT_STALL_MINUTES * 60"
+            )
+        return self
 
     minio_endpoint: str | None = None
     minio_access_key: str | None = None

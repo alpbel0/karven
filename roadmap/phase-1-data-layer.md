@@ -432,7 +432,7 @@ kontrolü ve veri kesilme uyarısı için girdi olarak değerlendirilebilir (Tas
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-10-03, canlıda doğrulandı)
 **Bağımlılıklar:** Task 1.2, Task 1.3
 
 **Referanslar:** `docs/DECISIONS.md` §4.4
@@ -441,14 +441,14 @@ kontrolü ve veri kesilme uyarısı için girdi olarak değerlendirilebilir (Tas
 
 ### Checklist
 
-- [ ] Bir seri için çekme talebi oluşturma; aynı seri için ikinci talep yeni iş
+- [x] Bir seri için çekme talebi oluşturma; aynı seri için ikinci talep yeni iş
       açmaz, mevcut işe bağlanır.
-- [ ] Durum geçişleri kodla yapılır: `istendi → çekiliyor → tamamlandı / hata`.
-- [ ] Çekme işi "yaşıyorum" sinyali verir; sinyal geldikçe beklenir (sabit
+- [x] Durum geçişleri kodla yapılır: `istendi → çekiliyor → tamamlandı / hata`.
+- [x] Çekme işi "yaşıyorum" sinyali verir; sinyal geldikçe beklenir (sabit
       20 dakika sınırı yok), sinyal kesilirse iş takılmış sayılır.
-- [ ] Talep eden iş (fikir ya da görsel) **park edilir**; çekme tamamlanınca
+- [x] Talep eden iş (fikir ya da görsel) **park edilir**; çekme tamamlanınca
       kaldığı yerden devam ettirilir.
-- [ ] Hata olursa veri çekme ajanı devreye girer (Task 1.6).
+- [x] Hata olursa veri çekme ajanı devreye girer (Task 1.6, canlıda doğrulandı).
 
 **Kabul kriteri:** Uzun süren bir çekme (20 dakikadan uzun) sinyal verdiği
 sürece tamamlanıyor; sinyali kesilen iş takılmış olarak işaretleniyor; park
@@ -467,11 +467,31 @@ eşleştirmeleri zamanlanmış bir işle düzenli olarak yeniden kontrol edilece
 Sınıflama Sunucusu (Task 1.2e) ayda bir yeniden yüklenir ve ardından boyut
 bağları (`siniflama-link-dimensions`) yeniden hesaplanır.
 
+**Sonuç (2026-10-03):** Celery `worker` + `beat` (kuyruk `fetch`, eşzamanlılık 2),
+`fetch_job_waiters` tablosu (migration 0015: `waiting → ready/dropped`), talep
+API'si `app/data/fetch_requests.py`, çalıştırıcı + heartbeat thread
+`app/fetching/runner.py`, takılma bekçisi `app/fetching/watchdog.py` (eşik
+`FETCH_HEARTBEAT_STALL_MINUTES`, varsayılan 5 dk). Otomatik yeniden deneme yok;
+hata `failed` + neden olarak kalır (Task 1.6 ajanı bağlanacak). Talep üzerine
+çekme şimdilik TCMB/EVDS3 ve TÜİK databrowser2 kanallarını destekler; diğer TÜİK
+kanalları (CİP, turizm, seçim, dış ticaret…) "no on-demand connector" ile düşer,
+ihtiyaç doğunca eklenir.
+
+**Canlı doğrulama:** gerçek TCMB (yıllık seri) ve TÜİK (aylık TÜFE, yıllık
+bankacılık) serileri worker üzerinden çekildi; ikinci talep mevcut işe bağlandı;
+tamamlananda bekleyen `ready`, hatada `dropped`; sinyali kesilen iş watchdog
+tarafından `heartbeat lost` ile `failed` yapıldı; kuyruğa hiç ulaşmayan iş
+watchdog tarafından yeniden gönderildi; gerçek çekim sırasında heartbeat 0,3 sn
+aralıkla atıyor. **Not:** 20 dakikayı aşan çekme canlıda birebir denenmedi
+(canlıdaki en uzun iş ~2 sn); bu şart entegrasyon testinde eşiğin 4 katı süren
+sahte çekmeyle kanıtlandı.
+
+
 ## Task 1.6 — Veri çekme ajanı
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-10-03, canlıda doğrulandı)
 **Bağımlılıklar:** Task 1.5, Task 0.5
 
 **Referanslar:** `docs/DECISIONS.md` §4.4
@@ -480,18 +500,53 @@ bağları (`siniflama-link-dimensions`) yeniden hesaplanır.
 
 ### Checklist
 
-- [ ] Ajan (DeepSeek v4.1 Flash) talebi çekme planına çevirir: hangi kurum,
+- [x] Ajan (DeepSeek v4.1 Flash) talebi çekme planına çevirir: hangi kurum,
       hangi tablo/seri, hangi parametre.
-- [ ] Hata olursa teşhis koyar: yeniden dener, alternatif önerir ya da "bu veri
+- [x] Hata olursa teşhis koyar: yeniden dener, alternatif önerir ya da "bu veri
       bu kaynakta yok" der.
-- [ ] Çekilemeyen her veri için kayıt: hangi veri, neden, ajanın önerisi
+- [x] Çekilemeyen her veri için kayıt: hangi veri, neden, ajanın önerisi
       (admin listesi Task 5.3'te gösterilir).
-- [ ] İzleme, durum değişikliği ve bekleme **ajanın işi değildir** (kod yapar).
-- [ ] Birinci ajan ve graph ajanı bu ajana doğrudan soru sorabilir (ör. "haber
-      Eylül verisi diyor, bende Ağustos var").
+- [x] İzleme, durum değişikliği ve bekleme **ajanın işi değildir** (kod yapar).
+- [x] Birinci ajan ve graph ajanı bu ajana doğrudan soru sorabilir (ör. "haber
+      Eylül verisi diyor, bende Ağustos var"). Servis fonksiyonu `ask_fetch_agent`
+      hazır ve canlıda denendi; araç/MCP bağı o ajanların task'larında.
 
 **Kabul kriteri:** Gerçek bir talep plan haline gelip çekiliyor; bilinçli
 olarak bozulmuş bir talep teşhis edilip çekilemeyen veriler kaydına düşüyor.
+
+**Sonuç (2026-10-03):** `app/fetching/agent/` paketi: `diagnose_job` (hata olunca,
+yalnızca `on_demand`/`agent_retry` işler), `ask_fetch_agent`, `list_failures`
+(Task 5.3 listesi), CLI `python -m app.fetching.agent`. Celery görevi
+`fetch.diagnose_job` (kuyruk `fetch`); `run_job_task` ve watchdog hatalı işi ajana
+verir. Migration 0016 `fetch_failures` (iş başına tur başına tek kayıt). Ajan
+değer görmez: araçlar yalnızca meta döner (`search_catalog`, `get_dataset_meta`,
+`get_series_meta`, `get_job_history`). "Yeniden dene" ajanın çıktı alanıdır; kod
+doğrular (tur sınırı `FETCH_AGENT_MAX_ROUNDS`=2, ikinci tur yeniden deneme açamaz,
+`no_connector`/`not_in_source` için yeniden deneme yok, katalogda olmayan veri seti
+ve geçersiz kodlar reddedilir) ve yeni işi kendisi açar; park edilmiş fikir/görsel
+yeni işe yeniden bağlanır. Alternatif seriler yalnızca kayda yazılır. Prompt'lar
+`fetch_agent.system` / `fetch_agent.ask` anahtarlarıyla veritabanında sürümlü.
+
+**Canlı doğrulama (gerçek EVREN, gerçek worker):** (1) bozuk talep (`bie_abreservx`
+yazım hatası) → ajan `bad_request` teşhisi koydu, `bie_abreserv` ile yeniden
+denemeyi açtı, TCMB'den 319 gözlemle tamamlandı, park edilen fikir `ready` oldu;
+(2) bağlayıcısı olmayan CİP kanalı → `no_connector`, yeniden deneme yok, kayıt +
+3 alternatif öneri, waiter `dropped`; (3) `ask_fetch_agent` "Ağustos var mı?" →
+"son dönem Temmuz 2026, Ağustos yok", sayı değeri yok. Ham LLM çağrıları MinIO'ya
+yazıldı. Test: 820 birim, 93 entegrasyon geçti.
+
+**İkinci canlı tur (2026-10-03):** `heartbeat lost` ile başarısız geçerli bir iş
+ilk denemede yanlışlıkla `not_in_source` çıktı: ajan "seri satırı yok"u kaynakta
+yok saydı, oysa seri satırları ilk çekimde tembel oluşuyor (birim testleri bunu
+göremezdi). Düzeltme: `get_series_meta` çıktısına `note` + `codes_valid`/
+`invalid_codes`, prompt v2 (kanıt kuralları: `error_reason` birincil kanıt,
+eksik seri satırı yokluk kanıtı değil). v2, prompt CLI'si ile canlıda eklendi ve
+etkinleştirildi (v1 silinmeden duruyor). Yeniden denemede: `transient` teşhisi
+→ aynı istek yeniden açıldı → gerçek TCMB'den tamamlandı; ardından aynı işin
+ikinci kez başarısız olması → ikinci tur teşhisi yeniden deneme açmadı, kayda
+yazıldı (ajan `unknown` seçti). Canlı test kayıtları temizlendi. **Canlıda tek
+başına denenmeyen:** tur sınırı kuralının kendisi (ajan ikinci turda `unknown`
+dediği için kural devreye girmedi); birim ve entegrasyon testlerinde kanıtlı.
 
 ## Task 1.7 — Haber kaynakları: RSS + tam metin
 

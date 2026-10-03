@@ -111,6 +111,7 @@ def test_connector_error_requires_a_known_kind() -> None:
         "format_changed",
         "source_error",
         "throttled",
+        "no_connector",
     }
 
 
