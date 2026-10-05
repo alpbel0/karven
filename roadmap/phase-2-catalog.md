@@ -197,21 +197,40 @@ testle kanıtlandı.
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-10-05)
 **Bağımlılıklar:** Task 2.2
 
 **Referanslar:** `docs/DECISIONS.md` §4
 
-**Hedef dosyalar:** Faz 0 yapısına göre belirlenir.
+**Hedef dosyalar:** `backend/app/catalog/status.py` (araç `data_status`, CLI
+`python -m app.catalog.status <kurum> <veri_seti> '<kodlar JSON>'`), testler
+`tests/test_catalog_status_tool.py` ve `tests/integration/test_catalog_status_db.py`.
 
 ### Checklist
 
-- [ ] Bir seri için: var mı, yüklü mü, kapsadığı yıllar, frekans, birim, uygun
+- [x] Bir seri için: var mı, yüklü mü, kapsadığı yıllar, frekans, birim, uygun
       dönüşüm (seviye / yüzde değişim).
-- [ ] **Değer döndürmez.**
+- [x] **Değer döndürmez.**
+
+**Kullanıcı kararları (2026-10-05):** (1) Girdi `find_series` reçetesi (kurum + veri seti + kodlar);
+seri satırı henüz yoksa da cevap verir. (2) Kapsam iki ayrı alanda: `available_range` (kaynağın
+sunduğu, veri setinden) ve `loaded_range` (bizde yüklü, gözlemlerden; yüklü değilse `null`).
+(3) Dönüşümler katalogdaki ölçü bilgisinden (`measure_combinations`) okunur, birimden tahmin
+edilmez; ölçü bilinmiyorsa `transforms: null`. (4) Çağrı başına en fazla 3 reçete, fazlası
+`skipped` notuyla atlanır.
+
+**Dönüşüm kuralı:** `level` ölçü bilindiğinde her zaman; `percent_change_period` yalnız miktar
+ölçülerinde (tutar, adet, fiziksel, fiyat/kur, endeks, kişi başına), kümülatif değilse ve frekans
+günlük...yıllık ise; `percent_change_annual` ayrıca yalnız aylık, çeyreklik, altı aylık. Zaten %
+değişim, oran, pay, ağırlık, dağılım olan ölçüler yalnız `level`. `biennial`/`irregular` yalnız `level`.
+
+**Not:** `Series.coverage_*` yüklenen gözlemlerle genişlediği için kaynak aralığı için kullanılmaz.
+Bazı kaynaklarda veri seti `coverage_end` ay sonu (ör. 2026-08-31), `loaded_range` ise dönem başı
+(2026-08-01) olarak görünür.
 
 **Kabul kriteri:** Ajan bir serinin kapsamını ve frekansını öğrenebiliyor; araç
-çıktısında hiçbir gözlem değeri yok.
+çıktısında hiçbir gözlem değeri yok. Sağlandı: birim 1212, entegrasyon 119 test geçti; canlıda
+yüklenmemiş (`DF_MEVSIM_TAKVIM_V3`) ve yüklü (260 dönem) seri doğru döndü, çıktıda `value` yok.
 
 ## Task 2.6 — Arama test seti ve ölçüm
 

@@ -512,7 +512,7 @@ def _choose_dimension_codes(
 # --------------------------------------------------------------------------- #
 
 
-def _measure_info(dataset: Dataset, codes: Mapping[str, str]) -> dict[str, _Any] | None:
+def measure_info(dataset: Dataset, codes: Mapping[str, str]) -> dict[str, _Any] | None:
     """The measure fields of the combination whose codes are contained in ``codes``."""
     combinations = sorted(
         dataset.measure_combinations, key=lambda row: row.id if row.id is not None else 0
@@ -585,7 +585,7 @@ def _verify_item(
         "series_name": definition.name,
         "frequency": definition.frequency,
         "unit": definition.unit,
-        "measure": _measure_info(dataset, codes),
+        "measure": measure_info(dataset, codes),
         "rating": {"p_high": uyum.p_high, "rating_15": uyum.rating_15},
         "arsiv": bool(dataset.arsiv),
         "uyumsuzluk": uyumsuzluk,
@@ -1128,6 +1128,7 @@ __all__ = [
     "build_search_tool",
     "ensure_default_prompts",
     "load_search_prompts",
+    "measure_info",
     "main",
     "prompt_refs",
     "search_series",
