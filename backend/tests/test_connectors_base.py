@@ -215,6 +215,120 @@ def test_merge_dataset_attributes_source_description_null_when_source_has_none()
     assert merged["source_description"] is None
 
 
+# --- frequency preservation (Task 2.4b Part 3) -----------------------------
+
+
+def _freq_dataset(**attributes: object) -> Dataset:
+    dataset = Dataset(institution_id=1, external_code="DF_X", name="X")
+    dataset.attributes = dict(attributes)
+    return dataset
+
+
+def _resolution(status: str) -> dict[str, object]:
+    return {"status": status, "codes": [], "reason": None, "checked_at": "t"}
+
+
+def test_merge_frequency_incoming_single_overrides_and_can_change() -> None:
+    from app.connectors.base import _merge_dataset_attributes
+
+    dataset = _freq_dataset(
+        default_frequency="monthly",
+        frequency_source={"code": "M", "origin": "hidden_freq_codelist"},
+    )
+    incoming = {
+        "default_frequency": "annual",
+        "frequency_source": {"code": "A2", "origin": "hidden_freq_codelist"},
+        "frequency_resolution": _resolution("single"),
+    }
+    merged = _merge_dataset_attributes(dataset, incoming, None)
+    assert merged["default_frequency"] == "annual"
+    assert merged["frequency_source"]["code"] == "A2"
+    assert merged["frequency_resolution"]["status"] == "single"
+
+
+def test_merge_frequency_non_single_statuses_drop_a_stale_default() -> None:
+    from app.connectors.base import _merge_dataset_attributes
+
+    for status in ("multiple", "empty", "unknown_code"):
+        dataset = _freq_dataset(
+            default_frequency="monthly",
+            frequency_source={"code": "M", "origin": "hidden_freq_codelist"},
+        )
+        merged = _merge_dataset_attributes(
+            dataset, {"frequency_resolution": _resolution(status)}, None
+        )
+        assert "default_frequency" not in merged, status
+        assert "frequency_source" not in merged, status
+        assert merged["frequency_resolution"]["status"] == status
+
+
+def test_merge_frequency_query_error_keeps_a_valid_default() -> None:
+    from app.connectors.base import _merge_dataset_attributes
+
+    dataset = _freq_dataset(
+        default_frequency="monthly",
+        frequency_source={"code": "M", "origin": "hidden_freq_codelist"},
+    )
+    merged = _merge_dataset_attributes(
+        dataset, {"frequency_resolution": _resolution("query_error")}, None
+    )
+    assert merged["default_frequency"] == "monthly"
+    assert merged["frequency_source"]["code"] == "M"
+    assert merged["frequency_resolution"]["status"] == "query_error"
+
+
+def test_merge_frequency_no_resolution_keeps_a_valid_default() -> None:
+    from app.connectors.base import _merge_dataset_attributes
+
+    dataset = _freq_dataset(
+        default_frequency="monthly",
+        frequency_source={"code": "M", "origin": "hidden_freq_codelist"},
+    )
+    merged = _merge_dataset_attributes(dataset, {"channel": "databrowser2"}, None)
+    assert merged["default_frequency"] == "monthly"
+    assert merged["frequency_source"]["code"] == "M"
+    assert "frequency_resolution" not in merged
+
+
+def test_merge_frequency_cip_style_incoming_default_is_unchanged() -> None:
+    from app.connectors.base import _merge_dataset_attributes
+
+    dataset = _freq_dataset()
+    incoming = {
+        "default_frequency": "annual",
+        "frequency_source": {"code": "A", "origin": "cip"},
+    }
+    merged = _merge_dataset_attributes(dataset, incoming, None)
+    assert merged["default_frequency"] == "annual"
+    assert merged["frequency_source"] == {"code": "A", "origin": "cip"}
+
+
+def test_merge_dataset_attributes_preserves_tagging_marker() -> None:
+    from app.connectors.base import _merge_dataset_attributes
+
+    dataset = Dataset(institution_id=1, external_code="DF_X", name="X")
+    dataset.attributes = {"tagging": {"tagged_at": "2026-10-04T00:00:00Z", "branch_scores": {}}}
+    merged = _merge_dataset_attributes(dataset, {"channel": "databrowser2"}, "src")
+    assert merged["tagging"] == {"tagged_at": "2026-10-04T00:00:00Z", "branch_scores": {}}
+
+
+def test_refresh_drops_tagging_without_the_fix() -> None:
+    """Regression proof: a refresh wipes ``tagging`` if it is not preserved.
+
+    This mirrors the pre-fix behaviour (``tagging`` was not in
+    ``ENRICHMENT_OWNED_ATTRIBUTES``) so the fix's test is a real guard.
+    """
+    from app.connectors import base
+
+    assert "tagging" in base.ENRICHMENT_OWNED_ATTRIBUTES
+    dataset = Dataset(institution_id=1, external_code="DF_X", name="X")
+    dataset.attributes = {"tagging": {"tagged_at": "t"}}
+    merged = base._preserve_channel_attributes(dataset, {"channel": "databrowser2"})
+    # The channel-preserve step alone does not keep tagging; only the enrichment
+    # ownership list does, so the assertion above is what makes the refresh safe.
+    assert "tagging" not in merged
+
+
 def test_store_raw_sanitizes_path_segments() -> None:
     store = InMemoryObjectStore()
     key = store_raw("tuik/x", "../catalog", "chan nel", b"{}", "json", store=store)

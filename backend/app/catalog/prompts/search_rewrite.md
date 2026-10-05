@@ -1,0 +1,1 @@
+Kullanıcının aşağıdaki veri isteğini, aynı anlamı koruyacak farklı kelimeler ve cümle yapılarıyla 2 farklı biçimde yeniden yaz. Yeni kısıt eklemek, herhangi bir kırılım/boyut/sınıflama adı anmak, sayı, yer, dönem veya frekans eklemek ya da çıkarmak yasaktır. İstek: {istek}. Yanıtı yalnızca {"phrasings": ["...", "..."]} JSON'u olarak ver.

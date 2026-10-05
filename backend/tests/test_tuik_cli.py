@@ -471,3 +471,224 @@ def test_known_dataflows_loader_only_takes_databrowser2_datasets() -> None:
     assert known[0].listed is False
     assert known[0].dataset_identifier == "TR,DF_A,1.0"
     assert known[0].source_category == "Cat"
+
+
+# --- frequency-backfill (Task 2.4b Part 4) ----------------------------------
+
+
+class _FreqResponse:
+    def __init__(self, payload: Any) -> None:
+        self._payload = payload
+
+    def json(self) -> Any:
+        return self._payload
+
+
+class _FreqClient:
+    """Fake databrowser2 client answering only FREQ codelists; records calls."""
+
+    max_concurrency = 2
+    throttled = False
+
+    def __init__(self, by_identifier: dict[str, Any]) -> None:
+        self._by_identifier = by_identifier
+        self.calls: list[tuple[str, str]] = []
+
+    def dataset_partial_codelist(self, dataset_id: str, dimension: str, criteria=None) -> Any:
+        self.calls.append((dataset_id, dimension))
+        assert dimension == "FREQ"
+        return _FreqResponse(self._by_identifier[dataset_id])
+
+
+class _BFDataset:
+    def __init__(
+        self,
+        code: str,
+        *,
+        attributes: dict[str, Any] | None = None,
+        dimensions: list[Any] | None = None,
+    ) -> None:
+        self.external_code = code
+        self.attributes = attributes or {}
+        self.dimensions = dimensions or []
+
+
+class _BFDimension:
+    def __init__(self, code: str, *, codes: list[Any] | None = None) -> None:
+        self.code = code
+        self.codes = codes or []
+
+
+class _BFCode:
+    def __init__(self, code: str, *, attributes: dict[str, Any] | None = None) -> None:
+        self.code = code
+        self.attributes = attributes or {}
+
+
+class _BFSession:
+    def __init__(self) -> None:
+        self.commits = 0
+
+    def commit(self) -> None:
+        self.commits += 1
+
+
+def _freq_identifier(code: str) -> dict[str, Any]:
+    return {"channel": "databrowser2", "agency": "TR", "dataflow_id": code, "version": "1.0"}
+
+
+def _codelist(values: list[dict[str, Any]]) -> dict[str, Any]:
+    return {"criteria": [{"id": "FREQ", "values": values}], "obsCount": 1}
+
+
+def test_can_build_series_matches_the_measurement() -> None:
+    no_freq = _BFDataset("A")
+    assert not tuik_cli._can_build_series(no_freq)
+    assert tuik_cli._can_build_series(_BFDataset("A", attributes={"default_frequency": "annual"}))
+    assert tuik_cli._can_build_series(_BFDataset("A", dimensions=[_BFDimension("FREQ")]))
+    assert tuik_cli._can_build_series(
+        _BFDataset(
+            "A",
+            dimensions=[
+                _BFDimension("X", codes=[_BFCode("x", attributes={"frequency": "monthly"})])
+            ],
+        )
+    )
+
+
+def test_frequency_backfill_dry_run_writes_nothing(capsys) -> None:
+    dataset = _BFDataset("DF_A", attributes=_freq_identifier("DF_A"))
+    before = dict(dataset.attributes)
+    client = _FreqClient(
+        {"TR,DF_A,1.0": _codelist([{"id": "A2", "name": "Biennial", "isSelectable": True}])}
+    )
+
+    code = tuik_cli.run_frequency_backfill(
+        [dataset], client, session=_BFSession(), dry_run=True, workers=2
+    )
+
+    assert dataset.attributes == before
+    assert client.calls == [("TR,DF_A,1.0", "FREQ")]
+    out = capsys.readouterr().out
+    assert "DF_A single A2(Biennial) -> biennial" in out
+    assert "special codes (1):" in out
+    assert "DF_A: A2(Biennial) -> biennial" in out
+    assert code == 0  # A2 resolves to a single frequency; only the special block flags it
+
+
+def test_frequency_backfill_exit_code_zero_when_all_single(capsys) -> None:
+    dataset = _BFDataset("DF_M", attributes=_freq_identifier("DF_M"))
+    client = _FreqClient(
+        {"TR,DF_M,1.0": _codelist([{"id": "M", "name": "Monthly", "isSelectable": True}])}
+    )
+    code = tuik_cli.run_frequency_backfill([dataset], client, session=None, dry_run=True, workers=1)
+    assert code == 0
+    assert "special codes" not in capsys.readouterr().out
+
+
+def test_frequency_backfill_multiple_lists_all_codes_and_exits_one(capsys) -> None:
+    dataset = _BFDataset("DF_MULTI", attributes=_freq_identifier("DF_MULTI"))
+    client = _FreqClient(
+        {
+            "TR,DF_MULTI,1.0": _codelist(
+                [
+                    {"id": "M", "name": "Monthly", "isSelectable": True},
+                    {"id": "A", "name": "Annual", "isSelectable": True},
+                ]
+            )
+        }
+    )
+    code = tuik_cli.run_frequency_backfill([dataset], client, session=None, dry_run=True, workers=1)
+    out = capsys.readouterr().out
+    assert code == 1
+    assert "multiple (1):" in out
+    assert "DF_MULTI: M(Monthly), A(Annual)" in out
+    assert "status: " in out
+
+
+def test_frequency_backfill_query_error_exits_one(capsys) -> None:
+    dataset = _BFDataset("DF_ERR", attributes=_freq_identifier("DF_ERR"))
+    client = _FreqClient({})  # any call raises KeyError inside -> we pre-raise instead
+
+    def boom(dataset_id: str, dimension: str, criteria=None):
+        raise ConnectorError(NOT_FOUND, "gone")
+
+    client.dataset_partial_codelist = boom  # type: ignore[method-assign]
+    code = tuik_cli.run_frequency_backfill([dataset], client, session=None, dry_run=True, workers=1)
+    out = capsys.readouterr().out
+    assert code == 1
+    assert "DF_ERR query_error" in out
+
+
+def test_frequency_backfill_write_mode_applies_keep_drop_rule() -> None:
+    # (1) multiple drops a stale default; (2) query_error keeps it.
+    stale = _BFDataset(
+        "DF_DROP",
+        attributes={**_freq_identifier("DF_DROP"), "default_frequency": "monthly"},
+    )
+    keep = _BFDataset(
+        "DF_KEEP",
+        attributes={**_freq_identifier("DF_KEEP"), "default_frequency": "monthly"},
+    )
+
+    class _Client:
+        max_concurrency = 1
+
+        def __init__(self) -> None:
+            self.calls: list[str] = []
+
+        def dataset_partial_codelist(self, dataset_id, dimension, criteria=None):
+            self.calls.append(dataset_id)
+            if dataset_id == "TR,DF_DROP,1.0":
+                return _FreqResponse(
+                    _codelist(
+                        [
+                            {"id": "M", "name": "Monthly", "isSelectable": True},
+                            {"id": "A", "name": "Annual", "isSelectable": True},
+                        ]
+                    )
+                )
+            raise ConnectorError(NOT_FOUND, "gone")
+
+    session = _BFSession()
+    client = _Client()
+    tuik_cli.run_frequency_backfill(
+        [stale, keep], client, session=session, dry_run=False, workers=1
+    )
+
+    assert session.commits == 2  # commit per dataset
+    assert "default_frequency" not in stale.attributes
+    assert stale.attributes["frequency_resolution"]["status"] == "multiple"
+    assert keep.attributes["default_frequency"] == "monthly"
+    assert keep.attributes["frequency_resolution"]["status"] == "query_error"
+
+
+def test_frequency_backfill_write_mode_stores_single_default() -> None:
+    dataset = _BFDataset("DF_S", attributes=_freq_identifier("DF_S"))
+    client = _FreqClient(
+        {"TR,DF_S,1.0": _codelist([{"id": "M", "name": "Monthly", "isSelectable": True}])}
+    )
+    code = tuik_cli.run_frequency_backfill(
+        [dataset], client, session=_BFSession(), dry_run=False, workers=1
+    )
+    assert code == 0
+    assert dataset.attributes["default_frequency"] == "monthly"
+    assert dataset.attributes["frequency_source"]["origin"] == "hidden_freq_codelist"
+
+
+def test_frequency_backfill_never_requests_observation_values() -> None:
+    dataset = _BFDataset("DF_A", attributes=_freq_identifier("DF_A"))
+    client = _FreqClient(
+        {"TR,DF_A,1.0": _codelist([{"id": "M", "name": "Monthly", "isSelectable": True}])}
+    )
+    tuik_cli.run_frequency_backfill([dataset], client, session=None, dry_run=True, workers=1)
+    # The only calls are hidden FREQ partial codelists; no /data or /download.
+    assert client.calls == [("TR,DF_A,1.0", "FREQ")]
+
+
+def test_frequency_backfill_parser_flags() -> None:
+    args = build_parser().parse_args(["frequency-backfill", "--dry-run", "--limit", "5"])
+    assert args.dry_run is True
+    assert args.limit == 5
+    assert args.workers is None
+    assert args.dataflow is None

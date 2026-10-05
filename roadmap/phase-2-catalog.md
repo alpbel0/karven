@@ -101,7 +101,7 @@ rastgele 50 veri setinde etiketler elle kontrol edilmiş.
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (canlıda doğrulandı, 2026-10-05)
 **Bağımlılıklar:** Task 2.3
 
 **Referanslar:** `docs/DECISIONS.md` §7 (arama akışı), `backend/app/catalog/concept_tree.yaml`
@@ -110,28 +110,35 @@ rastgele 50 veri setinde etiketler elle kontrol edilmiş.
 
 ### Checklist
 
-- [ ] Ajan isteğini düz dille verir (ör. "Türkiye geneli toplam konut satış
+- [x] Ajan isteğini düz dille verir (ör. "Türkiye geneli toplam konut satış
       sayısı, aylık"); ajan etiketleri görmez.
-- [ ] **Veri seti seçimi:** Jev önce 24 ana dalı, sonra yalnız geçen ana dalların
+- [x] **Veri seti seçimi:** Jev önce 24 ana dalı, sonra yalnız geçen ana dalların
       yapraklarını **1-5 puanlar**; 4-5 alanlar geçer.
-- [ ] Kod, geçen yapraklardan **herhangi birini** taşıyan veri setlerini ve geçen ana
+- [x] Kod, geçen yapraklardan **herhangi birini** taşıyan veri setlerini ve geçen ana
       dalı taşıyan çok konulu derlemeleri (Turcat, PKA) getirir; `revizyon_tablosu`
       olanlar dışlanır. Jev aday veri setlerini yeniden **1-5 puanlar** (büyük listede
       parçalar halinde).
-- [ ] **Kırılım seçimi:** kod boyutları sırayla Jev'e sorulur, **hiyerarşik** (önce
+- [x] **Kırılım seçimi:** kod boyutları sırayla Jev'e sorulur, **hiyerarşik** (önce
       düzey sonra yer; önce ana sektör sonra alt sektör); seçim sorusu en fazla 255
       seçenek alır.
-- [ ] Güven eşiğin altındaysa aynı soru 2-3 farklı cümleyle sorulur; cevaplar
+- [x] Güven eşiğin altındaysa aynı soru 2-3 farklı cümleyle sorulur; cevaplar
       uyuşursa kabul, uyuşmazsa en iyi adaylar tutulur.
-- [ ] **Son doğrulama:** seçilen serinin tam adıyla "bu seri isteğe uyuyor mu?";
+- [x] **Son doğrulama:** seçilen serinin tam adıyla "bu seri isteğe uyuyor mu?";
       düşükse sıradaki aday seriye / veri setine geçilir.
-- [ ] **4-5 alan seriler** ajana döner (ad + meta bilgi, ölçüm türü, frekans, birim;
+- [x] **4-5 alan seriler** ajana döner (ad + meta bilgi, ölçüm türü, frekans, birim;
       değer yok). Hâlâ belirsizse en iyi 2-3 aday sunulur; hiçbiri 4-5 almazsa
       "güçlü eşleşme yok" döner.
-- [ ] Ajan başına arama sayısı sınırı: en fazla 3-4.
+- [x] Ajan başına arama sayısı sınırı: en fazla 3-4.
 
 **Kabul kriteri:** "Türkiye geneli toplam konut satış sayısı, aylık" isteği doğru
 seriyi 4-5 puanla döndürüyor; puanlama parçalı listede de çalışıyor.
+
+**Sonuç (2026-10-05, canlı):** Kabul sorgusu `DF_SATIS_SEKLI_SATIS_DURUMU_V3:M._T.TR.3._T.MII_KSS`
+serisini p(4)+p(5)=0,71 ile döndürdü. Kararlar, canlı bulgular ve ölçümler: `docs/DECISIONS.md` §7
+("Arama sonucu"). Araç adı `find_series` (`backend/app/catalog/search.py`, CLI
+`python -m app.catalog.search`); fetch ajanının alt dize aramalı `search_catalog` aracı ayrıdır.
+Arama sınırı mekanizması (`tool_loop` `tool_limits`) gerçek EVREN döngüsüyle canlı doğrulandı;
+ajanlara bağlama Task 3.x / 5.x'te yapılır. 131 veri setinin frekans boşluğu Task 2.4b'de çözüldü.
 
 **Not (2026-09-30, checklist 2026-10-04'te yeni akışa göre yeniden yazıldı):** DECISIONS §7'deki
 akış (veri seti → hiyerarşik kırılım seçimi → düşük güvende çoklu
@@ -143,6 +150,48 @@ Türkçe istek ile TÜİK'in **İngilizce** etiketleri arasında uyumsuzluk (ör
 veri seti seçimi (GSYH sektör bileşenleri yıllık/bölgesel tablolara gitti);
 veri seti seçimine açıklama ve kategori bilgisinin katılması gerekiyor. Turcat
 ve CİP eşleştirmeleri bu yüzden elle yapıldı (kullanıcı kararı).
+
+## Task 2.4b — Frekansı kurulamayan veri setleri
+
+**Repo:** `karven`
+**Alan:** `backend`
+**Durum:** Tamamlandı (canlıda doğrulandı, 2026-10-05)
+**Bağımlılıklar:** Task 2.4
+
+**Referanslar:** `docs/DECISIONS.md` §7 ("Arama kararları" ve "Frekans boşluğu"),
+`backend/app/connectors/tuik/frequency.py`, `backend/app/connectors/base.py`
+(`build_series_definition`, `_merge_frequency_attributes`)
+
+**Neden:** Canlı aramada `DF_MEVSIM_TAKVIM_V3` (aylık, 2013-2026) için seri kurulamadı: veri setinde
+`FREQ` boyutu, kod düzeyinde frekans özniteliği ve `default_frequency` yok. Sayım (2026-10-05):
+883 veri setinin **131'i (%15)** bu durumda: TÜİK databrowser2 **90** (frekans kaynakta gizli `FREQ`
+boyutunda) ve veriportali **41** (boyutsuz, indirilemeyen rapor girdileri). Hem arama hem veri çekme
+(`ensure_series`) bunlardan seri kuramazdı.
+
+### Checklist
+
+- [x] 131 veri setinin kaynakta nasıl göründüğü ölçüldü: databrowser2'nin 90'ında kaynağın gizli
+      `FREQ` kod listesi frekansı doğrudan veriyor (tahmin ve dönem biçimi gerekmedi); veriportali'nin
+      41'inde boyut, kapsam ve gözlem yok, hepsi `downloadable: false`.
+- [x] Kural kullanıcıya gösterildi ve onaylandı: dry-run 90/90 `single` (88 yıllık, 2 aylık), 28'i
+      `A2` "Biennial". Kullanıcı kararı: kelime dağarcığına yeni **`biennial`** frekansı eklenir.
+- [x] Kural bağlayıcıya ve doldurma komutuna **aynı fonksiyonla** işlendi (`resolve_frequency`):
+      tek geçerli kod `default_frequency` olur, birden çok kod / boş liste / sorgu hatası / tanınmayan
+      kod ayrı nedenle raporlanır, başarısız sorgu mevcut değeri silmez.
+- [x] Canlı katalog güncellendi (`frequency-backfill`: 90 veri seti, `default_frequency` 102 → 192) ve
+      katalog yenilemesi doğrulandı: değerler aynı kaldı, `checked_at` kaynaktan yenilendi, `tagging`
+      işareti 883/883 sağlam. Gözlem değeri çekilmedi (yalnız kod listeleri).
+- [x] `veri_yok` bayrağı (migration 0019): indirilemeyen 41 veriportali girdisi işaretlendi ve aramadan
+      dışlandı. Seri kurulamayan işaretsiz veri seti kalmadı; `DF_MEVSIM_TAKVIM_V3` aramada serisiyle
+      çıkıyor (aylık, p=0,78), atık ailesi `biennial` olarak bulunuyor.
+
+**Kabul kriteri:** Katalogdaki bütün veri setleri için seri tarifi kurulabiliyor (41 `veri_yok` hariç);
+"Mevsim ve takvim etkisinden arındırılmış konut satış sayısı, aylık" isteği `DF_MEVSIM_TAKVIM_V3`
+serisini döndürüyor. Sağlandı.
+
+**Ek düzeltme (aynı iş):** Katalog yenilemesi `attributes['tagging']` işaretini siliyordu (Task 2.3'ten
+kalan hata; sonraki `tag run` veri setlerini yeniden etiketleme adayı sayardı). Koruma listesine eklendi,
+testle kanıtlandı.
 
 ## Task 2.5 — Veri durumu aracı
 

@@ -47,24 +47,42 @@ def _tool_definitions(tools: Mapping[str, ToolSpec]) -> list[dict[str, Any]]:
     return definitions
 
 
-def _execute_tool(call: Mapping[str, Any], tools: Mapping[str, ToolSpec]) -> dict[str, Any]:
+def _execute_tool(
+    call: Mapping[str, Any], tools: Mapping[str, ToolSpec]
+) -> tuple[dict[str, Any], Any]:
+    """Run one tool call, returning ``(tool message, raw output)``.
+
+    ``raw output`` is the Python object the tool returned (``None`` on an unknown
+    tool or an error), so the loop can inspect a ``budget_refund`` marker without
+    re-parsing the JSON message.
+    """
     function = call.get("function") or {}
     name = function.get("name")
     call_id = call.get("id")
     entry = tools.get(name)
     if entry is None:
         content = json.dumps({"error": f"unknown tool: {name}"})
-    else:
-        try:
-            raw_arguments = function.get("arguments") or "{}"
-            arguments = json.loads(raw_arguments)
-            if not isinstance(arguments, dict):
-                raise ValueError("tool arguments must be a JSON object")
-            output = entry[1](**arguments)
-            content = output if isinstance(output, str) else json.dumps(output, default=str)
-        except Exception as exc:  # noqa: BLE001 - report tool errors to the model
-            content = json.dumps({"error": str(exc)})
-    return {"role": "tool", "tool_call_id": call_id, "content": content}
+        return {"role": "tool", "tool_call_id": call_id, "content": content}, None
+    try:
+        raw_arguments = function.get("arguments") or "{}"
+        arguments = json.loads(raw_arguments)
+        if not isinstance(arguments, dict):
+            raise ValueError("tool arguments must be a JSON object")
+        output = entry[1](**arguments)
+        content = output if isinstance(output, str) else json.dumps(output, default=str)
+        return {"role": "tool", "tool_call_id": call_id, "content": content}, output
+    except Exception as exc:  # noqa: BLE001 - report tool errors to the model
+        content = json.dumps({"error": str(exc)})
+        return {"role": "tool", "tool_call_id": call_id, "content": content}, None
+
+
+def _limit_message(call: Mapping[str, Any], name: str, limit: int) -> dict[str, Any]:
+    """The tool message a refused (over-limit) call receives."""
+    return {
+        "role": "tool",
+        "tool_call_id": call.get("id"),
+        "content": json.dumps({"error": f"tool call limit reached for {name} ({limit})"}),
+    }
 
 
 def _accumulate_usage(total: dict[str, Any], usage: dict[str, Any] | None) -> None:
@@ -86,14 +104,24 @@ def run_tool_loop(
     final_schema: Mapping[str, Any],
     *,
     max_tool_calls: int,
+    tool_limits: Mapping[str, int] | None = None,
     final_instruction: str = DEFAULT_FINAL_INSTRUCTION,
     prompt_ref: PromptRef | None = None,
 ) -> ToolLoopResult:
-    """Run the tool loop and return the parsed final JSON object."""
+    """Run the tool loop and return the parsed final JSON object.
+
+    ``tool_limits`` caps how many times one tool may actually execute in a run.
+    Once a tool is at its limit, further calls are refused with a
+    ``tool call limit reached`` tool message but still count toward the global
+    ``max_tool_calls`` (so the loop always terminates). A tool whose output is a
+    dict carrying ``"budget_refund": true`` does not count toward its per-tool
+    limit. ``None`` keeps the original behaviour (no per-tool limit).
+    """
     transcript: list[dict[str, Any]] = [dict(message) for message in messages]
     tool_definitions = _tool_definitions(tools)
     total_usage: dict[str, Any] = {}
     executed_calls = 0
+    per_tool_counts: dict[str, int] = {}
 
     while executed_calls < max_tool_calls:
         result = client.complete(transcript, tools=tool_definitions, prompt_ref=prompt_ref)
@@ -113,8 +141,22 @@ def run_tool_loop(
             }
         )
         for call in selected_calls:
-            transcript.append(_execute_tool(call, tools))
+            function = call.get("function") or {}
+            name = function.get("name")
+            limit = (
+                tool_limits.get(name) if tool_limits is not None and isinstance(name, str) else None
+            )
+            if limit is not None and per_tool_counts.get(name, 0) >= limit:
+                transcript.append(_limit_message(call, name, limit))
+                executed_calls += 1
+                continue
+            message, output = _execute_tool(call, tools)
+            transcript.append(message)
             executed_calls += 1
+            if isinstance(output, Mapping) and output.get("budget_refund") is True:
+                continue
+            if isinstance(name, str):
+                per_tool_counts[name] = per_tool_counts.get(name, 0) + 1
 
     transcript.append({"role": "user", "content": final_instruction})
     response_format = {

@@ -296,6 +296,24 @@ class Settings(BaseSettings):
                 raise ValueError(f"{name.upper()} must be positive")
         return self
 
+    # Catalog series search (Task 2.4). Jev 1-5 scores pass when
+    # p(rating 4) + p(rating 5) >= ``search_pass_probability``; a dimension
+    # choice below ``search_low_confidence`` triggers EVREN rewrites. Candidate
+    # datasets are scored in chunks of ``search_dataset_chunk`` questions; at most
+    # ``search_max_datasets`` datasets and ``search_max_results`` series are
+    # returned. A series frequency is only compatible when the Jev yes-probability
+    # is at least ``search_frequency_floor``. When nothing is strong, datasets
+    # rated at least ``search_near_miss_probability`` are offered as near-miss
+    # candidates (at most ``search_near_miss_datasets`` of them).
+    search_pass_probability: float = 0.60
+    search_low_confidence: float = 0.60
+    search_dataset_chunk: int = 50
+    search_max_datasets: int = 5
+    search_max_results: int = 3
+    search_frequency_floor: float = 0.40
+    search_near_miss_probability: float = 0.15
+    search_near_miss_datasets: int = 2
+
     minio_endpoint: str | None = None
     minio_access_key: str | None = None
     minio_secret_key: SecretStr | None = None

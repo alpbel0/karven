@@ -159,8 +159,7 @@ def _is_owned(row: MeasureCombination) -> bool:
         return True
     attributes = row.attributes or {}
     return (
-        attributes.get(_CURRENCY_METHOD) == "manual"
-        or attributes.get(_NOMINAL_METHOD) == "manual"
+        attributes.get(_CURRENCY_METHOD) == "manual" or attributes.get(_NOMINAL_METHOD) == "manual"
     )
 
 
@@ -382,9 +381,7 @@ def apply_jev_currency(
         return
     attributes = dict(row.attributes or {})
     # Jev fills only an unanswered field; the manual setter overrides anything.
-    if currency is not None and (
-        method == "manual" or attributes.get(_CURRENCY_METHOD) is None
-    ):
+    if currency is not None and (method == "manual" or attributes.get(_CURRENCY_METHOD) is None):
         if currency == "yok":
             row.para_birimi = None
             attributes["currency"] = "n/a"
@@ -466,9 +463,7 @@ def apply_jev_period(
     dataset.attributes = attributes
 
 
-def code_views_for(
-    view: rules.DatasetView, codes: dict[str, Any]
-) -> list[rules.CodeView] | None:
+def code_views_for(view: rules.DatasetView, codes: dict[str, Any]) -> list[rules.CodeView] | None:
     """Resolve a combination's codes to their :class:`CodeView` objects."""
     dimensions = {dimension.code: dimension for dimension in view.dimensions}
     resolved: list[rules.CodeView] = []
@@ -733,6 +728,7 @@ def apply_dataset_plan(
     dataset.revizyon_tablosu = plan.revizyon_tablosu
     dataset.arsiv = plan.arsiv
     dataset.cok_konulu_derleme = plan.cok_konulu_derleme
+    dataset.veri_yok = plan.veri_yok
 
     for dimension in dataset.dimensions:
         if dimension.code not in plan.measure_dims:
@@ -743,9 +739,7 @@ def apply_dataset_plan(
         dimension.is_measure = value
         dimension.measure_source = "rule" if value is not None else None
 
-    counts = upsert_combinations(
-        session, dataset, plan.combinations, view=view, tree=tree
-    )
+    counts = upsert_combinations(session, dataset, plan.combinations, view=view, tree=tree)
     recompute_dataset_flags(session, dataset)
     return counts
 
@@ -807,6 +801,7 @@ def summarize_plans(views: list[rules.DatasetView], tree: ConceptTree) -> Summar
         summary.flags["revizyon_tablosu"] += int(plan.revizyon_tablosu)
         summary.flags["arsiv"] += int(plan.arsiv)
         summary.flags["cok_konulu_derleme"] += int(plan.cok_konulu_derleme)
+        summary.flags["veri_yok"] += int(plan.veri_yok)
         if plan.attributes.get("measure_enrich_note"):
             summary.flags["measure_enrich_skipped"] += 1
         if plan.attributes.get("dims_pending"):
@@ -848,6 +843,11 @@ def summarize_db(session: Session) -> Summary:
     ):
         if value:
             summary.flags["cok_konulu_derleme"] = count
+    for value, count in session.execute(
+        sa.select(Dataset.veri_yok, sa.func.count()).group_by(Dataset.veri_yok)
+    ):
+        if value:
+            summary.flags["veri_yok"] = count
     summary.combinations = (
         session.scalar(sa.select(sa.func.count()).select_from(MeasureCombination)) or 0
     )

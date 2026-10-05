@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, replace
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Any
 
 from app.config import Settings
@@ -30,6 +30,7 @@ from app.connectors.base import (
     SourceConnector,
 )
 from app.connectors.tuik.client import DEFAULT_BASE_URL, Databrowser2Client
+from app.connectors.tuik.frequency import as_attributes, resolve_for_dataset
 from app.connectors.tuik.hierarchy import resolve_parents
 from app.connectors.tuik.nsiws import FALLBACK_KINDS, NsiwsClient
 from app.connectors.tuik.parsers import (
@@ -331,6 +332,13 @@ class TuikConnector(SourceConnector):
         }
         if hidden_only:
             attributes["hidden_dimensions"] = hidden_only
+        if "FREQ" in hidden_only:
+            # FREQ is a hidden view dimension, not a data dimension: the source
+            # still tells the frequency through its partial codelist. Record the
+            # resolution; a multiple/empty/query_error status is recorded but must
+            # never mark the dataset ``source_incomplete``.
+            resolution = resolve_for_dataset(self._client, identifier)
+            attributes.update(as_attributes(resolution, checked_at=datetime.now(UTC).isoformat()))
         # A dimension without codes means no series of this dataset can be built;
         # flag it instead of cataloguing it as a healthy dataset.
         empty_dims = [d.code for d in dimensions if d.role != ROLE_TIME and not d.codes]

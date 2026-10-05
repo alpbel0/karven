@@ -25,6 +25,7 @@ from app.connectors.base import (
 )
 from app.data.periods import (
     ANNUAL,
+    BIENNIAL,
     DAILY,
     MONTHLY,
     QUARTERLY,
@@ -40,6 +41,11 @@ _FREQUENCY_BY_INITIAL = {
     "Q": QUARTERLY,
     "S": SEMIANNUAL,
     "A": ANNUAL,
+}
+
+# Whole FREQ codes that win over the first-letter rule (``A2`` is biennial).
+_FREQUENCY_BY_CODE = {
+    "A2": BIENNIAL,
 }
 
 _MISSING_MARKERS = {"", "-", ".", "..", "..."}
@@ -126,8 +132,8 @@ def frequency_from_period(text: str) -> str:
 
 def frequency_for_code(code: str) -> str:
     """Map an SDMX FREQ code (``M``, ``Q``, ``A``, ``A2``...) to our vocabulary."""
-    initial = code.strip()[:1].upper()
-    frequency = _FREQUENCY_BY_INITIAL.get(initial)
+    text = code.strip().upper()
+    frequency = _FREQUENCY_BY_CODE.get(text) or _FREQUENCY_BY_INITIAL.get(text[:1])
     if frequency is None:
         raise ConnectorError(FORMAT_CHANGED, f"unknown FREQ code {code!r}")
     return frequency

@@ -19,11 +19,12 @@ import time
 from collections import Counter, deque
 from collections.abc import Iterator
 from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import extract, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.connectors.base import (
     FORMAT_CHANGED,
@@ -54,6 +55,13 @@ from app.connectors.tuik.bi_trade import (
 from app.connectors.tuik.cip import CipClient, CipConnector
 from app.connectors.tuik.client import Databrowser2Client
 from app.connectors.tuik.connector import TuikConnector
+from app.connectors.tuik.frequency import (
+    DROP_STATUSES,
+    STATUSES,
+    FrequencyResolution,
+    as_attributes,
+    resolve_for_dataset,
+)
 from app.connectors.tuik.nsiws import build_nsiws_client
 from app.connectors.tuik.parsers import DataflowInfo
 from app.connectors.tuik.secim import SecimConnector
@@ -209,6 +217,25 @@ def build_parser() -> argparse.ArgumentParser:
 
     find = subparsers.add_parser("find", help="search dataset names and code labels")
     find.add_argument("--text", required=True, help="ILIKE pattern text")
+
+    backfill = subparsers.add_parser(
+        "frequency-backfill",
+        help="resolve the hidden FREQ codelist for datasets that cannot build a series",
+    )
+    backfill.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="query and report but write nothing",
+    )
+    backfill.add_argument("--dataflow", default=None, help="only this dataset external code")
+    backfill.add_argument("--limit", type=int, default=None, help="process at most N datasets")
+    backfill.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help="resolution worker pool size (default TUIK_MAX_CONCURRENCY)",
+    )
 
     turcat = subparsers.add_parser(
         "turcat", help="sync the IMF SDDS (Turcat) sector indicators and values"
@@ -1559,6 +1586,234 @@ def _cmd_find(session: Session, connector: TuikConnector, args: argparse.Namespa
     return 0
 
 
+# --- frequency backfill (Task 2.4b) -----------------------------------------
+
+#: Plain ``FREQ`` codes (one letter, our usual cadences); anything else (``A2``
+#: biennial) is a "special code" the backfill report lists separately so a human
+#: can see which datasets do not follow the ordinary cadences.
+_PLAIN_FREQ_CODES = frozenset({"M", "Q", "A", "D", "W", "S"})
+
+
+def _can_build_series(dataset: Dataset) -> bool:
+    """True when a series can derive a frequency for the dataset.
+
+    The same criteria the Task 2.4b measurement used: a ``FREQ`` dimension, a
+    code with ``attributes['frequency']`` or a dataset ``default_frequency``.
+    """
+    if (dataset.attributes or {}).get("default_frequency"):
+        return True
+    for dimension in dataset.dimensions:
+        if dimension.code == "FREQ":
+            return True
+        for code in dimension.codes:
+            if (code.attributes or {}).get("frequency"):
+                return True
+    return False
+
+
+def _frequency_identifier(dataset: Dataset) -> str | None:
+    """The source identifier ``TR,<dataflow_id>,<version>`` from the attributes."""
+    attributes = dataset.attributes or {}
+    agency = attributes.get("agency")
+    dataflow_id = attributes.get("dataflow_id")
+    version = attributes.get("version")
+    if not agency or not dataflow_id or not version:
+        return None
+    return f"{agency},{dataflow_id},{version}"
+
+
+def _update_frequency_keys(attributes: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
+    """Update ONLY the frequency keys, applying the same keep/drop rule as Part 3.
+
+    An incoming ``default_frequency`` wins (and may change); a
+    ``multiple``/``empty``/``unknown_code`` resolution drops a stale stored
+    value; a ``query_error`` resolution keeps it. ``frequency_resolution`` is
+    carried from the incoming side only.
+    """
+    merged = dict(attributes)
+    resolution = incoming.get("frequency_resolution")
+    status = resolution.get("status") if isinstance(resolution, dict) else None
+    if "default_frequency" in incoming:
+        merged["default_frequency"] = incoming["default_frequency"]
+        if "frequency_source" in incoming:
+            merged["frequency_source"] = incoming["frequency_source"]
+    elif status in DROP_STATUSES:
+        merged.pop("default_frequency", None)
+        merged.pop("frequency_source", None)
+    if "frequency_resolution" in incoming:
+        merged["frequency_resolution"] = incoming["frequency_resolution"]
+    return merged
+
+
+@dataclass(frozen=True)
+class _BackfillRow:
+    external_code: str
+    identifier: str | None
+    status: str
+    code: str | None
+    name: str | None
+    codes: list[dict[str, str]] = field(default_factory=list)
+    frequency: str | None = None
+    reason: str | None = None
+    resolution: FrequencyResolution | None = None
+
+
+def _resolve_one(client: Any, identifier: str | None) -> FrequencyResolution:
+    """Resolve one dataset's hidden FREQ codelist (a missing id is an error)."""
+    if identifier is None:
+        logger.warning("frequency-backfill: dataset has no dataflow identifier")
+        return FrequencyResolution(
+            status="query_error",
+            reason="missing dataflow identifier in attributes",
+        )
+    return resolve_for_dataset(client, identifier)
+
+
+def _backfill_rows(
+    datasets: list[Dataset], client: Any, *, workers: int
+) -> list[tuple[Dataset, _BackfillRow]]:
+    """Resolve every dataset's hidden FREQ codelist (no writes)."""
+    resolutions: dict[int, FrequencyResolution] = {}
+    if workers <= 1:
+        for index, dataset in enumerate(datasets):
+            resolutions[index] = _resolve_one(client, _frequency_identifier(dataset))
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {
+                pool.submit(_resolve_one, client, _frequency_identifier(dataset)): index
+                for index, dataset in enumerate(datasets)
+            }
+            for future, index in futures.items():
+                resolutions[index] = future.result()
+
+    rows: list[tuple[Dataset, _BackfillRow]] = []
+    for index, dataset in enumerate(datasets):
+        resolution = resolutions[index]
+        codes = [dict(code) for code in resolution.codes]
+        rows.append(
+            (
+                dataset,
+                _BackfillRow(
+                    external_code=dataset.external_code,
+                    identifier=_frequency_identifier(dataset),
+                    status=resolution.status,
+                    code=resolution.code,
+                    name=codes[0]["name"] if codes else None,
+                    codes=codes,
+                    frequency=resolution.frequency,
+                    reason=resolution.reason,
+                    resolution=resolution,
+                ),
+            )
+        )
+    return rows
+
+
+def _print_backfill_report(rows: list[tuple[Dataset, _BackfillRow]], *, dry_run: bool) -> int:
+    """Print one line per dataset, the summaries and special codes; return the code."""
+    for _dataset, row in rows:
+        label = f"{row.code}({row.name})" if row.code is not None else "-"
+        line = f"{row.external_code} {row.status} {label} -> {row.frequency or '-'}"
+        if row.reason:
+            line = f"{line} {row.reason}"
+        print(line)
+    counts = Counter(row.status for _dataset, row in rows)
+    print("status: " + ", ".join(f"{status}={counts.get(status, 0)}" for status in STATUSES))
+    multiples = [row for _dataset, row in rows if row.status == "multiple"]
+    if multiples:
+        print(f"multiple ({len(multiples)}):")
+        for row in multiples:
+            codes = ", ".join(f"{code['id']}({code['name']})" for code in row.codes)
+            print(f"  {row.external_code}: {codes}")
+    specials = [
+        row
+        for _dataset, row in rows
+        if row.status == "single" and (row.code or "") not in _PLAIN_FREQ_CODES
+    ]
+    if specials:
+        print(f"special codes ({len(specials)}):")
+        for row in specials:
+            print(f"  {row.external_code}: {row.code}({row.name}) -> {row.frequency}")
+    if dry_run:
+        print("frequency-backfill (dry-run): nothing written")
+    return 1 if any(row.status != "single" for _dataset, row in rows) else 0
+
+
+def run_frequency_backfill(
+    datasets: list[Dataset],
+    client: Any,
+    *,
+    session: Session | None,
+    dry_run: bool,
+    workers: int,
+) -> int:
+    """Resolve the hidden FREQ codelist for every dataset and report.
+
+    Dry-run writes nothing. Write mode updates ONLY the frequency keys of
+    ``dataset.attributes`` (never ``upsert_dataset``, never dimensions) with the
+    Part 3 keep/drop rule, committing per dataset. Exit code 1 when any dataset
+    is not a clean ``single`` (so a run is never silently "clean").
+    """
+    rows = _backfill_rows(datasets, client, workers=max(1, workers))
+    if not dry_run:
+        if session is None:
+            raise ValueError("frequency-backfill write mode needs a database session")
+        checked_at = datetime.now(UTC).isoformat()
+        for dataset, row in rows:
+            if row.resolution is None:
+                continue
+            incoming = as_attributes(row.resolution, checked_at=checked_at)
+            dataset.attributes = _update_frequency_keys(dataset.attributes or {}, incoming)
+            session.commit()
+    return _print_backfill_report(rows, dry_run=dry_run)
+
+
+def _frequency_backfill_candidates(
+    session: Session, *, dataflow: str | None = None, limit: int | None = None
+) -> list[Dataset]:
+    """TÜİK databrowser2 datasets that currently cannot build a series."""
+    statement = (
+        select(Dataset)
+        .join(Institution, Institution.id == Dataset.institution_id)
+        .where(Institution.code == TuikConnector.institution_code)
+        .where(Dataset.attributes["channel"].astext == "databrowser2")
+        .options(selectinload(Dataset.dimensions).selectinload(DatasetDimension.codes))
+        .order_by(Dataset.id)
+    )
+    if dataflow:
+        statement = statement.where(Dataset.external_code == dataflow)
+    selected: list[Dataset] = []
+    for dataset in session.scalars(statement):
+        if _can_build_series(dataset):
+            continue
+        selected.append(dataset)
+        if limit is not None and len(selected) >= limit:
+            break
+    return selected
+
+
+def _cmd_frequency_backfill(
+    session: Session, connector: TuikConnector, args: argparse.Namespace
+) -> int:
+    from app.config import settings
+
+    datasets = _frequency_backfill_candidates(
+        session, dataflow=getattr(args, "dataflow", None), limit=getattr(args, "limit", None)
+    )
+    workers = getattr(args, "workers", None)
+    if workers is None:
+        workers = settings.tuik_max_concurrency
+    dry_run = bool(getattr(args, "dry_run", False))
+    print(f"frequency-backfill: {len(datasets)} datasets selected")
+    return run_frequency_backfill(
+        datasets,
+        connector.client,
+        session=None if dry_run else session,
+        dry_run=dry_run,
+        workers=max(1, workers),
+    )
+
+
 def _is_cip_command(args: argparse.Namespace) -> bool:
     if args.command == "cip-catalog":
         return True
@@ -2698,6 +2953,15 @@ def main(argv: list[str] | None = None) -> int:
         return _run_siniflama(args, dry_run)
     if _is_cip_command(args):
         return _run_cip(args, dry_run)
+    if args.command == "frequency-backfill":
+        connector = _build_connector("catalog", dry_run, [])
+        try:
+            from app.db.session import SessionLocal
+
+            with SessionLocal() as session:
+                return _cmd_frequency_backfill(session, connector, args)
+        finally:
+            connector.close()
 
     connector = _build_connector(args.command, dry_run, _known_for(args.command, dry_run))
     try:

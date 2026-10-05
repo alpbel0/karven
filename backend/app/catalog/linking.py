@@ -27,14 +27,27 @@ import argparse
 import json
 import logging
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
-from typing import Any, Protocol
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session, selectinload
 
+from app.catalog.jev_flow import (
+    MAX_CHOICE_OPTIONS,
+    ChoiceAnswer,
+    JevDecider,
+    JevFlowError,
+    _ask,
+    choice_question,
+    narrow_choice,
+    noul_question,
+    parse_choice,
+    parse_score,
+    select_dimension_code,
+)
 from app.catalog.mapping import (
     MappingError,
     mapping_from_json,
@@ -47,8 +60,10 @@ from app.data.models import CatalogLink, Dataset, DatasetDimension, Institution
 
 logger = logging.getLogger("app.catalog.linking")
 
-MAX_CHOICE_OPTIONS = 255
-MAX_HIERARCHY_DEPTH = 32
+#: Backwards-compatible alias: every ``except LinkingError`` still catches the
+#: shared flow error raised by :mod:`app.catalog.jev_flow`.
+LinkingError = JevFlowError
+
 SAME_SERIES_THRESHOLD = 0.75
 RELATED_THRESHOLD = 0.35
 
@@ -61,35 +76,6 @@ STATUS_ACCEPTED = "accepted"
 STATUS_REJECTED = "rejected"
 
 INDICATOR_DIMENSION = "INDICATOR"
-
-CHOICE_TYPE = "choice"
-NOUL_TYPE = "noul"
-
-
-class LinkingError(Exception):
-    """A linking flow failure (bad Jev answer, no candidates, ...)."""
-
-
-class JevDecider(Protocol):
-    """The subset of :class:`app.llm.jev.JevClient` linking needs."""
-
-    def decide(
-        self,
-        state: Any,
-        questions: dict[str, Any],
-        *,
-        prompt_ref: Any = None,
-    ) -> dict[str, Any]:
-        """Ask Jev a set of questions and return answers plus usage/provider."""
-
-
-@dataclass(frozen=True)
-class ChoiceAnswer:
-    """A parsed Jev choice answer."""
-
-    index: int
-    label: str
-    confidence: float
 
 
 @dataclass(frozen=True)
@@ -109,157 +95,8 @@ class LinkProposal:
     persisted: bool = False
 
 
-def choice_question(instructions: str, options: Sequence[str]) -> dict[str, Any]:
-    """A Jev ``choice`` question with at most 255 options.
-
-    Jev's ``choice`` question takes its options as a ``criteria`` object keyed by
-    the option label (verified live 2026-09-30). Option labels must be unique.
-    """
-    if not options:
-        raise LinkingError("choice question needs at least one option")
-    if len(options) > MAX_CHOICE_OPTIONS:
-        raise LinkingError(f"choice question has {len(options)} options (max {MAX_CHOICE_OPTIONS})")
-    criteria = {option: "" for option in options}
-    if len(criteria) != len(options):
-        raise LinkingError("choice question options must be unique")
-    return {"type": CHOICE_TYPE, "instructions": instructions, "criteria": criteria}
-
-
-def noul_question(instructions: str, criteria: dict[str, str]) -> dict[str, Any]:
-    """A Jev ``noul`` verification question returning a 0..1 match score."""
-    if not criteria:
-        raise LinkingError("noul question needs criteria")
-    return {"type": NOUL_TYPE, "instructions": instructions, "criteria": dict(criteria)}
-
-
-def parse_choice(answer: dict[str, Any], options: Sequence[str]) -> ChoiceAnswer:
-    """Parse a Jev choice answer tolerantly (label, index or free text)."""
-    if not isinstance(answer, dict):
-        raise LinkingError(f"choice answer is not an object: {answer!r}")
-    raw = answer.get("choice", answer.get("selected", answer.get("value")))
-    if raw is None:
-        for candidate in ("index", "position", "answer"):
-            if candidate in answer:
-                raw = answer[candidate]
-                break
-    if raw is None:
-        raise LinkingError(f"choice answer has no choice: {answer!r}")
-    index: int | None = None
-    if isinstance(raw, bool):
-        raise LinkingError(f"invalid choice {raw!r}")
-    if isinstance(raw, int):
-        index = raw
-    elif isinstance(raw, float):
-        index = int(raw)
-    else:
-        text = str(raw).strip()
-        if text.isdigit():
-            index = int(text)
-        else:
-            index = _match_option(text, options)
-    if index is None or index < 0 or index >= len(options):
-        raise LinkingError(f"choice answer {raw!r} is not one of the options")
-    confidence = _confidence(answer, default=1.0)
-    return ChoiceAnswer(index=index, label=options[index], confidence=confidence)
-
-
-def parse_score(answer: dict[str, Any]) -> tuple[float, float]:
-    """Parse a ``noul``/``score`` answer into ``(score, confidence)``."""
-    if not isinstance(answer, dict):
-        raise LinkingError(f"noul answer is not an object: {answer!r}")
-    raw = answer.get("score", answer.get("noul", answer.get("value", answer.get("probability"))))
-    if raw is None:
-        raise LinkingError(f"noul answer has no score: {answer!r}")
-    try:
-        score = float(raw)
-    except (TypeError, ValueError) as exc:
-        raise LinkingError(f"noul score {raw!r} is not numeric") from exc
-    return score, _confidence(answer, default=score)
-
-
-def _confidence(answer: dict[str, Any], *, default: float) -> float:
-    raw = answer.get("confidence")
-    if raw is None:
-        return default
-    try:
-        return float(raw)
-    except (TypeError, ValueError):
-        return default
-
-
-def _match_option(text: str, options: Sequence[str]) -> int | None:
-    lowered = text.casefold()
-    for index, option in enumerate(options):
-        if option.casefold() == lowered:
-            return index
-    for index, option in enumerate(options):
-        if lowered in option.casefold() or option.casefold() in lowered:
-            return index
-    return None
-
-
-def _ask(
-    jev: JevDecider,
-    state: Any,
-    question: dict[str, Any],
-    *,
-    prompt_ref: Any = None,
-) -> dict[str, Any]:
-    result = jev.decide(state, {"q": question}, prompt_ref=prompt_ref)
-    answers = result.get("answers") if isinstance(result, dict) else None
-    if not isinstance(answers, dict) or "q" not in answers:
-        raise LinkingError(f"Jev response missing an answer for {question!r}")
-    answer = answers["q"]
-    if not isinstance(answer, dict):
-        raise LinkingError(f"Jev answer is not an object: {answer!r}")
-    return answer
-
-
-def narrow_choice(
-    jev: JevDecider,
-    state: Any,
-    instruction: str,
-    items: Sequence[Any],
-    *,
-    labeler: Callable[[Any], str],
-    prompt_ref: Any = None,
-) -> tuple[Any, float]:
-    """Pick one item with choice questions, narrowing lists over 255 options.
-
-    Long lists are chunked into groups of at most 255 and the ``labeler`` names
-    each chunk by its first/last member; the flow then recurses into the chosen
-    chunk. This keeps every question within Jev's option limit.
-    """
-    if not items:
-        raise LinkingError(f"no candidates for: {instruction}")
-    if len(items) <= MAX_CHOICE_OPTIONS:
-        options = [labeler(item) for item in items]
-        answer = _ask(jev, state, choice_question(instruction, options), prompt_ref=prompt_ref)
-        parsed = parse_choice(answer, options)
-        return items[parsed.index], parsed.confidence
-    chunks = [
-        items[index : index + MAX_CHOICE_OPTIONS]
-        for index in range(0, len(items), MAX_CHOICE_OPTIONS)
-    ]
-    options = [
-        f"{labeler(chunk[0])} … {labeler(chunk[-1])} ({len(chunk)} seçenek)" for chunk in chunks
-    ]
-    answer = _ask(jev, state, choice_question(instruction, options), prompt_ref=prompt_ref)
-    parsed = parse_choice(answer, options)
-    return narrow_choice(
-        jev, state, instruction, chunks[parsed.index], labeler=labeler, prompt_ref=prompt_ref
-    )
-
-
 def _dataset_label(dataset: Dataset) -> str:
     return f"{dataset.name} [{dataset.external_code}]"
-
-
-def _code_label(dimension: DatasetDimension) -> Callable[[Any], str]:
-    def label(code: Any) -> str:
-        return f"{code.label} [{code.code}]"
-
-    return label
 
 
 def select_target_dataset(
@@ -298,53 +135,6 @@ def select_target_dataset(
         labeler=_dataset_label,
         prompt_ref=prompt_ref,
     )
-
-
-def _active_codes(dimension: DatasetDimension) -> list[Any]:
-    return [code for code in dimension.codes if not (code.attributes or {}).get("removed_at")]
-
-
-def select_dimension_code(
-    jev: JevDecider,
-    state: Any,
-    request: str,
-    dimension: DatasetDimension,
-    *,
-    prompt_ref: Any = None,
-) -> tuple[str, float, str]:
-    """Choose one code of ``dimension`` hierarchically (parent level first)."""
-    codes = _active_codes(dimension)
-    if not codes:
-        raise LinkingError(f"dimension {dimension.code!r} has no codes")
-    code_set = {code.code for code in codes}
-    roots = [code for code in codes if not code.parent_code or code.parent_code not in code_set]
-    if not roots:
-        roots = codes
-    chosen, confidence = narrow_choice(
-        jev,
-        state,
-        f"'{request}' için {dimension.label} seçin (üst düzey)",
-        roots,
-        labeler=_code_label(dimension),
-        prompt_ref=prompt_ref,
-    )
-    confidences = [confidence]
-    depth = 0
-    while depth < MAX_HIERARCHY_DEPTH:
-        depth += 1
-        children = [code for code in codes if code.parent_code == chosen.code]
-        if not children:
-            break
-        chosen, confidence = narrow_choice(
-            jev,
-            state,
-            f"'{request}' için {chosen.label} içinden {dimension.label} seçin",
-            children,
-            labeler=_code_label(dimension),
-            prompt_ref=prompt_ref,
-        )
-        confidences.append(confidence)
-    return str(chosen.code), min(confidences), str(chosen.label)
 
 
 def _ordered_dimensions(dataset: Dataset) -> list[DatasetDimension]:

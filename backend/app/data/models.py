@@ -34,7 +34,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 _FREQUENCY_CHECK = (
-    "frequency IN ('daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual', 'irregular')"
+    "frequency IN ('daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual', "
+    "'biennial', 'irregular')"
 )
 _FETCH_JOB_STATUS_CHECK = "status IN ('requested', 'fetching', 'completed', 'failed')"
 _ALERT_KIND_CHECK = "kind IN ('no_new_period', 'format_changed', 'repeated_failure')"
@@ -115,6 +116,9 @@ class Dataset(Base):
         Boolean, nullable=False, server_default=text("false"), default=False
     )
     cok_konulu_derleme: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    veri_yok: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=text("false"), default=False
     )
     donem_serisi: Mapped[bool] = mapped_column(
@@ -487,7 +491,6 @@ _REGION_LEVEL_CHECK = "level IN (" + ", ".join(f"'{level}'" for level in REGION_
 _LINK_RELATION_CHECK = "relation IN ('same_series', 'related')"
 _LINK_METHOD_CHECK = "method IN ('jev_proposed', 'manual')"
 _LINK_STATUS_CHECK = "status IN ('proposed', 'accepted', 'rejected')"
-
 
 
 class CatalogLink(Base):

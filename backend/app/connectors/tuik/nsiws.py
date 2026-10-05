@@ -185,7 +185,7 @@ def period_param(frequency: str | None, value: date) -> str:
         return f"{value.year:04d}-S{1 if value.month <= 6 else 2}"
     if frequency in ("daily", "weekly"):
         return value.isoformat()
-    if frequency == "annual":
+    if frequency in ("annual", "biennial"):
         return f"{value.year:04d}"
     return f"{value.year:04d}-{value.month:02d}"
 

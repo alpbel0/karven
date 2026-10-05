@@ -329,6 +329,10 @@ ENRICHMENT_OWNED_ATTRIBUTES = (
     "period_series_review",
     "measure_enrich_note",
     "dims_pending",
+    # Task 2.3 marker. The tags themselves live in ``dataset_tags``; this key only
+    # records when/what the Jev tagging pass scored, and a catalog refresh must
+    # not wipe it (otherwise ``app.catalog.tag run`` treats the dataset as untagged).
+    "tagging",
 )
 
 
@@ -339,6 +343,37 @@ def _preserve_channel_attributes(dataset: Dataset, incoming: dict[str, Any]) -> 
     for key in CHANNEL_OWNED_ATTRIBUTES:
         if key not in merged and key in existing:
             merged[key] = existing[key]
+    return merged
+
+
+def _merge_frequency_attributes(dataset: Dataset, merged: dict[str, Any]) -> dict[str, Any]:
+    """Keep or drop the stored frequency keys for a catalog refresh.
+
+    ``frequency_resolution`` (if any) is carried from the incoming side only.
+    ``default_frequency``/``frequency_source`` follow the Part 3 rules:
+
+    - the incoming attribute wins when it carries one (the source re-derived it
+      and it may have changed);
+    - a ``multiple``/``empty``/``unknown_code`` resolution drops a stale stored
+      value (it would now be wrong);
+    - a ``query_error`` resolution, or no resolution at all (another channel's
+      refresh, or no attempt), keeps the existing value: a failed query must not
+      delete valid information.
+    """
+    existing = dataset.attributes or {}
+    resolution = merged.get("frequency_resolution")
+    status = resolution.get("status") if isinstance(resolution, dict) else None
+
+    if "default_frequency" in merged:
+        return merged
+    if status in {"multiple", "empty", "unknown_code"}:
+        merged.pop("default_frequency", None)
+        merged.pop("frequency_source", None)
+        return merged
+    if "frequency_source" not in merged and "frequency_source" in existing:
+        merged["frequency_source"] = existing["frequency_source"]
+    if "default_frequency" not in merged and "default_frequency" in existing:
+        merged["default_frequency"] = existing["default_frequency"]
     return merged
 
 
@@ -357,6 +392,7 @@ def _merge_dataset_attributes(
             continue
         if key not in merged and key in existing:
             merged[key] = existing[key]
+    merged = _merge_frequency_attributes(dataset, merged)
     merged["source_description"] = source_description
     return merged
 

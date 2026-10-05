@@ -259,8 +259,7 @@ def test_dibs_archive_value_labels_are_fiyat_kur() -> None:
         combo.measure_type for combo in plan.combinations
     ]
     assert all(
-        combo.attributes.get("type_rule") == "dibs_benchmark_value"
-        for combo in plan.combinations
+        combo.attributes.get("type_rule") == "dibs_benchmark_value" for combo in plan.combinations
     )
 
 
@@ -441,11 +440,7 @@ def test_participant_count_before_percent_rule() -> None:
     combo = _tcmb_serie_combination(
         "Piyasa Katılımcıları Anketi",
         "BEKLENTİ VE EĞİLİM ANKETİ",
-        [
-            rules.CodeView(
-                "S", "2. Soruya Cevap Veren Firma Sayısı (Arşiv)", {"unit": "Yüzde"}
-            )
-        ],
+        [rules.CodeView("S", "2. Soruya Cevap Veren Firma Sayısı (Arşiv)", {"unit": "Yüzde"})],
     )
     assert combo.measure_type == "katilimci_sayisi"
 
@@ -454,11 +449,7 @@ def test_respondent_workplace_count_is_participant() -> None:
     combo = _tcmb_serie_combination(
         "Piyasa Katılımcıları Anketi",
         "BEKLENTİ VE EĞİLİM ANKETİ",
-        [
-            rules.CodeView(
-                "S", "6.Soruya yanıt veren işyeri sayısı", {"unit": "Yüzde"}
-            )
-        ],
+        [rules.CodeView("S", "6.Soruya yanıt veren işyeri sayısı", {"unit": "Yüzde"})],
     )
     assert combo.measure_type == "katilimci_sayisi"
 
@@ -686,9 +677,7 @@ def test_data_nature_survey_realised() -> None:
 
 
 def test_data_nature_survey_without_match_is_pending() -> None:
-    nature, _ = rules.data_nature_rule(
-        _survey_view("Sipariş Miktarı"), _ctx("Sipariş Miktarı")
-    )
+    nature, _ = rules.data_nature_rule(_survey_view("Sipariş Miktarı"), _ctx("Sipariş Miktarı"))
     assert nature is None
 
 
@@ -863,17 +852,29 @@ def test_serie_with_second_measure_dim_still_guarded() -> None:
 def test_is_owned_keeps_manual_and_reviewed_rows() -> None:
     from app.catalog.enrich import _combination_key, _is_owned
 
-    assert _is_owned(SimpleNamespace(attributes={"reviewed": True}, status="pending",
-                                     type_method=None, nature_method=None))
+    assert _is_owned(
+        SimpleNamespace(
+            attributes={"reviewed": True}, status="pending", type_method=None, nature_method=None
+        )
+    )
     # accepted / Jev / rule do NOT protect a stale row.
-    assert not _is_owned(SimpleNamespace(attributes={}, status="accepted",
-                                         type_method="jev", nature_method="jev"))
-    assert not _is_owned(SimpleNamespace(attributes={}, status="accepted",
-                                         type_method="rule", nature_method="rule"))
-    assert _is_owned(SimpleNamespace(attributes={}, status="pending",
-                                     type_method="manual", nature_method=None))
-    assert _is_owned(SimpleNamespace(attributes={"currency_method": "manual"},
-                                     status="pending", type_method=None, nature_method=None))
+    assert not _is_owned(
+        SimpleNamespace(attributes={}, status="accepted", type_method="jev", nature_method="jev")
+    )
+    assert not _is_owned(
+        SimpleNamespace(attributes={}, status="accepted", type_method="rule", nature_method="rule")
+    )
+    assert _is_owned(
+        SimpleNamespace(attributes={}, status="pending", type_method="manual", nature_method=None)
+    )
+    assert _is_owned(
+        SimpleNamespace(
+            attributes={"currency_method": "manual"},
+            status="pending",
+            type_method=None,
+            nature_method=None,
+        )
+    )
     assert _combination_key({"B": "2", "A": "1"}) == _combination_key({"A": "1", "B": "2"})
 
 
@@ -995,6 +996,45 @@ def test_revizyon_and_compilation_flags() -> None:
     assert not rules.is_cok_konulu_derleme(rules.DatasetView("tcmb", "TCMB", "bie_bekodtufe", "t"))
 
 
+def _portal_view(
+    *,
+    channel: str = "veriportali",
+    downloadable: bool = False,
+    dimensions: tuple[rules.DimensionView, ...] = (),
+) -> rules.DatasetView:
+    return rules.DatasetView(
+        "tuik",
+        "TÜİK",
+        "DF_PORTAL",
+        "Bir Rapor",
+        attributes={
+            "channel": channel,
+            "veriportali": {"downloadable": downloadable, "id": "DF_PORTAL+V1.0"},
+        },
+        dimensions=dimensions,
+    )
+
+
+def test_is_veri_yok_truth_table() -> None:
+    # veriportali + downloadable False + no non-time dimension -> True
+    assert rules.is_veri_yok(_portal_view()) is True
+    # A time dimension does not make the dataset buildable.
+    time_dim = rules.DimensionView("TIME_PERIOD", "Zaman", "time")
+    assert rules.is_veri_yok(_portal_view(dimensions=(time_dim,))) is True
+    # downloadable True -> False
+    assert rules.is_veri_yok(_portal_view(downloadable=True)) is False
+    # has a non-time dimension -> False
+    measure = rules.DimensionView("INDICATOR", "Gösterge", "other")
+    assert rules.is_veri_yok(_portal_view(dimensions=(measure,))) is False
+    # a databrowser2 dataset -> False (even if it has a portal record)
+    assert rules.is_veri_yok(_portal_view(channel="databrowser2")) is False
+    # no portal record at all -> False
+    no_portal = rules.DatasetView(
+        "tuik", "TÜİK", "DF_PORTAL", "Bir Rapor", attributes={"channel": "veriportali"}
+    )
+    assert rules.is_veri_yok(no_portal) is False
+
+
 # --------------------------------------------------------------------------- #
 # Period-series grouping
 # --------------------------------------------------------------------------- #
@@ -1050,9 +1090,7 @@ def test_turkish_frequency_translation() -> None:
 def test_dataset_description_omits_missing_parts() -> None:
     view = rules.DatasetView("tuik", "TÜİK", "x", "Nüfus")
     assert rules.dataset_description("TÜİK", view) == "TÜİK"
-    with_parts = rules.dataset_description(
-        "TÜİK", view, frequencies=["aylık"], units=["Kişi"]
-    )
+    with_parts = rules.dataset_description("TÜİK", view, frequencies=["aylık"], units=["Kişi"])
     assert with_parts == "TÜİK · aylık · Kişi"
 
 
@@ -1142,6 +1180,7 @@ def test_compute_dataset_plan_enumerates_and_flags() -> None:
     assert all(combo.codes.keys() == {"INDICATOR", "DEGISIM"} for combo in plan.combinations)
     assert plan.mevsim_arindirilmis == ("ham",)
     assert plan.revizyon_tablosu is False
+    assert plan.veri_yok is False
 
 
 def test_compute_dataset_plan_single_empty_combination_for_no_measure() -> None:
@@ -1151,9 +1190,7 @@ def test_compute_dataset_plan_single_empty_combination_for_no_measure() -> None:
         "TÜİK",
         "D0",
         "Bir Şey",
-        dimensions=(
-            rules.DimensionView("FREQ", "Sıklık", "frequency", codes=()),
-        ),
+        dimensions=(rules.DimensionView("FREQ", "Sıklık", "frequency", codes=()),),
     )
     plan = rules.compute_dataset_plan(view, tree)
     assert len(plan.combinations) == 1

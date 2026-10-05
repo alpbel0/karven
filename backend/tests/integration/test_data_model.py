@@ -301,3 +301,50 @@ def test_only_one_active_fetch_job_per_series() -> None:
         )
         session.commit()
         assert second.id != first_id
+
+
+def test_biennial_series_is_accepted_and_period_alignment_is_enforced() -> None:
+    """Migration 0020 widened the frequency check; biennial uses January 1 periods.
+
+    Nothing is committed: observations are immutable, and a committed ``biennial``
+    series would (correctly) make the 0020 downgrade refuse in the migration
+    round-trip tests that share this database.
+    """
+    with SessionLocal() as session:
+        institution = _make_institution(session, _unique("inst"))
+        series = _make_series(session, institution.id, _unique("ext"), frequency=periods.BIENNIAL)
+        result = record_observations(
+            session,
+            series.id,
+            [(date(2020, 1, 1), Decimal("1.5")), (date(2022, 1, 1), Decimal("2.5"))],
+            fetched_at=datetime.now(UTC),
+        )
+        assert result.inserted == 2
+        assert series.frequency == "biennial"
+
+        with pytest.raises(periods.PeriodError):
+            record_observations(
+                session,
+                series.id,
+                [(date(2024, 7, 1), Decimal("3.5"))],
+                fetched_at=datetime.now(UTC),
+            )
+        session.rollback()
+
+
+def test_series_frequency_check_still_rejects_unknown_values() -> None:
+    with SessionLocal() as session:
+        institution = _make_institution(session, _unique("inst"))
+        dataset = _make_dataset(session, institution.id, _unique("ds"))
+        session.add(
+            Series(
+                institution_id=institution.id,
+                dataset_id=dataset.id,
+                external_code=_unique("ext"),
+                name="bogus",
+                frequency="fortnightly",
+            )
+        )
+        with pytest.raises(IntegrityError):
+            session.flush()
+        session.rollback()

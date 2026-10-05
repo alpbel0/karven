@@ -428,6 +428,7 @@ def test_period_param_formats_by_frequency() -> None:
     assert period_param("monthly", date(2025, 3, 1)) == "2025-03"
     assert period_param("quarterly", date(2025, 7, 1)) == "2025-Q3"
     assert period_param("annual", date(2009, 1, 1)) == "2009"
+    assert period_param("biennial", date(2020, 1, 1)) == "2020"
     assert period_param("daily", date(2025, 3, 4)) == "2025-03-04"
     assert period_param(None, date(2025, 3, 1)) == "2025-03"
 

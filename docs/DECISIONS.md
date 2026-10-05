@@ -335,6 +335,58 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
 - Embedding ile sıralama yalnızca ölçüm yetersiz çıkarsa eklenir; o durumda
   model OpenRouter'daki `openai/text-embedding-3-large` olur.
 - Arama kalitesi **30-40 sorguluk** bir test setiyle ölçülür, sonra büyütülür.
+- **Arama kararları (Task 2.4, 2026-10-04/05; kullanıcı kararları):**
+  - Araç `find_series(request)` (`backend/app/catalog/search.py`, CLI `python -m app.catalog.search
+    "<istek>" [--trace] [--json]`); ortak Jev parçaları `jev_flow.py`'de (`linking.py` aynı parçaları
+    kullanır, davranışı değişmedi).
+  - **Salt okunur:** arama hiçbir şey yazmaz; ajana seri **tarifi** döner (kurum, veri seti, kırılım
+    kodları, ad, frekans, birim, ölçü bilgisi, p4+p5, `arsiv`, `uyumsuzluk`, varsa `series_id`). Seri
+    satırını veri çekme (`ensure_series`) ilk kullanımda yazar.
+  - **1-5 puan kuralı:** Jev `score` cevabında `score` 0-4 aralığındadır (1-5 değil); karar
+    `probabilities` ile verilir: **p(4)+p(5) ≥ 0,60** geçer (dal, yaprak, veri seti, son doğrulama).
+    Kural değerleri `.env`/`Settings.search_*`.
+  - Sınır: en fazla 4 arama, `tool_loop` içinde araç başına (`tool_limits`), ajan prompt'unda da
+    söylenir; Jev hatası `search_failed` döner ve hakkı yemez (`budget_refund`).
+  - Çıktı: `strong` (≤3) ve `candidates`; toplam ≤3. Frekans/kırılım uyumsuzluğu `uyumsuzluk`
+    notudur (`frekans`, `genel_uyum_dusuk`, `veri_seti_dusuk_uyum`); güçlü yoksa `no_strong_match`.
+  - **Arşiv:** varsayılan dışlanır; güçlü sonuç yoksa aynı çağrıda arşivle genişler (`arsiv: true`).
+    `revizyon_tablosu` her zaman dışlanır.
+  - **Yakın aday:** güçlü yoksa veri seti p4+p5 ≥ 0,15 olan en fazla 2 veri seti seri aşamasına
+    gider (`veri_seti_dusuk_uyum`). Alakasız istekler dal aşamasında kapanır (kedi / uydu sayısı).
+  - **Kırılım seçimi:** her kırılım hiyerarşik Jev seçimi; "istek bu kırılımdan söz etmiyorsa
+    toplamı seçin" cümlesi sorudadır. Çocuklu her kodda aramaya özel bir "bu düzeyde kal / alt
+    kırılıma in" sorusu vardır (dış inceleme bulgusu: üst kodda duramama); `linking.py` değişmedi.
+    Tek kodlu kırılım Jev'e sorulmaz. Güven < 0,60 ise EVREN isteği 2 farklı cümleyle yeniden yazar
+    (kırılım adı anılmaz, istek başına bir kez), Jev anlam kaymasını denetler, cevaplar uyuşursa
+    kabul, uyuşmazsa en iyi 2 kod aday kalır.
+  - **Canlı sonuç (2026-10-05):** kabul sorgusu `DF_SATIS_SEKLI_SATIS_DURUMU_V3:M._T.TR.3._T.MII_KSS`
+    (p=0,71, ~21 sn/arama). Diğer sorgular: TÜFE, dolar kuru, il GSYH, "toplam imalat" (`C`'de durur),
+    "gıda imalatı" (`C10`'a iner), Kayseri otomotiv (yakın aday + uyumsuzluk), kedi / uydu sayısı
+    (eşleşme yok). Parçalı puanlama canlıda doğrulandı (45 veri seti, parça=20: aynı veri setleri,
+    güçlü sonuçlar aynı, p farkı ≤0,09). Entegrasyon 108/108, birim 1144.
+  - **Frekans boşluğu (Task 2.4b, 2026-10-05, canlı):** 131/883 veri setinden seri kurulamıyordu.
+    - **databrowser2, 90 veri seti:** frekans kaynakta gizli `FREQ` boyutunda; bağlayıcı bu boyutun kod
+      listesini sorar (`connectors/tuik/frequency.py`, `resolve_frequency`). Tek geçerli kod
+      `attributes['default_frequency']` (+ `frequency_source`, `frequency_resolution`) olur; birden çok
+      kod, boş liste, sorgu hatası ve tanınmayan kod ayrı nedenle raporlanır, tek frekansa indirgenmez.
+      Başarısız sorgu mevcut değeri silmez; kaynak "çoklu/boş/tanınmayan" derse eski değer düşer
+      (`_merge_frequency_attributes`). Tek mantığı bağlayıcı ve `python -m app.connectors.tuik
+      frequency-backfill [--dry-run]` komutu paylaşır; yalnız kod listeleri sorulur, gözlem değeri çekilmez.
+      Sonuç: 90/90 tek kod (88 yıllık, 2 aylık).
+    - **Yeni `biennial` frekansı (kullanıcı kararı):** 28 atık/atıksu anketi SDMX `A2` ("Biennial",
+      iki yılda bir) ile yayımlanır; `periods.py`'ye `biennial` eklendi (1 Ocak hizası, yıl paritesi
+      zorlanmaz), `A2` ilk harf kuralından önce eşlenir, migration 0020 `series` frekans kısıtını genişletir
+      (downgrade biennial seri varken reddeder). Yenileme gün tablosu 731, Türkçe etiket "iki yılda bir".
+    - **veriportali, 41 veri seti:** boyutsuz, kapsamsız, `downloadable=false` rapor girdileri; frekans
+      uygulanamaz. Kullanıcı kararı: `veri_yok` bayrağı (migration 0019, kural `is_veri_yok`, her kural
+      geçişinde kaynaktan yeniden hesaplanır) ve aramadan dışlama; kayıt silinmez.
+    - **Ek düzeltme:** `attributes['tagging']` her katalog yenilemesinde siliniyordu (Task 2.3 işareti);
+      koruma listesine eklendi.
+    - Canlı doğrulama: katalog yenilemesi sonrası değerler aynı, `checked_at` kaynaktan yenilendi, `tagging`
+      883/883; seri kurulamayan işaretsiz veri seti 0; `DF_MEVSIM_TAKVIM_V3` aramada serisiyle çıkıyor.
+      Entegrasyon 113/113, birim 1196.
+  - Ölçülecekler (Task 2.6): Jev puanlarının koşular arası oynaklığı (aynı veri seti 0,58 ↔ 0,77),
+    düşük güvenli kırılımların ('KONUT_ISYERI_GSTERGE' 0,23-0,40) doğruluğu, "il GSYH" sorgusu.
 
 ## 8. İlişki testi
 

@@ -670,9 +670,7 @@ def is_survey_dataset(view: DatasetView) -> bool:
     """True when the dataset looks like a survey/expectation questionnaire."""
     haystack = fold(
         " ".join(
-            part
-            for part in (view.name, view.source_category, _category_path_text(view))
-            if part
+            part for part in (view.name, view.source_category, _category_path_text(view)) if part
         )
     )
     return any(marker in haystack for marker in _SURVEY_MARKERS)
@@ -789,9 +787,7 @@ def detect_currency(text: str) -> str | None:
     return None
 
 
-def currency_rule(
-    measure_type: str | None, text: str
-) -> tuple[str | None, dict[str, Any]]:
+def currency_rule(measure_type: str | None, text: str) -> tuple[str | None, dict[str, Any]]:
     """Resolve currency for a combination and the attribute markers to store."""
     detected = detect_currency(text)
     if measure_type in MONETARY_TYPES:
@@ -916,6 +912,23 @@ def is_revizyon_tablosu(view: DatasetView) -> bool:
     return _has(haystack, "revision history", "revizyon gecmisi", "revizyon tablosu")
 
 
+def is_veri_yok(view: DatasetView) -> bool:
+    """True for a Veri Portalı report dataset whose data cannot be downloaded.
+
+    A portal-only dataset has ``attributes['channel'] == 'veriportali'`` and its
+    portal record says ``downloadable`` is false; it carries no non-time
+    dimension, so no series can be built. The flag is re-derived from the source
+    attributes every run, so it flips back when the dataset becomes downloadable
+    or gains dimensions.
+    """
+    if view.attributes.get("channel") != "veriportali":
+        return False
+    portal = view.attributes.get("veriportali")
+    if not isinstance(portal, dict) or portal.get("downloadable") is not False:
+        return False
+    return not any(dimension.role != "time" for dimension in view.dimensions)
+
+
 def is_cok_konulu_derleme(view: DatasetView) -> bool:
     return view.external_code in COMPILATION_CODES
 
@@ -987,6 +1000,7 @@ _FREQUENCY_TR = {
     "quarterly": "çeyreklik",
     "semiannual": "altı aylık",
     "annual": "yıllık",
+    "biennial": "iki yılda bir",
     "irregular": "düzensiz",
 }
 _FREQUENCY_TR_FOLDED = {fold(key): value for key, value in _FREQUENCY_TR.items()}
@@ -1112,6 +1126,7 @@ class DatasetPlan:
     revizyon_tablosu: bool
     arsiv: bool
     cok_konulu_derleme: bool
+    veri_yok: bool
     mevsim_arindirilmis: tuple[str, ...]
     para_birimi: tuple[str, ...]
     nominal_mi: tuple[str, ...]
@@ -1177,9 +1192,7 @@ def _combination_context(
     tier_b_text = fold(" | ".join(part for part in (" | ".join(tier_b_labels), unit_text) if part))
     text = fold(" | ".join(part for part in (label, unit_text, view.name) if part))
     category_fold = fold(
-        " ".join(
-            part for part in (view.source_category, _category_path_text(view)) if part
-        )
+        " ".join(part for part in (view.source_category, _category_path_text(view)) if part)
     )
     return TypeContext(
         label_fold=fold(label),
@@ -1373,6 +1386,7 @@ def compute_dataset_plan(view: DatasetView, tree: ConceptTree) -> DatasetPlan:
         revizyon_tablosu=is_revizyon_tablosu(view),
         arsiv=is_arsiv(view),
         cok_konulu_derleme=is_cok_konulu_derleme(view),
+        veri_yok=is_veri_yok(view),
         mevsim_arindirilmis=tuple(sorted(seasonal)),
         para_birimi=currencies,
         nominal_mi=nominal,
@@ -1418,6 +1432,7 @@ __all__ = [
     "is_cok_konulu_derleme",
     "is_revizyon_tablosu",
     "is_survey_dataset",
+    "is_veri_yok",
     "measure_type_rule",
     "nominal_rule",
     "normalize_currency",

@@ -847,6 +847,169 @@ def test_dataset_meta_catalogues_hidden_data_dimensions() -> None:
     assert meta.coverage_end == date(2026, 8, 1)
 
 
+FREQ_HIDDEN_META = DataflowInfo(
+    dataflow_id="DF_HIDDEN_FREQ",
+    version="1.0",
+    agency="TR",
+    title="Hidden freq",
+    description=None,
+    source_category=None,
+)
+
+
+def _hidden_freq_handler(freq_values: list[dict[str, Any]], calls: list[str] | None = None):
+    """A dataflow whose FREQ is hidden-only, with a canned FREQ codelist."""
+
+    json_headers = {"content-type": "application/json"}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = path_of(request)
+        if path.endswith("/structure"):
+            return httpx.Response(
+                200,
+                json={
+                    "timeDimension": "TIME_PERIOD",
+                    "criteria": [{"id": "INDICATOR"}, {"id": "TIME_PERIOD"}],
+                    "template": {"hiddenDimensions": ["FREQ"]},
+                },
+                headers=json_headers,
+            )
+        if path.endswith("/data"):
+            return httpx.Response(
+                200,
+                json={
+                    "id": ["INDICATOR", "TIME_PERIOD"],
+                    "size": [1, 1],
+                    "role": {"time": ["TIME_PERIOD"]},
+                    "dimension": {
+                        "INDICATOR": {"label": "Indicator"},
+                        "TIME_PERIOD": {"label": "Time"},
+                    },
+                },
+                headers=json_headers,
+            )
+        if "/PartialCodelists/" in path:
+            dimension = path.rsplit("/", 1)[1]
+            if calls is not None:
+                calls.append(dimension)
+            if dimension == "FREQ":
+                return httpx.Response(
+                    200,
+                    json={
+                        "criteria": [{"id": "FREQ", "label": "CL_SIKLIK", "values": freq_values}],
+                        "obsCount": 1,
+                    },
+                    headers=json_headers,
+                )
+            if dimension == "TIME_PERIOD":
+                return httpx.Response(
+                    200,
+                    json={"criteria": [{"id": "TIME_PERIOD", "values": []}]},
+                    headers=json_headers,
+                )
+            return httpx.Response(
+                200,
+                json={
+                    "criteria": [{"id": dimension, "values": [{"id": "X", "isSelectable": True}]}]
+                },
+                headers=json_headers,
+            )
+        raise AssertionError(path)
+
+    return handler
+
+
+def test_dataset_meta_resolves_hidden_freq_and_writes_attributes() -> None:
+    store = InMemoryObjectStore()
+    calls: list[str] = []
+    handler = _hidden_freq_handler(
+        [{"id": "M", "name": "Monthly", "isSelectable": True}], calls=calls
+    )
+    connector = build_connector(handler, store)
+
+    meta = connector.dataset_meta(FREQ_HIDDEN_META)
+
+    assert "FREQ" in calls  # the codelist WAS queried
+    assert "FREQ" in meta.attributes["hidden_dimensions"]
+    assert meta.attributes["default_frequency"] == "monthly"
+    assert meta.attributes["frequency_resolution"]["status"] == "single"
+    assert meta.attributes["frequency_source"]["code"] == "M"
+    assert meta.source_incomplete is False
+
+
+def test_dataset_meta_hidden_freq_multiple_does_not_flag_incomplete() -> None:
+    store = InMemoryObjectStore()
+    handler = _hidden_freq_handler(
+        [
+            {"id": "M", "name": "Monthly", "isSelectable": True},
+            {"id": "A", "name": "Annual", "isSelectable": True},
+        ]
+    )
+    connector = build_connector(handler, store)
+
+    meta = connector.dataset_meta(FREQ_HIDDEN_META)
+
+    assert meta.attributes["frequency_resolution"]["status"] == "multiple"
+    assert "default_frequency" not in meta.attributes
+    assert meta.source_incomplete is False
+
+
+def test_dataset_meta_real_freq_dimension_does_not_query_hidden_codelist() -> None:
+    store = InMemoryObjectStore()
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = path_of(request)
+        json_headers = {"content-type": "application/json"}
+        if path.endswith("/structure"):
+            return httpx.Response(
+                200,
+                json={
+                    "timeDimension": "TIME_PERIOD",
+                    "criteria": [{"id": "FREQ"}, {"id": "TIME_PERIOD"}],
+                    "template": {"hiddenDimensions": []},
+                },
+                headers=json_headers,
+            )
+        if path.endswith("/data"):
+            return httpx.Response(
+                200,
+                json={
+                    "id": ["FREQ", "TIME_PERIOD"],
+                    "size": [1, 1],
+                    "role": {"time": ["TIME_PERIOD"]},
+                    "dimension": {
+                        "FREQ": {"label": "Frequency"},
+                        "TIME_PERIOD": {"label": "Time"},
+                    },
+                },
+                headers=json_headers,
+            )
+        if "/PartialCodelists/" in path:
+            dimension = path.rsplit("/", 1)[1]
+            calls.append(dimension)
+            return httpx.Response(
+                200,
+                json={
+                    "criteria": [
+                        {
+                            "id": dimension,
+                            "values": [{"id": "M", "name": "Monthly", "isSelectable": True}],
+                        }
+                    ]
+                },
+                headers=json_headers,
+            )
+        raise AssertionError(path)
+
+    connector = build_connector(handler, store)
+    meta = connector.dataset_meta(FREQ_HIDDEN_META)
+
+    assert calls.count("FREQ") == 1  # only the real data-dimension codelist
+    assert "frequency_resolution" not in meta.attributes
+    assert any(dim.code == "FREQ" for dim in meta.dimensions)
+
+
 def test_dataset_meta_marks_unverifiable_data_dimensions() -> None:
     store = InMemoryObjectStore()
     connector = build_connector(yiufe_handler(probe_ok=False), store)

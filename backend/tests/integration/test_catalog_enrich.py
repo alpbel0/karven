@@ -392,6 +392,7 @@ def test_migration_0018_downgrade_and_upgrade_round_trip() -> None:
             columns = {column["name"] for column in inspector.get_columns("datasets")}
             assert "revizyon_tablosu" not in columns
             assert "donem_serisi" not in columns
+            assert "veri_yok" not in columns
             dimension_columns = {
                 column["name"] for column in inspector.get_columns("dataset_dimensions")
             }
@@ -402,3 +403,5 @@ def test_migration_0018_downgrade_and_upgrade_round_trip() -> None:
         inspector = sa.inspect(session.get_bind())
         assert inspector.has_table("measure_combinations")
         assert inspector.has_table("dataset_tags")
+        columns = {column["name"] for column in inspector.get_columns("datasets")}
+        assert "veri_yok" in columns

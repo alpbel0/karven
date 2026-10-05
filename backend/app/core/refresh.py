@@ -69,6 +69,7 @@ FREQUENCY_DAYS = {
     "quarterly": 92,
     "semiannual": 183,
     "annual": 366,
+    "biennial": 731,
     "irregular": 366,
 }
 

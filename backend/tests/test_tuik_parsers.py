@@ -133,7 +133,13 @@ def test_parse_value_rejects_garbage() -> None:
 
 @pytest.mark.parametrize(
     ("code", "expected"),
-    [("M", "monthly"), ("Q", "quarterly"), ("A", "annual"), ("A2", "annual"), ("S", "semiannual")],
+    [
+        ("M", "monthly"),
+        ("Q", "quarterly"),
+        ("A", "annual"),
+        ("A2", "biennial"),
+        ("S", "semiannual"),
+    ],
 )
 def test_frequency_for_code(code: str, expected: str) -> None:
     assert frequency_for_code(code) == expected
