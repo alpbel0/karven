@@ -15,9 +15,9 @@ adları ve meta bilgisi görür. Arama kalitesi küçük bir test setiyle ölç�
 **Durum:** Tamamlandı (kullanıcı onayladı, 2026-10-04); deneme etiketlemesi Task 2.3'te
 **Bağımlılıklar:** —
 
-**Referanslar:** `docs/catalog/concept-tree.yaml`, `docs/catalog/concept-tree-draft.md` (eski), `docs/DECISIONS.md` §7
+**Referanslar:** `backend/app/catalog/concept_tree.yaml`, `docs/catalog/concept-tree-draft.md` (eski), `docs/DECISIONS.md` §7
 
-**Hedef dosyalar:** `docs/catalog/concept-tree.yaml`, `backend/tests/test_catalog_concept_tree.py`
+**Hedef dosyalar:** `backend/app/catalog/concept_tree.yaml`, `backend/tests/test_catalog_concept_tree.py`
 
 ### Checklist
 
@@ -26,7 +26,7 @@ adları ve meta bilgisi görür. Arama kalitesi küçük bir test setiyle ölç�
 - [x] Arama için gerekli etiket gruplarının (konu, ölçüm türü, veri niteliği; coğrafya
       vb. kırılım/meta) ağaçta yer aldığını doğrula. Opus 5.5 + Codex gpt-6-astra 2 tur inceledi.
 - [x] Onaylanan ağacı makinece okunabilir bir dosya olarak da sakla
-      (`concept-tree.yaml` + bütünlük testi).
+      (`concept_tree.yaml` + bütünlük testi).
 - [ ] Gerçek TÜİK/TCMB/HMB veri setleri v2.1 etiketlerine karşı deneme etiketlemesinde
       (Task 2.3 kalibrasyonu) çakışma/boşluk için tekrar gözden geçirilir.
 
@@ -37,24 +37,28 @@ tanımı var.
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (canlıda doğrulandı, 2026-10-04)
 **Bağımlılıklar:** Task 1.2, Task 1.3, Task 2.1
 
-**Referanslar:** `docs/DECISIONS.md` §7, `docs/catalog/concept-tree.yaml`
+**Referanslar:** `docs/DECISIONS.md` §7 (Katalog zenginleştirme), §8, `backend/app/catalog/concept_tree.yaml`
 
-**Hedef dosyalar:** Faz 0 yapısına göre belirlenir.
+**Hedef dosyalar:** `backend/app/catalog/enrich*.py`, `tree.py`, `status.py`, `prompts/`,
+migration `0018_catalog_enrichment.py`
 
 ### Checklist
 
-- [ ] TÜİK ve TCMB seri listelerini tek katalogda topla (meta bilgisiyle).
-- [ ] Her seri için etiketler ve okuyucu için tek cümlelik açıklama alanı (açıklama
-      aramada kullanılmaz).
-- [ ] Serinin yüklü mü yoksa talep üzerine çekilebilir mi olduğunu tut.
-- [ ] Veri seti meta bayraklarını kaynak bilgisinden doldur: `revizyon_tablosu`,
-      `mevsim_arindirilmis`, `para_birimi`, `nominal_mi`, `donem_serisi`, `arsiv`,
-      `cok_konulu_derleme` (2026-10-04'te DB'de hiçbirinde dolu değildi).
-- [ ] Ölçü boyutu kodlarını bir kez ölçüm türüne (`measure_types`) ve gerekirse
-      veri niteliğine eşle; kaynağın kendi toplama yöntemi varsa onu sakla.
+- [x] TÜİK ve TCMB seri listelerini tek katalogda topla (meta bilgisiyle). Faz 1'de
+      kuruldu: 883 veri seti (TÜİK 616, TCMB 243, HMB 24) + boyut kod listeleri.
+- [x] Etiket alanı (`dataset_tags`, Task 2.3 doldurur) ve okuyucu açıklaması (veri seti
+      düzeyinde şablon; 883/883 dolu; kaynağın açıklaması `source_description`'da).
+- [x] Yüklü mü / talep üzerine mi: saklanmaz, gözlemlerden hesaplanır (`catalog/status.py`).
+- [x] Veri seti meta bayrakları dolu ve testli (883/883 `flags_checked_at`): arsiv 63,
+      revizyon_tablosu 16, cok_konulu_derleme 7, donem_serisi 25; para birimi / nominal /
+      mevsim kümeleri ölçü birleşimlerinden.
+- [x] Ölçü birleşimleri türe, veri niteliğine, toplama kuralına, para birimine ve
+      nominal/reel'e eşlendi: 30.994 birleşim, hepsi kabul (kural 18.773, Jev 11.877,
+      elle 344); TCMB toplama yöntemi `source_aggregation`'da. Rastgele 50 örnekte tür 50/50
+      doğru (kontrol sırasında bulunan nominal hatası düzeltildi).
 
 **Kabul kriteri:** İki kurumun seri listesi katalogda; her seri kurum, frekans
 ve birim bilgisiyle sorgulanabiliyor; meta bayrakları dolu ve testle denetleniyor.
@@ -66,7 +70,7 @@ ve birim bilgisiyle sorgulanabiliyor; meta bayrakları dolu ve testle denetleniy
 **Durum:** Başlamadı
 **Bağımlılıklar:** Task 2.2, Task 0.5
 
-**Referanslar:** `docs/DECISIONS.md` §7, `docs/catalog/concept-tree.yaml`
+**Referanslar:** `docs/DECISIONS.md` §7, `backend/app/catalog/concept_tree.yaml`
 
 **Hedef dosyalar:** Faz 0 yapısına göre belirlenir.
 
@@ -97,7 +101,7 @@ rastgele 50 veri setinde etiketler elle kontrol edilmiş.
 **Durum:** Başlamadı
 **Bağımlılıklar:** Task 2.3
 
-**Referanslar:** `docs/DECISIONS.md` §7 (arama akışı), `docs/catalog/concept-tree.yaml`
+**Referanslar:** `docs/DECISIONS.md` §7 (arama akışı), `backend/app/catalog/concept_tree.yaml`
 
 **Hedef dosyalar:** Faz 0 yapısına göre belirlenir.
 

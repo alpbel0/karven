@@ -16,6 +16,7 @@ dependencies = [
     "websockets>=15",
     "celery[redis]",
     "trafilatura>=2.3.0",
+    "pyyaml>=6",
 ]
 
 [dependency-groups]

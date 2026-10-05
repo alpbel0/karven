@@ -28,7 +28,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -47,6 +47,19 @@ _FAILURE_CATEGORY_CHECK = (
     "'transient', 'unknown')"
 )
 _FAILURE_OUTCOME_CHECK = "outcome IN ('retry_requested', 'recorded', 'agent_error')"
+
+# Catalog enrichment (Task 2.2).
+_DATASET_TAG_LEVEL_CHECK = "level IN ('leaf', 'branch')"
+_DATASET_TAG_SOURCE_CHECK = "source IN ('jev', 'manual')"
+_DATASET_TAG_STATUS_CHECK = "status IN ('accepted', 'review', 'rejected')"
+_MEASURE_SOURCE_CHECK = "measure_source IN ('rule', 'jev', 'manual')"
+_MEASURE_COMBINATION_NATURE_CHECK = "data_nature IN ('gerceklesen', 'beklenti', 'tahmin')"
+_MEASURE_COMBINATION_AGGREGATION_CHECK = (
+    "aggregation IN ('toplam', 'ortalama', 'donem_sonu', 'yeniden_hesapla', 'test_disi')"
+)
+_MEASURE_COMBINATION_METHOD_CHECK = "type_method IN ('rule', 'jev', 'manual')"
+_MEASURE_COMBINATION_NATURE_METHOD_CHECK = "nature_method IN ('rule', 'jev', 'manual')"
+_MEASURE_COMBINATION_STATUS_CHECK = "status IN ('pending', 'accepted', 'review')"
 _JSON_OBJECT_DEFAULT = text("'{}'::jsonb")
 _JSON_ARRAY_DEFAULT = text("'[]'::jsonb")
 _EMPTY_OBJECT = dict
@@ -95,6 +108,31 @@ class Dataset(Base):
         Boolean, nullable=False, server_default=text("false"), default=False
     )
     source_incomplete_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    revizyon_tablosu: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    arsiv: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    cok_konulu_derleme: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    donem_serisi: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    donem_serisi_grubu: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mevsim_arindirilmis: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default=text("'{}'::text[]"), default=_EMPTY_LIST
+    )
+    para_birimi: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default=text("'{}'::text[]"), default=_EMPTY_LIST
+    )
+    nominal_mi: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default=text("'{}'::text[]"), default=_EMPTY_LIST
+    )
+    flags_checked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     attributes: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
     )
@@ -108,6 +146,14 @@ class Dataset(Base):
     dimensions: Mapped[list[DatasetDimension]] = relationship(
         back_populates="dataset",
         order_by="DatasetDimension.position",
+        cascade="all, delete-orphan",
+    )
+    tags: Mapped[list[DatasetTag]] = relationship(
+        back_populates="dataset",
+        cascade="all, delete-orphan",
+    )
+    measure_combinations: Mapped[list[MeasureCombination]] = relationship(
+        back_populates="dataset",
         cascade="all, delete-orphan",
     )
 
@@ -131,6 +177,8 @@ class DatasetDimension(Base):
     label: Mapped[str] = mapped_column(Text, nullable=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     role: Mapped[str] = mapped_column(Text, nullable=False)
+    is_measure: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    measure_source: Mapped[str | None] = mapped_column(Text, nullable=True)
     attributes: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
     )
@@ -145,6 +193,7 @@ class DatasetDimension(Base):
     __table_args__ = (
         UniqueConstraint("dataset_id", "code", name="uq_dataset_dimensions_dataset_code"),
         CheckConstraint(_DIMENSION_ROLE_CHECK, name="ck_dataset_dimensions_role"),
+        CheckConstraint(_MEASURE_SOURCE_CHECK, name="ck_dataset_dimensions_measure_source"),
     )
 
 
@@ -438,6 +487,7 @@ _REGION_LEVEL_CHECK = "level IN (" + ", ".join(f"'{level}'" for level in REGION_
 _LINK_RELATION_CHECK = "relation IN ('same_series', 'related')"
 _LINK_METHOD_CHECK = "method IN ('jev_proposed', 'manual')"
 _LINK_STATUS_CHECK = "status IN ('proposed', 'accepted', 'rejected')"
+
 
 
 class CatalogLink(Base):
@@ -968,4 +1018,117 @@ class NewsArticle(Base):
         CheckConstraint(_NEWS_TEXT_STATUS_CHECK, name="ck_news_articles_text_status"),
         Index("ix_news_articles_text_status", "text_status"),
         Index("ix_news_articles_source_published_at", "source", "published_at"),
+    )
+
+
+class DatasetTag(Base):
+    """A topic tag assigned to a dataset (Task 2.2 schema; filled by Task 2.3).
+
+    ``tag_id`` is a concept-tree id (a leaf or a branch), validated in code, not
+    in the database: the tree file is the single source of truth. ``source`` says
+    who assigned it (Jev or a human) and ``status`` whether it is accepted,
+    awaiting review or rejected. One row per ``(dataset, tag)``.
+    """
+
+    __tablename__ = "dataset_tags"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    dataset_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("datasets.id", name="fk_dataset_tags_dataset"), nullable=False
+    )
+    tag_id: Mapped[str] = mapped_column(Text, nullable=False)
+    level: Mapped[str] = mapped_column(Text, nullable=False)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    dataset: Mapped[Dataset] = relationship(back_populates="tags")
+
+    __table_args__ = (
+        UniqueConstraint("dataset_id", "tag_id", name="uq_dataset_tags_dataset_tag"),
+        CheckConstraint(_DATASET_TAG_LEVEL_CHECK, name="ck_dataset_tags_level"),
+        CheckConstraint(_DATASET_TAG_SOURCE_CHECK, name="ck_dataset_tags_source"),
+        CheckConstraint(_DATASET_TAG_STATUS_CHECK, name="ck_dataset_tags_status"),
+        Index("ix_dataset_tags_tag_id", "tag_id"),
+    )
+
+
+class MeasureCombination(Base):
+    """One combination of measure-defining dimension codes (Task 2.2).
+
+    ``codes`` maps each decided measure dimension to one code; it is ``{}`` for a
+    dataset without measure dimensions. ``label`` joins the code labels with
+    `` | ``. The typed columns carry the deterministic rule result; anything a
+    rule could not decide stays ``NULL`` (``pending``) for Jev in Task 2.2b.
+
+    ``attributes`` records which rule fired per field and the pending markers
+    (``currency_pending``, ``nominal_pending``, ...). A row whose ``type_method``/
+    ``nature_method`` is ``manual`` or whose ``status`` is ``accepted`` is owned
+    by a human and is never overwritten by a later rule run.
+    """
+
+    __tablename__ = "measure_combinations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    dataset_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("datasets.id", name="fk_measure_combinations_dataset"), nullable=False
+    )
+    codes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    label: Mapped[str] = mapped_column(Text, nullable=False)
+    measure_type: Mapped[str | None] = mapped_column(Text, nullable=True)
+    data_nature: Mapped[str | None] = mapped_column(Text, nullable=True)
+    aggregation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_aggregation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    aggregation_conflict: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    para_birimi: Mapped[str | None] = mapped_column(Text, nullable=True)
+    nominal_mi: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mevsim_arindirilmis: Mapped[str | None] = mapped_column(Text, nullable=True)
+    kumulatif: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    type_method: Mapped[str | None] = mapped_column(Text, nullable=True)
+    nature_method: Mapped[str | None] = mapped_column(Text, nullable=True)
+    type_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    nature_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    status: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'pending'"), default="pending"
+    )
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    dataset: Mapped[Dataset] = relationship(back_populates="measure_combinations")
+
+    __table_args__ = (
+        UniqueConstraint("dataset_id", "codes", name="uq_measure_combinations_dataset_codes"),
+        CheckConstraint(_MEASURE_COMBINATION_NATURE_CHECK, name="ck_measure_combinations_nature"),
+        CheckConstraint(
+            _MEASURE_COMBINATION_AGGREGATION_CHECK, name="ck_measure_combinations_aggregation"
+        ),
+        CheckConstraint(
+            _MEASURE_COMBINATION_METHOD_CHECK, name="ck_measure_combinations_type_method"
+        ),
+        CheckConstraint(
+            _MEASURE_COMBINATION_NATURE_METHOD_CHECK, name="ck_measure_combinations_nature_method"
+        ),
+        CheckConstraint(_MEASURE_COMBINATION_STATUS_CHECK, name="ck_measure_combinations_status"),
+        Index("ix_measure_combinations_measure_type", "measure_type"),
+        Index("ix_measure_combinations_status", "status"),
     )

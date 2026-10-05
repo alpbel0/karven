@@ -231,7 +231,7 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
   frekans/birim, seri seçilirken ölçü kodundan okunur (`measure_types`).
 - Veri setleri **kapalı bir etiket listesinden** etiketlenir (kavram ağacı).
   Okuyucu için tek cümlelik açıklama tutulur ama aramada kullanılmaz.
-- **Kavram ağacı (2026-10-04, v2.1):** `docs/catalog/concept-tree.yaml` (makinece
+- **Kavram ağacı (2026-10-04, v2.1):** `backend/app/catalog/concept_tree.yaml` (makinece
   okunur, her etikette tanım; bütünlüğü `backend/tests/test_catalog_concept_tree.py`
   denetler). Eski 18 dallı taslak (`concept-tree-draft.md`) yerine geçti; 24 ana dal,
   109 yaprak. Kullanıcı önerileri onayladı; Opus 5.5 ve Codex gpt-6-astra iki tur
@@ -251,13 +251,39 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
     Veri seti, içerdiği değerlerin kümesini taşır.
   - Meta bayrakları: `revizyon_tablosu` (varsayılan aramadan dışlanır),
     `mevsim_arindirilmis`, `para_birimi`, `nominal_mi`, `donem_serisi`, `arsiv`,
-    `cok_konulu_derleme`. Bugün DB'de dolu değil; Task 2.2 doldurur.
+    `cok_konulu_derleme`. Task 2.2'de dolduruldu (aşağıda "Katalog zenginleştirme").
   - Etiketleme isteminde tam `category_path` verilir. Kaynak kategori adı tek başına
     yanıltıcıdır (ör. TCMB "MAL GRUPLARI" aslında iktisadi yönelim anketidir); kategori
     ipucu tablosu yalnız denetim içindir (Jev etiketiyle uyuşmazsa inceleme kuyruğu),
     arama istemine eklenmez.
   - Boş yapraklar normaldir; "yüksek puan ama güçlü eşleşme yok" Task 2.6'da izlenir.
     Ölçümde ayrıca "il GSYH" sorgusu bulunmalı.
+- **Katalog zenginleştirme (Task 2.2, 2026-10-04; kullanıcı kararları):**
+  - Etiketler ayrı `dataset_tags` tablosunda (yaprak/dal, güven, kaynak jev/elle,
+    durum kabul/inceleme/red); Task 2.3 doldurur.
+  - Okuyucu açıklaması **şablondur** (kurum · kategori · frekans · birim), LLM yok;
+    kaynağın kendi açıklaması `attributes.source_description`'da saklanır. LLM ile
+    gerçek cümle ileride (BACKLOG). Jev metin yazamaz (yalnız evet/hayır, seçim, puan).
+  - "Yüklü mü" saklanmaz, gözlemlerden sorgu anında hesaplanır.
+  - Bayraklar `datasets` üzerinde tipli kolonlardır; göstergeye göre değişenler
+    (para birimi, nominal/reel, mevsim) gösterge düzeyinde tutulur, veri seti kümesini taşır.
+  - `arsiv` yalnız kaynağın kendi "Arşiv" etiketinden gelir; kaynağın listesinden
+    kaldırılması (`unlisted_since`) arşiv sayılmaz.
+  - **Tür ölçü birleşimine bağlanır** (`measure_combinations`): her veri setinde "ne
+    ölçüldüğünü" söyleyen kırılımlar (gösterge, birim, değişim türü) seçilir, kodlarının
+    her birleşimine bir tür, veri niteliği, toplama kuralı, para birimi, nominal/reel,
+    mevsim ve kümülatif bilgisi verilir. TCMB/HMB'de birleşim = seri kodu; ölçü
+    kırılımı olmayan veri setinde tek birleşim.
+  - Doldurma: önce kesin kurallar; kalanlarda Jev (kırılım evet/hayır, tür ve nitelik
+    seçimi, para birimi seçimi, nominal evet/hayır, dönem serisi evet/hayır). Jev
+    güveni **0,60** ve üstü otomatik kabul, altı Claude'un inceleme listesine
+    (evet/hayır sorularında ≥0,60 evet, ≤0,40 hayır, arası inceleme). İlk eşik 0,70
+    idi (2026-10-04 denemesi: 15 örnekte yanlışların hepsi ≤0,62); canlı geçişte
+    kullanıcı 0,60'a indirdi. Kural her zaman Jev'e,
+    elle karar her şeye üstündür; kural yeniden çalışınca Jev/elle değerlerine dokunmaz.
+  - Kod: `backend/app/catalog/enrich*.py`; CLI `python -m app.catalog.enrich
+    rules|jev|report|review-list|set-*`. Katalog yenilemesi açıklamayı ve
+    zenginleştirme alanlarını silmez.
 - **Etiketleme:** tek etiketleyici **Jev**. Güven eşiğinin üstü otomatik kabul;
   altındakileri Claude tek tek inceler. Eşik **kalibrasyonla** belirlenir: ilk
   ~200 veri seti Jev ile etiketlenip Claude tarafından kontrol edilir, hataların
@@ -297,8 +323,11 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
   yoksa seri eşleştirmeden çıkar); ağırlık, katkı, dağılım istatistiği gibi türler
   ilişki testine girmez. Kümülatif akım serileri toplamadan önce dönemlik değere
   çevrilir. Kural katalogdaki **ölçü kodu → ölçüm türü** eşlemesinden gelir
-  (`concept-tree.yaml` `measure_types.toplama`); kaynak serinin kendi toplama yöntemini
-  bildiriyorsa (ör. TCMB `DEFAULT_AGG_METHOD`) kaynağın değeri önceliklidir.
+  (`concept_tree.yaml` `measure_types.toplama`). Kaynağın kendi toplama yöntemi
+  (TCMB `DEFAULT_AGG_METHOD`) yalnız `sum`/`avg` ise önceliklidir; `last` (TCMB
+  serilerinin ~%84'ünde varsayılan), `max`, `min` güvenilmez sayılır ve bizim tür
+  kuralımız geçerli olur. İkisi uyuşmazsa `measure_combinations.aggregation_conflict`
+  işaretlenir (2026-10-04, kullanıcı kararı).
 - **Enflasyondan arındırma:** graph ajanı hipotezde nominal **TL tutarı** olan
   serileri işaretler; kod bunları **TÜFE** ile reel hale getirir. Fiyat
   endeksleri, oranlar, adetler ve döviz cinsinden tutarlar arındırılmaz.

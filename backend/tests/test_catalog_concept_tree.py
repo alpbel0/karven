@@ -1,17 +1,12 @@
-"""Integrity checks for docs/catalog/concept-tree.yaml (no database, no network)."""
+"""Integrity checks for app/catalog/concept_tree.yaml (no database, no network)."""
 
 from __future__ import annotations
 
 from collections import Counter
-from pathlib import Path
 
-import pytest
+import yaml
 
-yaml = pytest.importorskip("yaml")
-
-TREE_PATH = Path(__file__).resolve().parents[2] / "docs" / "catalog" / "concept-tree.yaml"
-
-pytestmark = pytest.mark.skipif(not TREE_PATH.exists(), reason="docs/ is not mounted")
+from app.catalog.tree import TREE_PATH, load_tree
 
 AGGREGATIONS = {"toplam", "ortalama", "donem_sonu", "yeniden_hesapla", "test_disi"}
 
@@ -65,3 +60,22 @@ def test_measure_type_and_data_nature_ids_are_unique() -> None:
 def test_measure_types_carry_an_aggregation_rule() -> None:
     for item in _load()["measure_types"]:
         assert item["toplama"] in AGGREGATIONS, item["id"]
+
+
+def test_tree_loader_exposes_measure_types_and_natures() -> None:
+    tree = load_tree()
+    assert tree.measure_types, "no measure types loaded"
+    assert tree.data_natures, "no data natures loaded"
+    assert set(tree.measure_types) == {item["id"] for item in _load()["measure_types"]}
+    for measure_type in tree.measure_types.values():
+        assert measure_type.toplama in AGGREGATIONS, measure_type.id
+
+
+def test_tree_loader_indexes_leaves_to_branches() -> None:
+    tree = load_tree()
+    assert tree.leaf_ids
+    assert tree.branch_ids
+    assert tree.leaf_ids.isdisjoint(tree.branch_ids)
+    for leaf, branch in tree.leaf_to_branch.items():
+        assert leaf in tree.leaf_ids
+        assert branch in tree.branch_ids

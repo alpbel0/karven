@@ -1,6 +1,6 @@
 # Kavram ağacı — taslak v1 (Task 3.5.1)
 
-> **ESKİ.** Yerini `concept-tree.yaml` (v2.1, 2026-10-04) aldı; kurallar DECISIONS §7'de.
+> **ESKİ.** Yerini `backend/app/catalog/concept_tree.yaml` (v2.1, 2026-10-04) aldı; kurallar DECISIONS §7'de.
 > Bu dosya yalnız tarihsel kayıt içindir.
 
 Kaynaklar: TCMB EVDS katalog kategorileri (54.663 seri, `classification_path`

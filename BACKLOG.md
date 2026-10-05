@@ -23,3 +23,27 @@
 - Remaining work: User decides whether to download and parse such xls files (downloads are limited to 1 per 5 s per IP) or to ignore them; then implement the choice.
 - Resume from: `backend/app/connectors/tuik/veriportali.py` (`parse_press_detail`, `parse_statistical_table_url`), `docs/source-profiles/tuik.md`
 - Blocked by: User decision on downloading xls files
+
+## Concept tree has no "average level" measure type
+
+- Status: Deferred
+- Context: Task 2.2 review found values that fit none of the 23 measure types well: average household size, total fertility rate, students per teacher, average wage, average working hours. They were typed `oran_pay` / `fiyat_kur` / `sure` by hand (aggregation `ortalama`, which is correct for frequency matching), so nothing is broken today.
+- Remaining work: Decide with the user whether to add an `ortalama_duzey` type to `backend/app/catalog/concept_tree.yaml` and re-type those combinations.
+- Resume from: `backend/app/catalog/concept_tree.yaml` (`measure_types`), `python -m app.catalog.enrich set-combination`
+- Blocked by: User decision
+
+## TCMB aggregation conflicts are noisy
+
+- Status: Deferred
+- Context: 19,894 combinations carry `aggregation_conflict = true`, almost all because TCMB's default `last` differs from our type rule (e.g. rates/prices → `ortalama`). By the user's §8 decision our rule wins for `last`, so the flag is informational only.
+- Remaining work: When Phase 3/8 uses frequency matching, decide whether the flag should only mark `sum`/`avg` disagreements.
+- Resume from: `backend/app/catalog/enrich_rules.py` (`effective_aggregation`)
+- Blocked by: None
+
+## Write real one-sentence dataset descriptions with an LLM
+
+- Status: Deferred
+- Context: Task 2.2 fills the reader-facing dataset description with a template (institution · category path · frequency · unit), no LLM, because the text is only read by people and never used in search (DECISIONS §7). Jev cannot write text (decision API: yes/no, choice, score only). TÜİK already ships short English source descriptions for 613 of 616 datasets; TCMB and HMB have none.
+- Remaining work: When readers need real sentences, generate Turkish one-sentence descriptions with a text model (EVREN), passing the source description and metadata as input; keep the template as fallback.
+- Resume from: `backend/app/data/models.py` (`Dataset.description`), the Task 2.2 template code
+- Blocked by: None

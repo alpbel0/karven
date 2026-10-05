@@ -1,0 +1,1 @@
+Bu göstergenin değeri gerçekleşmiş bir durumu mu, katılımcı beklentisini mi, yoksa model tahminini mi gösterir? 'Son üç ay', 'geçen', 'şu anda' = gerçekleşen; 'gelecek', 'önümüzdeki', 'beklenti' = beklenti.

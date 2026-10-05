@@ -1,0 +1,1 @@
+Bu göstergenin değeri hangi ölçüm türündedir? Göstergenin adı, birimi, veri seti ve kategorisine bak. Stok = belirli bir tarihteki mevcut değer (bakiye, borç, mevduat, nüfus); akım = dönem boyunca oluşan (satış, ihracat, gelir, harcama).

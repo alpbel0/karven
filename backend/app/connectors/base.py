@@ -307,7 +307,10 @@ def upsert_institution(session: Session, code: str, name: str) -> Institution:
     return institution
 
 
-_DATASET_FIELDS = ("name", "description", "source_category", "obs_count", "attributes")
+# ``description`` is deliberately NOT here: it is owned by the catalog enrichment
+# pass (Task 2.2), never written by a catalog refresh. The source's own
+# description goes into ``attributes['source_description']`` instead.
+_DATASET_FIELDS = ("name", "source_category", "obs_count", "attributes")
 
 # ``attributes`` keys owned by another channel. ``upsert_dataset`` overwrites the
 # whole attributes object, so a later run of a different channel (e.g. the
@@ -315,6 +318,18 @@ _DATASET_FIELDS = ("name", "description", "source_category", "obs_count", "attri
 # veriportali dataflow catalog merges into the same TÜİK datasets). A key here is
 # preserved when the incoming ``meta.attributes`` does not itself carry it.
 CHANNEL_OWNED_ATTRIBUTES = ("veriportali",)
+
+# ``attributes`` keys owned by the Task 2.2 enrichment. A catalog refresh preserves
+# them; only ``source_description`` is refreshed from the source description. Every
+# dataset attribute key the enrichment pass writes is listed here.
+ENRICHMENT_OWNED_ATTRIBUTES = (
+    "source_description",
+    "period_series_candidate",
+    "period_series_rejected",
+    "period_series_review",
+    "measure_enrich_note",
+    "dims_pending",
+)
 
 
 def _preserve_channel_attributes(dataset: Dataset, incoming: dict[str, Any]) -> dict[str, Any]:
@@ -324,6 +339,25 @@ def _preserve_channel_attributes(dataset: Dataset, incoming: dict[str, Any]) -> 
     for key in CHANNEL_OWNED_ATTRIBUTES:
         if key not in merged and key in existing:
             merged[key] = existing[key]
+    return merged
+
+
+def _merge_dataset_attributes(
+    dataset: Dataset, incoming: dict[str, Any], source_description: str | None
+) -> dict[str, Any]:
+    """Preserve channel/enrichment keys and refresh ``source_description``.
+
+    ``source_description`` is always taken from the source (``meta.description``,
+    possibly ``None``); every other enrichment-owned key survives a catalog run.
+    """
+    merged = _preserve_channel_attributes(dataset, incoming)
+    existing = dataset.attributes or {}
+    for key in ENRICHMENT_OWNED_ATTRIBUTES:
+        if key == "source_description":
+            continue
+        if key not in merged and key in existing:
+            merged[key] = existing[key]
+    merged["source_description"] = source_description
     return merged
 
 
@@ -356,7 +390,7 @@ def upsert_dataset(session: Session, institution_id: int, meta: DatasetMeta) -> 
     for field_name in _DATASET_FIELDS:
         value = getattr(meta, field_name)
         if field_name == "attributes":
-            value = _preserve_channel_attributes(dataset, value)
+            value = _merge_dataset_attributes(dataset, value, meta.description)
         if getattr(dataset, field_name) != value:
             setattr(dataset, field_name, value)
             changed = True
@@ -859,6 +893,7 @@ def ingest_series(
 __all__ = [
     "CHANNEL_OWNED_ATTRIBUTES",
     "DISCOVERED_FROM_REPORT",
+    "ENRICHMENT_OWNED_ATTRIBUTES",
     "EMPTY",
     "ERROR_KINDS",
     "FORMAT_CHANGED",

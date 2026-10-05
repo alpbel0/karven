@@ -159,6 +159,62 @@ def test_preserve_channel_attributes_keeps_other_channels_keys() -> None:
     assert replaced["veriportali"] == {"id": "new"}
 
 
+def test_dataset_upsert_does_not_write_description() -> None:
+    from app.connectors.base import _DATASET_FIELDS
+
+    assert "description" not in _DATASET_FIELDS
+
+
+def test_dataset_upsert_ignores_enrichment_flags() -> None:
+    from app.connectors.base import _DATASET_FIELDS
+
+    for flag in (
+        "revizyon_tablosu",
+        "arsiv",
+        "cok_konulu_derleme",
+        "donem_serisi",
+        "donem_serisi_grubu",
+        "mevsim_arindirilmis",
+        "para_birimi",
+        "nominal_mi",
+        "flags_checked_at",
+    ):
+        assert flag not in _DATASET_FIELDS
+
+
+def test_merge_dataset_attributes_preserves_enrichment_and_refreshes_source() -> None:
+    from app.connectors.base import _merge_dataset_attributes
+
+    dataset = Dataset(institution_id=1, external_code="DF_X", name="X")
+    dataset.attributes = {
+        "source_description": "old source",
+        "period_series_candidate": "tuik::nufus",
+        "period_series_rejected": True,
+        "measure_enrich_note": "note",
+        "dims_pending": True,
+        "unrelated": "kept-from-incoming",
+    }
+    merged = _merge_dataset_attributes(
+        dataset, {"channel": "databrowser2", "unrelated": "incoming"}, "new source"
+    )
+    assert merged["source_description"] == "new source"
+    assert merged["period_series_candidate"] == "tuik::nufus"
+    assert merged["period_series_rejected"] is True
+    assert merged["measure_enrich_note"] == "note"
+    assert merged["dims_pending"] is True
+    assert merged["channel"] == "databrowser2"
+    assert merged["unrelated"] == "incoming"
+
+
+def test_merge_dataset_attributes_source_description_null_when_source_has_none() -> None:
+    from app.connectors.base import _merge_dataset_attributes
+
+    dataset = Dataset(institution_id=1, external_code="DF_X", name="X")
+    dataset.attributes = {"source_description": "old source"}
+    merged = _merge_dataset_attributes(dataset, {}, None)
+    assert merged["source_description"] is None
+
+
 def test_store_raw_sanitizes_path_segments() -> None:
     store = InMemoryObjectStore()
     key = store_raw("tuik/x", "../catalog", "chan nel", b"{}", "json", store=store)

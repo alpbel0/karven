@@ -244,10 +244,9 @@ def test_fetch_article_uses_populate_existing_against_a_stale_read() -> None:
 def test_migration_0017_downgrade_and_upgrade_round_trip() -> None:
     config = Config(str(ALEMBIC_INI))
     script = ScriptDirectory.from_config(config)
-    head = script.get_current_head()
-    # The revision right below head (0016 today; read, not hard-coded, so a
-    # later migration on top of 0017 keeps this test valid).
-    parent = script.get_revision(head).down_revision
+    # Downgrade below 0017 itself (read its down_revision, not head's parent, so
+    # a migration added on top of 0017 keeps this test valid).
+    parent = script.get_revision("0017").down_revision
     command.downgrade(config, parent)
     try:
         with SessionLocal() as session:
