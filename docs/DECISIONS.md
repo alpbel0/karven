@@ -206,8 +206,15 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
 - **Etiket düzeyi (2026-09-30):** Etiketleme **veri seti düzeyinde** yapılır;
   **bir veri setine birden fazla etiket** verilebilir; seriler veri setinin
   etiketlerini devralır.
-- **Arama akışı (2026-09-30, Faz 2'de ayrıntılandırılır):**
-  1. Veri seti seçimi: Jev etiketleri, sonra aday veri setlerini puanlar.
+- **Arama akışı (2026-09-30; etiket aşaması 2026-10-04'te ağaçla birleştirildi):**
+  0. Ajan isteğini düz dille yazar (ör. "Türkiye geneli toplam konut satış sayısı,
+     aylık"); ajan etiketleri görmez, her çağrıda en fazla 3-4 arama hakkı vardır.
+  1. Veri seti seçimi: Jev önce **ana dalları**, sonra yalnız geçen ana dalların
+     **yapraklarını** istekle karşılaştırıp **1-5 puanlar**; 4-5 alanlar geçer.
+     Kod, geçen yapraklardan **herhangi birini** taşıyan veri setlerini ve geçen ana
+     dalı doğrudan taşıyan çok konulu derlemeleri (Turcat, PKA) getirir;
+     `revizyon_tablosu` bayrağı olanlar dışlanır. Jev aday veri setlerini (liste büyükse
+     parçalar halinde) yeniden **1-5 puanlar**; 4-5 alanlar sonraki adıma geçer.
   2. Kırılım seçimi: kod boyutları sırayla Jev'e sorar (seçim sorusu),
      **hiyerarşik** (önce düzey sonra yer; önce ana sektör sonra alt sektör).
      Jev'in seçim sorusu en fazla 255 seçenek alır; uzun listeler hiyerarşiyle
@@ -219,27 +226,46 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
   5. Hâlâ belirsizse en iyi 2-3 aday ajana sunulur, seçimi ajan yapar.
   (2026-09-30 denemesi: il seçimi Kayseri 0,91, düzey önce seçilince Bursa 1,0;
   sektör iki adımda Tekstil 0,96, Otomotiv 0,89; doğrulama yanlış veri setini
-  0,14 ile yakaladı.) Aşağıdaki eski arama adımları bu akışla değiştirilir.
-- Seriler **kapalı bir etiket listesinden** etiketlenir (kavram ağacı). Okuyucu
-  için tek cümlelik açıklama tutulur ama aramada kullanılmaz.
-- Kavram ağacı (`docs/catalog/concept-tree-draft.md`, eski 18 ana dal) Faz
-  2'de kullanıcıyla yeniden gözden geçirilip kesinleştirilir.
+  0,14 ile yakaladı.) Hiçbir aday 4-5 almazsa "güçlü eşleşme yok" döner; ajan
+  isteğini değiştirip yeniden arayabilir (arama sınırı içinde). Ölçüm türü ve
+  frekans/birim, seri seçilirken ölçü kodundan okunur (`measure_types`).
+- Veri setleri **kapalı bir etiket listesinden** etiketlenir (kavram ağacı).
+  Okuyucu için tek cümlelik açıklama tutulur ama aramada kullanılmaz.
+- **Kavram ağacı (2026-10-04, v2.1):** `docs/catalog/concept-tree.yaml` (makinece
+  okunur, her etikette tanım; bütünlüğü `backend/tests/test_catalog_concept_tree.py`
+  denetler). Eski 18 dallı taslak (`concept-tree-draft.md`) yerine geçti; 24 ana dal,
+  109 yaprak. Kullanıcı önerileri onayladı; Opus 5.5 ve Codex gpt-6-astra iki tur
+  inceledi. Kurallar:
+  - Atanabilir etiket yapraktır; ana dal gezinme grubudur ve otomatik devralınır.
+    Jev önce ana dalları, sonra yalnız geçen ana dalların yapraklarını puanlar.
+  - Veri seti 1-3 yaprak alır; aşan kapsam sessizce kesilmez, inceleme kuyruğuna gider.
+    İstisna: çok konulu derlemeler (Turcat, TCMB Piyasa Katılımcıları Anketi) yalnız
+    ana dal etiketi alır; arama geçen yaprakları ve geçen ana dalı taşıyan bu
+    derlemeleri getirir.
+  - `degildir` listesi birincil etiketi belirler; komşu etiket ikincil olarak eklenebilir.
+  - Etiket alanları: konu, ölçüm türü, veri niteliği. Coğrafya, sektör, sıklık, kurum,
+    para birimi, vade, ürün sınıflaması etiket değil, meta bilgi veya kırılımdır
+    (`mal_gruplari`, `bolgesel_gsyh` bu yüzden silindi). Uluslararası karşılaştırma dalı yok.
+  - **Ölçüm türü ve veri niteliği ölçü kodu/seri düzeyindedir** (anket veri setleri hem
+    gerçekleşen hem beklenti taşır); kodlar bir kez türe eşlenir, Jev tür etiketlemez.
+    Veri seti, içerdiği değerlerin kümesini taşır.
+  - Meta bayrakları: `revizyon_tablosu` (varsayılan aramadan dışlanır),
+    `mevsim_arindirilmis`, `para_birimi`, `nominal_mi`, `donem_serisi`, `arsiv`,
+    `cok_konulu_derleme`. Bugün DB'de dolu değil; Task 2.2 doldurur.
+  - Etiketleme isteminde tam `category_path` verilir. Kaynak kategori adı tek başına
+    yanıltıcıdır (ör. TCMB "MAL GRUPLARI" aslında iktisadi yönelim anketidir); kategori
+    ipucu tablosu yalnız denetim içindir (Jev etiketiyle uyuşmazsa inceleme kuyruğu),
+    arama istemine eklenmez.
+  - Boş yapraklar normaldir; "yüksek puan ama güçlü eşleşme yok" Task 2.6'da izlenir.
+    Ölçümde ayrıca "il GSYH" sorgusu bulunmalı.
 - **Etiketleme:** tek etiketleyici **Jev**. Güven eşiğinin üstü otomatik kabul;
   altındakileri Claude tek tek inceler. Eşik **kalibrasyonla** belirlenir: ilk
-  ~200 seri Jev ile etiketlenip Claude tarafından kontrol edilir, hataların
+  ~200 veri seti Jev ile etiketlenip Claude tarafından kontrol edilir, hataların
   yığıldığı güven seviyesine göre eşik seçilir ve buraya yazılır. Önce TypeSafe kredisi, bitince
   OpenRouter'daki Jev. Etiketleme yalnızca meta bilgiyle yapılır (ad, kurum
   kategorisi/tablosu, birim, frekans, kırılım); değer okunmaz.
-- **Arama (embedding yok):**
-  1. Ajan isteğini düz dille yazar (ör. "Türkiye geneli toplam konut satış
-     sayısı, aylık"). Ajan etiketleri görmez.
-  2. Jev etiket ağacındaki **her etiketi** istekle karşılaştırıp **1-5 puanlar**;
-     4-5 alanlar geçer.
-  3. Kod, geçen etiketlerden **herhangi birini** taşıyan serileri arar.
-  4. Jev gelen serileri yeniden **1-5 puanlar** (liste büyükse parçalar halinde).
-  5. **4-5 alan seriler** ajana gider (ad + meta bilgi, değer yok). Hiçbiri 4-5
-     almazsa "güçlü eşleşme yok" döner; ajan isteğini değiştirip yeniden
-     arayabilir (en fazla 3-4 arama).
+- **Arama (embedding yok):** yukarıdaki arama akışıdır; sonuç olarak **4-5 alan
+  seriler** ajana gider (ad + meta bilgi, değer yok).
 - Embedding ile sıralama yalnızca ölçüm yetersiz çıkarsa eklenir; o durumda
   model OpenRouter'daki `openai/text-embedding-3-large` olur.
 - Arama kalitesi **30-40 sorguluk** bir test setiyle ölçülür, sonra büyütülür.
@@ -266,7 +292,13 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
   çeyreklik) veya **fark** (faiz, işsizlik gibi oranlar için).
 - **Frekans eşleştirme:** seriler düşük frekansa indirilir. Fiyat / oran / endeks
   → dönem **ortalaması**; akım (tutar, miktar: ihracat, satış adedi) → dönem
-  **toplamı**. Serinin türü katalogdaki Jev etiketinden gelir.
+  **toplamı**; stok (borç stoku, mevduat, nüfus) → **dönem sonu değeri**; yüzde
+  değişim serileri **ham seviyeden yeniden hesaplanır** (ortalaması alınmaz, seviye
+  yoksa seri eşleştirmeden çıkar); ağırlık, katkı, dağılım istatistiği gibi türler
+  ilişki testine girmez. Kümülatif akım serileri toplamadan önce dönemlik değere
+  çevrilir. Kural katalogdaki **ölçü kodu → ölçüm türü** eşlemesinden gelir
+  (`concept-tree.yaml` `measure_types.toplama`); kaynak serinin kendi toplama yöntemini
+  bildiriyorsa (ör. TCMB `DEFAULT_AGG_METHOD`) kaynağın değeri önceliklidir.
 - **Enflasyondan arındırma:** graph ajanı hipotezde nominal **TL tutarı** olan
   serileri işaretler; kod bunları **TÜFE** ile reel hale getirir. Fiyat
   endeksleri, oranlar, adetler ve döviz cinsinden tutarlar arındırılmaz.
@@ -394,7 +426,7 @@ Bunlar açık soru değildir; bilinçli olarak ilgili faz sırasında kullanıc�
 kararlaştırılacaktır. Karar verilince yukarıdaki ilgili bölüme yazılır.
 
 1. ~~**Çekirdek seri listesi**~~ — karar verildi (§5, 2026-10-03).
-2. **Kavram ağacı** — Faz 2, Task 2.1.
+2. ~~**Kavram ağacı**~~ — karar verildi (§7, 2026-10-04, v2.1).
 3. **Jev etiketleme eşiği** (kalibrasyon sonucu) — Faz 2, Task 2.3.
 4. **Arama test setinin başarı eşiği** — Faz 2, Task 2.6.
 5. **Site tasarımı ve ana sayfa** — Faz 5, Task 5.1.

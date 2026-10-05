@@ -1,0 +1,394 @@
+# Kavram ağacı — v2.1 (Task 2.1, kullanıcı onaylı 2026-10-04)
+# v2'den sonra Opus 5.5 ve Codex gpt-6-astra incelemeleriyle gözden geçirildi (2026-10-04).
+#
+# KURALLAR (DECISIONS §7)
+# - Atanabilir etiket = yaprak (alt dal). Ana dallar gezinme grubudur; veri setine yaprak
+#   atanınca ana dal otomatik devralınır. Jev önce ana dalları, sonra yalnız geçen ana
+#   dalların yapraklarını puanlar.
+# - Veri seti 1-3 yaprak etiketi alır. Kapsam üçü aşarsa etiket sessizce kesilmez: veri
+#   seti inceleme kuyruğuna gider. Çok konulu derlemeler (ör. Turcat IMF SDDS) istisnadır:
+#   yalnız ana dal düzeyinde, sınırsız ana dal etiketi alırlar ve cok_konulu_derleme
+#   bayrağı taşırlar. Arama kodu geçen yaprakları VE geçen ana dalı doğrudan taşıyan
+#   (yalnız ana dal etiketli) veri setlerini getirir; sonra ölçü koduyla doğrulanır.
+#   İstisna kapsamı: Turcat (IMF SDDS) ve TCMB Piyasa Katılımcıları Anketi (tanımsal
+#   istatistikler TÜFE, faiz, kur, cari denge beklentilerini birlikte taşır).
+# - Birincil/ikincil: "degildir" listesi hedef etiketi ve gerekçeyi gösterir ve BİRİNCİL
+#   etiketi belirler. Komşu etiket ikincil olarak 1-3 sınırı içinde eklenebilir; arama
+#   geçen etiketlerden herhangi birini aradığı için eksik ikincil etiket kaçırmaya,
+#   fazla ikincil etiket yalnız gürültüye yol açar.
+# - Beklenti/anket: anketin konusu konu etiketidir (ör. enflasyon beklentisi =
+#   tuketici_fiyatlari + data_nature=beklenti; anket kimliği birincil olarak
+#   guven_beklenti_anketleri altında).
+# - Etiket alanları: konu (bu dosya), ölçüm türü, veri niteliği. Coğrafya, sektör, sıklık,
+#   kurum, para birimi, vade, alış/satış, reel/nominal, ürün sınıflaması ETİKET DEĞİLDİR:
+#   katalog meta bilgisi veya kırılım (boyut kodu) olarak çözülür.
+# - Meta bayrakları (etiket değil): revizyon_tablosu, mevsim_arindirilmis, para_birimi,
+#   nominal_mi, donem_serisi (aynı kavramın kopuk dönem serisi, ör. sektör bilançoları
+#   2009-2023 / 2023-2025), arsiv, cok_konulu_derleme. Bayrakların bugün DB'de dolu olmadığı
+#   doğrulandı (2026-10-04): Task 2.2 bunları kaynak meta bilgisinden doldurur ve kabul
+#   kriterine girer. nace_surumu kaynakta doğrulanırsa eklenir. Aynı veri seti içinde değişebilen
+#   bayraklar (para birimi, nominal/reel, mevsim arındırması, gerçekleşen/beklenti)
+#   ölçü kodu veya seri düzeyinde çözülür; veri seti içerdiği değerlerin kümesini taşır.
+#   revizyon_tablosu YALNIZ eski sürümleri sunan tablodur (revize edilen normal veri seti
+#   değildir) ve varsayılan aramadan dışlanır; güncel serinin revizyon geçmişi ayrıdır.
+# - Veri niteliği (gerçekleşen/beklenti/tahmin) de ölçü kodu düzeyindedir: anket veri
+#   setleri aynı anda gerçekleşen ve beklenti soruları içerir; veri seti değer kümesini taşır.
+# - Ölçüm türü ölçü boyutu kodu (veya seri) düzeyindedir; veri seti yalnız içerdiği türlerin
+#   kümesini taşır. Kodlar bir kez türe eşlenir, Jev tür etiketlemez (§8 için türden
+#   toplama kuralı gelir: bkz. measure_types.toplama). Toplama değerleri: toplam,
+#   ortalama, donem_sonu, yeniden_hesapla (yüzde değişim: ham seviyeden hedef döneme göre
+#   yeniden hesaplanır, ortalaması alınmaz; seviye yoksa seri eşleştirmeden çıkar),
+#   test_disi (ağırlık, katkı, dağılım istatistiği gibi test edilecek seri değildir). Kümülatif akım
+#   serileri toplamadan önce dönemlik değere çevrilir.
+# - Uluslararası karşılaştırma dalı yoktur: IMF/OECD/yabancı ülke verisi konusuna göre
+#   etiketlenir; ülke kırılım/kurum meta bilgisindedir.
+# - Boş yapraklar (katalogda veri seti olmayan) normaldir: talep üzerine çekilecek veri
+#   için tutulur. Jev'in yüksek puan verip "güçlü eşleşme yok" sonucu çıkması Task 2.6
+#   ölçümünde ayrıca izlenir.
+# - degildir: [{id: <topics içinde var olan id>, ne: <gerekçe>}]; id bütünlüğü testle denetlenir.
+# - Kanıt: 2026-10-04 katalog (883 veri seti: TÜİK 616, TCMB 243, HMB 24).
+
+version: 2.1
+status: approved   # kullanıcı onayı 2026-10-04
+
+topics:
+  - id: fiyatlar_enflasyon
+    ad: Fiyatlar ve enflasyon
+    tanim: Mal ve hizmet fiyat endeksleri, fiyat düzeyi karşılaştırmaları ve bunların değişimi.
+    degildir:
+      - {id: konut_fiyatlari, ne: Konut varlığı satış fiyatları burada sınıflanmaz.}
+      - {id: nominal_kurlar, ne: Döviz fiyatı kur dalındadır.}
+      - {id: insaat_maliyet, ne: İnşaat maliyet endeksi birincil olarak konut_insaat_gayrimenkul'dadır; fiyatlar ikincil olabilir.}
+    children:
+      - {id: tuketici_fiyatlari, ad: Tüketici fiyatları, tanim: "TÜFE manşet, çekirdek göstergeler, ana harcama grupları, özel kapsamlı göstergeler, TÜFE kira alt endeksi ve tüketici/enflasyon beklentileri (beklenti anketi birincil olarak guven_beklenti_anketleri'nde)."}
+      - {id: uretici_fiyatlari, ad: Üretici fiyatları, tanim: "Yurt içi ve yurt dışı ÜFE, hizmet ÜFE, sektörel üretici fiyatları."}
+      - {id: tarimsal_fiyatlar, ad: Tarımsal fiyatlar, tanim: "Tarımsal girdi ve üretici fiyat endeksleri."}
+      - {id: gecinme_bolgesel_fiyat, ad: Geçinme ve bölgesel fiyatlar, tanim: "Geçinme endeksleri ve il/bölge bazlı fiyat göstergeleri; kira kapsamı hariç."}
+      - {id: birim_deger, ad: Dış ticaret birim değerleri, tanim: "İhracat/ithalat birim değer endeksleri (miktar endeksleri ve dış ticaret haddi dis_ticaret_endeks'te)."}
+      - {id: satin_alma_gucu_paritesi, ad: Satın alma gücü paritesi, tanim: "SGP, ülkeler/bölgeler arası fiyat düzeyi endeksleri ve SGP bazlı karşılaştırmalar."}
+
+  - id: doviz_kurlari
+    ad: Döviz kurları
+    tanim: Yabancı paraların TL ve çapraz karşılığı, efektif ve reel efektif kurlar.
+    degildir:
+      - {id: firma_doviz_pozisyonu, ne: Reel sektör döviz varlık/yükümlülüğü firmalar dalındadır.}
+      - {id: piyasa_katilimcilari, ne: Kur beklentisi anketi anket dalındadır; nominal_kurlar ikincil olabilir.}
+    children:
+      - {id: nominal_kurlar, ad: Nominal kurlar, tanim: "TCMB alış/satış/efektif kurları, piyasa kurları, çapraz kurlar; kur beklenti anketleri yalnız ikincil olarak (birincil piyasa_katilimcilari)."}
+      - {id: reel_efektif_kur, ad: Reel efektif kur, tanim: "TÜFE/ÜFE bazlı reel efektif döviz kuru endeksleri."}
+      - {id: kur_sepetleri, ad: Kur sepetleri, tanim: "Döviz sepeti ve dolar/euro bileşik göstergeleri."}
+
+  - id: faiz_para_politikasi
+    ad: Faiz ve para politikası
+    tanim: Politika faizi, piyasa faizleri, banka faiz oranları ve TCMB para piyasası işlemleri.
+    degildir:
+      - {id: krediler, ne: Kredi tutarları faiz değildir.}
+      - {id: devlet_borclanma, ne: Devlet tahvil fiyat/getirisi ve ihale sonuçları piyasa dalındadır.}
+    children:
+      - {id: politika_faizleri, ad: Politika ve kısa vade faizleri, tanim: "TCMB politika faizi, faiz koridoru, ağırlıklı fonlama maliyeti (oranlar; işlem hacimleri para_piyasasi_islemleri'nde)."}
+      - {id: para_piyasasi_islemleri, ad: Para piyasası işlemleri, tanim: "TCMB repo/ters repo, swap ve depo işlemleri, bankalararası para piyasası, gün başı likidite, net fonlama, döviz alım-satım ve müdahale işlemleri (hacimler)."}
+      - {id: mevduat_faizleri, ad: Mevduat faizleri, tanim: "Banka mevduat faiz oranları."}
+      - {id: kredi_faizleri, ad: Kredi faizleri, tanim: "Ticari, tüketici, konut, taşıt ve kart kredisi faiz oranları, azami faizler."}
+      - {id: reeskont_avans, ad: Reeskont ve avans faizleri, tanim: "TCMB reeskont ve avans işlem faiz oranları."}
+
+  - id: para_kredi_bankacilik
+    ad: Para, kredi ve bankacılık
+    tanim: Para arzı, mevduat ve kredi tutarları, banka ve merkez bankası bilançoları, ödeme sistemleri.
+    degildir:
+      - {id: mevduat_faizleri, ne: Faiz oranları faiz dalındadır.}
+      - {id: finansal_hesaplar, ne: S.121 (TCMB) sektör finansal hesapları ulusal hesaplardadır.}
+      - {id: yapisal_is_istatistikleri, ne: Bankaların/aracı kurumların istihdam, ciro ve yatırım gibi yapısal iş istatistikleri.}
+    children:
+      - {id: parasal_buyuklukler, ad: Parasal büyüklükler, tanim: "M1/M2/M3 para arzı, tedavüldeki banknotlar."}
+      - {id: mevduat, ad: Mevduat ve katılım fonları, tanim: "Banka mevduat ve katılım fonu tutarları, zorunlu karşılığa tabi yükümlülükler."}
+      - {id: krediler, ad: Krediler, tanim: "Tüketici, ticari, konut, taşıt, kart kredisi tutarları, takipteki krediler."}
+      - {id: merkez_bankasi_bilancosu, ad: Merkez bankası bilançosu, tanim: "TCMB analitik bilançosu ve haftalık vaziyet."}
+      - {id: banka_bilancolari, ad: Banka bilançoları, tanim: "Bankacılık sektörü bilanço kalemleri."}
+      - {id: odeme_sistemleri, ad: Ödeme sistemleri ve kartlar, tanim: "Kart harcamaları, havale/EFT, ödeme sistemi işlem hacimleri."}
+      - {id: banka_disi_finansal, ad: Banka dışı finansal kuruluşlar, tanim: "Finansman, faktoring, leasing şirketlerinin finansal verileri."}
+
+  - id: finansal_piyasalar
+    ad: Finansal piyasalar ve menkul kıymetler
+    tanim: Hisse senedi, tahvil/bono, altın ve piyasa göstergeleri (fiyat, getiri, hacim, yabancı payı).
+    degildir:
+      - {id: mevduat, ne: Mevduat tutarları bankacılık dalındadır.}
+      - {id: krediler, ne: Kredi tutarları bankacılık dalındadır.}
+      - {id: sigorta, ne: Sigorta ayrı dalda.}
+      - {id: bireysel_emeklilik, ne: BES ayrı dalda.}
+      - {id: rezervler, ne: Resmi rezerv altını ödemeler dengesi dalındadır.}
+      - {id: dis_borc, ne: Yurt dışında ihraç edilen borçlanma senedi dış borçtur.}
+    children:
+      - {id: hisse_senedi, ad: Hisse senedi ve borsa, tanim: "BIST endeksleri, işlem hacmi, piyasa değeri."}
+      - {id: devlet_borclanma, ad: Devlet iç borçlanma senetleri, tanim: "DİBS fiyat, getiri ve ihale sonuçları."}
+      - {id: ozel_sektor_borclanma, ad: Özel sektör borçlanma senetleri, tanim: "Özel sektör tahvil/bono ve sürdürülebilir (ESG) borçlanma senetleri."}
+      - {id: yabanci_portfoy, ad: Yurt dışı yerleşik portföyü, tanim: "TCMB haftalık menkul kıymet istatistikleri: yurt dışı yerleşiklerin hisse ve DİBS stokları ve haftalık değişimi. Ödemeler dengesi portföy akımı ve UYP stoku hariç."}
+      - {id: altin_kiymetli_maden, ad: Altın ve kıymetli madenler (piyasa), tanim: "Kıymetli maden piyasa fiyatı ve işlemleri; resmi rezerv altını hariç."}
+      - {id: menkul_kiymet_istatistik, ad: Menkul kıymet istatistikleri, tanim: "İhraç ve stok menkul kıymet istatistikleri."}
+      - {id: yatirim_araci_getirileri, ad: Yatırım araçları getirileri, tanim: "Altın, döviz, mevduat, borsa gibi yatırım araçlarının dönemsel nominal/reel getirileri."}
+
+  - id: sigorta_emeklilik
+    ad: Sigorta ve bireysel emeklilik
+    tanim: Sigorta ve bireysel emeklilik sistemi istatistikleri.
+    degildir:
+      - {id: yapisal_is_istatistikleri, ne: Finansal aracı kurumların yapısal iş istatistikleri (TÜİK Financial Intermediary Institution) iş istatistikleri dalındadır.}
+      - {id: banka_bilancolari, ne: Banka bilançoları bankacılık dalındadır.}
+    children:
+      - {id: sigorta, ad: Sigorta, tanim: "Hayat/hayat dışı sigorta prim, tazminat ve sektör göstergeleri."}
+      - {id: bireysel_emeklilik, ad: Bireysel emeklilik, tanim: "BES fon büyüklüğü ve katılımcı sayıları."}
+
+  - id: odemeler_dengesi_dis_finansman
+    ad: Ödemeler dengesi ve dış finansman
+    tanim: Cari işlemler, finans hesabı, rezervler, uluslararası yatırım pozisyonu ve dış borç.
+    degildir:
+      - {id: ihracat_ithalat, ne: Mal dış ticareti detayı dış ticaret dalındadır.}
+      - {id: butce, ne: Bütçe tarafı kamu maliyesindedir.}
+    children:
+      - {id: cari_islemler, ad: Cari işlemler, tanim: "Cari denge; mal, hizmet, gelir ve cari transfer kalemleri (hizmet ticareti toplu hesabı dahil)."}
+      - {id: dogrudan_yatirim, ad: Doğrudan yatırımlar, tanim: "Yurt dışından/dışına doğrudan yatırım akım ve stokları."}
+      - {id: portfoy_yatirim, ad: Portföy yatırımları, tanim: "Ödemeler dengesi portföy yatırımı akımları."}
+      - {id: diger_yatirimlar, ad: Diğer yatırımlar, tanim: "Yalnız ödemeler dengesi finans hesabı tablosunda kredi, mevduat ve ticari kredi gibi diğer yatırım işlemleri."}
+      - {id: rezervler, ad: Uluslararası rezervler, tanim: "TCMB brüt/net rezervleri, resmi rezerv altını dahil."}
+      - {id: uly_pozisyon, ad: Uluslararası yatırım pozisyonu, tanim: "Net UYP, varlık ve yükümlülük stokları, portföy varlıklarının coğrafi dağılımı, yurt dışı yerleşik mevduatları. UYP tablolarında (stok) bu etiket birincildir; doğrudan yatırım stoku için dogrudan_yatirim ikincil olabilir."}
+      - {id: dis_borc, ad: Dış borç, tanim: "Yerleşiklerin yerleşik olmayanlara brüt dış borç stoku, kısa vadeli dış borç, özel sektörün yurt dışından kredi borcu, kredi kullanımı/geri ödemesi (anapara/faiz), borç çevirme oranları, yurt dışında ihraç edilen borçlanma senetleri. Borçlu kamuysa kamu_borc da ikincil atanabilir."}
+
+  - id: dis_ticaret
+    ad: Dış ticaret
+    tanim: Mal ve hizmetlerin sınır ötesi ticareti; tutar, miktar ve denge göstergeleri.
+    degildir:
+      - {id: birim_deger, ne: Birim değer endeksi fiyat dalındadır.}
+      - {id: cari_islemler, ne: Ödemeler dengesi hizmet hesabı toplu olarak cari işlemlerdedir.}
+      - {id: iktisadi_yonelim, ne: Anketlerin mal grubu kırılımları (ara/yatırım/tüketim malı) dış ticaret değildir.}
+    children:
+      - {id: ihracat_ithalat, ad: İhracat ve ithalat, tanim: "Mal ihracatı ve ithalatı toplamları, ürün (BEC/ISIC/CPA) ve ülke kırılımları."}
+      - {id: dis_ticaret_dengesi, ad: Dış ticaret dengesi, tanim: "İhracat-ithalat dengesi, karşılama oranı."}
+      - {id: dis_ticaret_endeks, ad: Dış ticaret miktar endeksleri ve haddi, tanim: "Miktar endeksleri ve dış ticaret haddi (birim değer endeksleri fiyatlar_enflasyon.birim_deger'de)."}
+      - {id: hizmet_ticareti, ad: Hizmet ticareti, tanim: "Hizmet türü ve ortak ülke kırılımında hizmet ihracatı/ithalatı."}
+
+  - id: ulusal_hesaplar_buyume
+    ad: Ulusal hesaplar ve büyüme
+    tanim: GSYH ve bileşenleri, kurumsal sektör hesapları, verimlilik, öncü göstergeler.
+    degildir:
+      - {id: uretim_endeksleri, ne: Sanayi/hizmet üretim endeksleri üretim dalındadır.}
+      - {id: ekonomik_guven, ne: Güven endeksleri anket dalındadır.}
+    children:
+      - {id: gsyh, ad: GSYH, tanim: "Üretim, harcama ve gelir yöntemiyle GSYH ve katma değer; ulusal ve bölgesel düzey (bölge kırılımdır)."}
+      - {id: tuketim_yatirim, ad: Nihai tüketim ve yatırım, tanim: "Hanehalkı/kamu nihai tüketimi, sabit sermaye oluşumu."}
+      - {id: finansal_hesaplar, ad: Kurumsal sektör finansal hesapları, tanim: "S.1, S.11, S.12, S.121, S.13 (S.1311/1313/1314), S.14 sektörlerinin finansal varlık/yükümlülük akım ve stokları, konsolide ve konsolide olmayan; şirket muhasebe bilançosu değildir. Genel yönetim alt sektörleri için genel_yonetim_hesaplari ikincil olabilir."}
+      - {id: verimlilik, ad: Verimlilik, tanim: "Emek ve toplam faktör verimliliği."}
+      - {id: onculer, ad: Bileşik öncü göstergeler, tanim: "Bileşik öncü göstergeler endeksi."}
+
+  - id: sanayi_uretim_is_dunyasi
+    ad: Sanayi, üretim ve iş dünyası
+    tanim: Üretim hacmi, kapasite, ciro ve işletme istatistikleri.
+    degildir:
+      - {id: firma_bilancolari, ne: Firma bilançoları firmalar dalındadır.}
+      - {id: iktisadi_yonelim, ne: Anket cevap dağılımları anket dalındadır.}
+    children:
+      - {id: uretim_endeksleri, ad: Üretim ve satış hacim endeksleri, tanim: "Sanayi, inşaat ve hizmet üretim endeksleri, ticaret satış hacim endeksi."}
+      - {id: kapasite_kullanimi, ad: Kapasite kullanımı, tanim: "İmalat sanayi kapasite kullanım oranı (anketle ölçülse de bu etiket birincildir; güven endeksi değildir)."}
+      - {id: ciro_endeksleri, ad: Ciro endeksleri, tanim: "Sanayi/ticaret/hizmet ciro endeksleri."}
+      - {id: yapisal_is_istatistikleri, ad: Yapısal iş istatistikleri, tanim: "İşletme sayısı stoku (Business Registers, CİP girişim sayıları), çalışan, ciro, katma değer, yatırım (SBS); finansal aracı kurumlar ve bankaların yapısal iş istatistikleri dahil; bilanço değildir."}
+      - {id: girisimcilik, ad: Girişimcilik ve iş demografisi, tanim: "Girişim doğuşu/ölümü, hayatta kalma, yüksek büyüme gösteren girişimler; işletme sayısı stoku yapisal_is_istatistikleri'nde."}
+
+  - id: isgucu_istihdam_ucretler
+    ad: İşgücü, istihdam ve ücretler
+    tanim: İşsizlik, istihdam, işgücüne katılım, ücretler.
+    degildir:
+      - {id: sosyal_koruma, ne: Sosyal güvenlik ödemeleri sosyal koruma dalındadır.}
+      - {id: egitim, ne: Mezun istihdamı ve ilk iş bulma süresi eğitim dalındadır.}
+      - {id: iktisadi_yonelim, ne: Anketin çalışan sayısı ölçeği kırılımları işgücü verisi değildir.}
+    children:
+      - {id: issizlik, ad: İşsizlik, tanim: "İşsizlik oranları, atıl işgücü, işsiz sayısı."}
+      - {id: istihdam, ad: İstihdam, tanim: "İstihdam edilen sayısı, sektörel istihdam, kayıtlı çalışan sayısı."}
+      - {id: isgucu_katilim, ad: İşgücüne katılım, tanim: "İşgücüne katılım oranı, işgücü piyasası göstergeleri."}
+      - {id: ucretler, ad: Ücretler ve asgari ücret, tanim: "Ortalama ücret, işgücü maliyeti, asgari ücret."}
+
+  - id: kamu_maliyesi
+    ad: Kamu maliyesi
+    tanim: Bütçe, vergi, kamu borç stoku ve genel yönetim bütçe dengesi.
+    degildir:
+      - {id: dis_borc, ne: Brüt dış borcun ödemeler dengesi görünümü ödemeler dengesi dalındadır; kamu kısmı için ikincil atanır.}
+      - {id: finansal_hesaplar, ne: Sektör finansal varlık/yükümlülük hesapları ulusal hesaplardadır.}
+    children:
+      - {id: butce, ad: Bütçe gelir, gider ve denge, tanim: "Konsolide bütçe gelirleri, giderleri, dengesi ve kümülatif gerçekleşmeler (arşiv dahil)."}
+      - {id: vergi, ad: Vergi gelirleri, tanim: "Gelir, kurumlar, KDV, ÖTV vb. vergi gelirleri; çevre vergileri hariç (cevresel_hesaplar)."}
+      - {id: kamu_borc, ad: Kamu borç stoku, tanim: "İç ve dış borç stoku, kamu finansmanı."}
+      - {id: genel_yonetim_hesaplari, ad: Genel yönetim hesapları, tanim: "GFS/ESA kapsamında genel yönetim bütçe dengesi ve borcu (TÜİK Government Accounts)."}
+      - {id: ozellestirme, ad: Özelleştirme, tanim: "Özelleştirme gelirleri."}
+
+  - id: konut_insaat_gayrimenkul
+    ad: Konut, inşaat ve gayrimenkul
+    tanim: Konut ve ticari gayrimenkul fiyat, satış, yapı izni ve inşaat göstergeleri.
+    degildir:
+      - {id: krediler, ne: Konut kredisi tutarı bankacılık dalındadır.}
+      - {id: kredi_faizleri, ne: Konut kredisi faizi faiz dalındadır.}
+      - {id: tuketici_fiyatlari, ne: TÜFE kira alt endeksi tüketici fiyatlarındadır.}
+    children:
+      - {id: konut_fiyatlari, ad: Konut fiyatları, tanim: "Konut fiyat endeksleri, m2 fiyatları."}
+      - {id: konut_satislari, ad: Konut satışları, tanim: "Konut satış sayıları, ipotekli/ipotekli olmayan."}
+      - {id: yapi_izni, ad: Yapı izinleri ve iskân, tanim: "Yapı ruhsatı, iskân belgesi istatistikleri."}
+      - {id: insaat_maliyet, ad: İnşaat maliyetleri, tanim: "İnşaat maliyet endeksi ve alt kalemleri."}
+      - {id: ticari_gayrimenkul, ad: Ticari gayrimenkul, tanim: "Ticari gayrimenkul fiyat endeksi."}
+      - {id: kira, ad: Kira, tanim: "Yeni kiracı kira endeksi, değerlemesi yapılan konutların birim kiraları ve gayrimenkul kira bedelleri; TÜFE kira alt endeksi hariç."}
+
+  - id: guven_beklenti_anketleri
+    ad: Güven ve beklenti anketleri
+    tanim: Anket tabanlı güven endeksleri, beklenti ve eğilim anketleri; anketin konusu ikincil konu etiketi olarak eklenir.
+    degildir:
+      - {id: kapasite_kullanimi, ne: Kapasite kullanım oranı üretim dalındadır.}
+      - {id: issizlik, ne: İşgücü anketi gerçekleşeni anket değil işgücü verisidir.}
+    children:
+      - {id: tuketici_guveni, ad: Tüketici güveni, tanim: "Tüketici güven endeksi ve alt endeksleri."}
+      - {id: reel_kesim_guveni, ad: Reel kesim güveni, tanim: "Reel kesim güven endeksi ve bileşenleri; kapasite kullanım oranı hariç."}
+      - {id: sektorel_guven, ad: Sektörel güven, tanim: "Hizmet, perakende, inşaat güven endeksleri."}
+      - {id: ekonomik_guven, ad: Ekonomik güven, tanim: "Ekonomik güven endeksi."}
+      - {id: piyasa_katilimcilari, ad: Piyasa katılımcıları anketi, tanim: "Enflasyon, kur, büyüme beklentileri (TCMB PKA); konu ikincil etiketle eklenir."}
+      - {id: iktisadi_yonelim, ad: İktisadi yönelim anketi, tanim: "Sipariş, üretim, istihdam beklentileri; mal grubu (ara/yatırım/tüketim malı) ve çalışan sayısı ölçeğine göre alt kırılımları dahil."}
+      - {id: finansal_hizmet_anketi, ad: Finansal hizmetler ve kredi eğilim anketleri, tanim: "Finansal hizmetler anketi, banka kredi eğilim anketi."}
+
+  - id: hanehalki
+    ad: "Hanehalkı: gelir, tüketim ve yaşam koşulları"
+    tanim: Hanehalkı geliri, harcaması, yoksulluk, gelir dağılımı ve yaşam memnuniyeti.
+    degildir:
+      - {id: krediler, ne: Hanehalkı kredi tutarları bankacılık dalındadır.}
+      - {id: finansal_hesaplar, ne: Hanehalkı (S.14) finansal varlık/yükümlülük hesapları ulusal hesaplardadır.}
+    children:
+      - {id: gelir_dagilimi, ad: Gelir dağılımı ve yoksulluk, tanim: "Gini, yoksulluk oranları, gelir dilimleri."}
+      - {id: hanehalki_tuketim, ad: Hanehalkı tüketim harcamaları, tanim: "Harcama kalemleri ve payları."}
+      - {id: yasam_kosullari, ad: Yaşam koşulları ve memnuniyet, tanim: "Yaşam memnuniyeti, mutluluk, konut ve çevre koşulları anketleri."}
+      - {id: bolgesel_gelismislik, ad: Bölgesel gelişmişlik, tanim: "İl/bölge insani gelişme endeksi ve sosyoekonomik gelişmişlik endeksleri."}
+
+  - id: firmalar
+    ad: "Firmalar: bilanço ve finansal durum"
+    tanim: Firma ve sektör bilançoları, gelir tabloları, finansal oranlar ve risk.
+    degildir:
+      - {id: uretim_endeksleri, ne: Üretim endeksleri üretim dalındadır.}
+      - {id: ciro_endeksleri, ne: Ciro endeksleri üretim dalındadır.}
+      - {id: reel_kesim_guveni, ne: Firma güven anketleri anket dalındadır.}
+    children:
+      - {id: firma_bilancolari, ad: Sektör bilançoları, tanim: "Reel sektör bilanço kalemleri (TCMB ve TÜİK sektör bilançoları, türetilen temel göstergeler; 2009-2023 ve 2023-2025 dönem serileri donem_serisi bayrağıyla ayrılır)."}
+      - {id: gelir_tablosu, ad: Gelir tabloları, tanim: "Firma ve sektör gelir tabloları."}
+      - {id: finansal_oranlar, ad: Finansal oranlar, tanim: "Likidite, borçluluk, karlılık oranları."}
+      - {id: sektor_riski, ad: Sektör riski, tanim: "Kredi riski, takip oranları, sektör risk göstergeleri."}
+      - {id: firma_doviz_pozisyonu, ad: Firmaların döviz varlık/yükümlülükleri, tanim: "Reel sektör döviz pozisyonu."}
+
+  - id: enerji_emtia
+    ad: Enerji ve emtia
+    tanim: Petrol, doğalgaz, elektrik, metaller ve diğer emtia.
+    degildir:
+      - {id: altin_kiymetli_maden, ne: Altın piyasa fiyatı finansal piyasalardadır.}
+      - {id: tarimsal_fiyatlar, ne: Tarımsal fiyat endeksleri fiyat dalındadır.}
+    children:
+      - {id: petrol_akaryakit, ad: Petrol ve akaryakıt, tanim: "Brent, akaryakıt fiyatı ve tüketimi."}
+      - {id: dogalgaz_elektrik, ad: Doğalgaz ve elektrik, tanim: "Üretim, tüketim, fiyat, kurulu güç, kişi başı elektrik tüketimi."}
+      - {id: emtia, ad: Metaller ve diğer emtia, tanim: "Metal, tahıl ve diğer emtia fiyatları."}
+
+  - id: tarim
+    ad: Tarım
+    tanim: Tarımsal üretim, varlık ve işletme yapısı.
+    degildir:
+      - {id: tarimsal_fiyatlar, ne: Tarımsal fiyat endeksleri fiyat dalındadır.}
+    children:
+      - {id: bitkisel_uretim, ad: Bitkisel üretim, tanim: "Bitkisel ürün üretimi ve verim; ekili alan göstergesi tarim_alani_makine'de birincildir."}
+      - {id: hayvancilik, ad: Hayvancılık, tanim: "Hayvan varlığı ve hayvansal üretim."}
+      - {id: tarim_alani_makine, ad: Tarım alanı ve makine, tanim: "Ekili alan ve tarım alanları, örtüaltı tarım, tarımsal makine ve ekipman, işletme yapısı."}
+
+  - id: ulasim_turizm_iletisim
+    ad: Ulaştırma, turizm ve iletişim
+    tanim: Araç, trafik, ulaştırma hizmetleri, turizm ve haberleşme faaliyetleri.
+    degildir:
+      - {id: cari_islemler, ne: TCMB ödemeler dengesi seyahat kalemi cari işlemlerdedir; TÜİK turizm gelir/gider tabloları burada.}
+      - {id: bilisim_kullanimi, ne: Bilişim teknolojisi kullanımı bilim-teknoloji dalındadır.}
+    children:
+      - {id: motorlu_tasitlar, ad: Motorlu taşıtlar ve trafik, tanim: "Araç sayısı, tescil, trafik kazası."}
+      - {id: ulasim_hizmet, ad: Ulaştırma hizmetleri, tanim: "Hava, kara, deniz, demiryolu yük ve yolcu."}
+      - {id: turizm, ad: Turizm, tanim: "Ziyaretçi sayısı, geceleme, TÜİK turizm geliri/gideri ve harcama istatistikleri."}
+      - {id: haberlesme, ad: Haberleşme, tanim: "Abone sayıları, posta, telekom."}
+
+  - id: nufus_demografi
+    ad: Nüfus ve demografi
+    tanim: Nüfus büyüklüğü ve yapısı, doğum, ölüm, evlilik, göç, hanehalkı yapısı.
+    degildir:
+      - {id: egitim, ne: Eğitim istatistikleri eğitim dalındadır.}
+      - {id: saglik, ne: Sağlık hizmeti istatistikleri sağlık dalındadır; ölüm nedenleri burada.}
+    children:
+      - {id: nufus, ad: Nüfus, tanim: "ADNKS sonuçları, yaş/cinsiyet/il dağılımı, nüfus projeksiyonları."}
+      - {id: dogum, ad: Doğum, tanim: "Doğum, doğurganlık, kaba doğum hızı."}
+      - {id: olum, ad: Ölüm, tanim: "Ölüm ve ölüm nedenleri (intihar dahil), beklenen yaşam süresi."}
+      - {id: hanehalki_yapisi, ad: Hanehalkı yapısı, tanim: "Hanehalkı sayısı ve büyüklüğü (ADNKS)."}
+      - {id: evlenme_bosanma, ad: Evlenme ve boşanma, tanim: "Evlenme/boşanma sayıları."}
+      - {id: goc, ad: Göç, tanim: "İç ve dış göç, uluslararası koruma; beyin göçü hariç (egitim)."}
+
+  - id: egitim_saglik_sosyal_koruma
+    ad: Eğitim, sağlık ve sosyal koruma
+    tanim: Eğitim, sağlık hizmeti ve sosyal güvenlik/yardım istatistikleri.
+    degildir:
+      - {id: nufus, ne: Nüfus büyüklüğü ve yapısı nüfus dalındadır.}
+      - {id: olum, ne: Ölüm ve ölüm nedenleri nüfus dalındadır.}
+    children:
+      - {id: egitim, ad: Eğitim, tanim: "Okullaşma, öğrenci/öğretmen sayıları, eğitim harcaması, yükseköğretim mezunlarının istihdamı, ilk iş bulma süresi, mezun kazançları, beyin göçü."}
+      - {id: saglik, ad: Sağlık, tanim: "Sağlık kurumu, personeli, hastalık göstergeleri."}
+      - {id: sosyal_koruma, ad: Sosyal koruma, tanim: "Sosyal güvenlik, emeklilik aylıkları, sosyal yardım."}
+
+  - id: bilim_teknoloji_bilgi_toplumu
+    ad: Bilim, teknoloji ve bilgi toplumu
+    tanim: Ar-Ge, inovasyon, bilişim teknolojileri kullanımı.
+    degildir:
+      - {id: haberlesme, ne: Telekom abone sayıları haberleşmededir.}
+    children:
+      - {id: arge_inovasyon, ad: Ar-Ge ve inovasyon, tanim: "Ar-Ge harcaması/personeli, patent, inovasyon anketi."}
+      - {id: bilisim_kullanimi, ad: Bilişim teknolojileri kullanımı, tanim: "Hanehalkı/işletme bilişim teknolojisi kullanımı, internet erişimi."}
+
+  - id: cevre
+    ad: Çevre ve iklim
+    tanim: Çevre kirliliği, atık, su, emisyon, iklim ve çevresel hesaplar.
+    degildir:
+      - {id: dogalgaz_elektrik, ne: Enerji üretimi/tüketimi enerji dalındadır.}
+    children:
+      - {id: atik_su, ad: Atık ve su, tanim: "Atık yönetimi, belediye su/atık hizmetleri."}
+      - {id: emisyon_iklim, ad: Emisyon ve iklim, tanim: "Sera gazı emisyonları, iklim göstergeleri; hava emisyon HESABI tablosunda cevresel_hesaplar birincildir."}
+      - {id: cevresel_hesaplar, ad: Çevresel ekonomik hesaplar, tanim: "Çevre koruma harcaması ve yatırımları, çevre vergileri, malzeme akış ve hava emisyon hesapları."}
+
+  - id: toplum_kultur_secim
+    ad: Toplum, kültür, spor ve seçim
+    tanim: Kültür, spor, basın-yayın, seçim ve adalet/suç istatistikleri.
+    degildir:
+      - {id: egitim, ne: Eğitim eğitim dalındadır.}
+      - {id: saglik, ne: Sağlık sağlık dalındadır.}
+    children:
+      - {id: kultur_spor, ad: Kültür, spor ve yayın, tanim: "Müze, kütüphane, sinema, spor, basın-yayın ve resmi ilan istatistikleri."}
+      - {id: secim, ad: Seçim, tanim: "Seçim sonuçları ve katılım."}
+      - {id: adalet_guvenlik, ad: Adalet ve güvenlik, tanim: "Suç, mahkûm ve adalet istatistikleri."}
+
+# ÖLÇÜM TÜRÜ — ölçü boyutu kodu (veya seri) düzeyinde; veri seti içerdiği türlerin kümesini taşır.
+# toplama = frekans eşleştirmede (§8) düşük frekansa indirme kuralı.
+measure_types:
+  - {id: akim_tutar, ad: Akım tutarı, toplama: toplam, tanim: "Dönem boyunca oluşan parasal tutar (ihracat, satış tutarı)."}
+  - {id: stok_tutar, ad: Stok tutarı, toplama: donem_sonu, tanim: "Belirli tarihte mevcut parasal tutar (mevduat, borç stoku, rezerv)."}
+  - {id: akim_adet, ad: Akım adedi, toplama: toplam, tanim: "Dönem boyunca oluşan adet (konut satışı, doğum)."}
+  - {id: stok_adet, ad: Stok adedi, toplama: donem_sonu, tanim: "Belirli tarihte mevcut adet (nüfus, araç sayısı)."}
+  - {id: fiziksel_akim, ad: Fiziksel akım, toplama: toplam, tanim: "Dönem boyunca oluşan fiziksel miktar (kWh elektrik tüketimi, ton atık, su çekimi)."}
+  - {id: fiziksel_stok, ad: Fiziksel stok, toplama: donem_sonu, tanim: "Belirli tarihte mevcut fiziksel büyüklük (tarım alanı, kurulu güç, hayvan varlığı)."}
+  - {id: fiyat_kur, ad: Fiyat / kur, toplama: ortalama, tanim: "Bir birim mal/hizmet/dövizin fiyatı."}
+  - {id: endeks, ad: Endeks, toplama: ortalama, tanim: "Baz dönemine göre endeks değeri."}
+  - {id: aylik_yuzde_degisim, ad: Aylık % değişim, toplama: yeniden_hesapla, tanim: "Önceki aya göre yüzde değişim."}
+  - {id: donemsel_yuzde_degisim, ad: Dönemsel % değişim, toplama: yeniden_hesapla, tanim: "Önceki eş uzunluktaki döneme göre yüzde değişim (çeyreklik vb.)."}
+  - {id: yillik_yuzde_degisim, ad: Yıllık % değişim, toplama: yeniden_hesapla, tanim: "Önceki yılın aynı dönemine göre yüzde değişim."}
+  - {id: yilbasindan_yuzde_degisim, ad: Yılbaşından % değişim, toplama: test_disi, tanim: "Yıl başından bu yana kümülatif yüzde değişim."}
+  - {id: on_iki_ay_ort_yuzde_degisim, ad: 12 aylık ortalama % değişim, toplama: yeniden_hesapla, tanim: "Son 12 ay ortalamasının önceki 12 aya göre yüzde değişimi."}
+  - {id: oran_pay, ad: Oran / pay, toplama: ortalama, tanim: "Oran, pay veya yüzde değer (işsizlik oranı, faiz)."}
+  - {id: katki_puan, ad: Katkı (puan), toplama: test_disi, tanim: "Bir kalemin toplam değişime yüzde puan katkısı."}
+  - {id: agirlik, ad: Ağırlık, toplama: test_disi, tanim: "Sepet/endeks kalem ağırlığı."}
+  - {id: hiz_binde, ad: Hız (binde/yüz binde), toplama: ortalama, tanim: "Kaba doğum/ölüm hızı gibi binde veya yüz binde oranlar."}
+  - {id: sure, ad: Süre, toplama: ortalama, tanim: "Gün, ay, yıl cinsinden süre (beklenen yaşam, ilk iş bulma süresi)."}
+  - {id: kisi_basina, ad: Kişi başına, toplama: ortalama, tanim: "Kişi başına düşen değer."}
+  - {id: dagilim_istatistigi, ad: Dağılım istatistiği, toplama: test_disi, tanim: "Standart sapma, en büyük/en küçük, medyan gibi dağılım özetleri (ör. PKA)."}
+  - {id: katilimci_sayisi, ad: Katılımcı sayısı, toplama: test_disi, tanim: "Ankete yanıt veren sayısı (gözlem sayısı)."}
+  - {id: cevap_dagilimi, ad: Cevap dağılımı, toplama: ortalama, tanim: "Anket cevaplarının yüzde dağılımı."}
+  - {id: denge_yayilma, ad: Denge / yayılma değeri, toplama: ortalama, tanim: "Anketlerde olumlu-olumsuz fark (denge) veya yayılma."}
+
+# VERİ NİTELİĞİ — yöntem (anket) ayrı; anketle derlenen gerçekleşen ölçüm gerçekleşendir.
+data_nature:
+  - {id: gerceklesen, ad: Gerçekleşen, tanim: "Referans dönemde gerçekleşen durumu ölçen değer; anketle derlenmiş olabilir."}
+  - {id: beklenti, ad: Beklenti, tanim: "Katılımcıların gelecekteki duruma ilişkin beyanı veya beklentisi."}
+  - {id: tahmin, ad: Tahmin / projeksiyon, tanim: "Model veya varsayımla üretilen tahmin/projeksiyon."}
