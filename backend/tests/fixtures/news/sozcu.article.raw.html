@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://securepubads.g.doubleclick.net" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://av2.sozcu.com.tr" crossorigin>
+    <link rel="dns-prefetch" href="https://sozcu01.sozcucdn.com"/>
+    <link rel="dns-prefetch" href="https://firebase.googleapis.com"/>
+    <link rel="dns-prefetch" href="https://www.gstatic.com"/>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com"/>
+    <link rel="dns-prefetch" href="https://securepubads.g.doubleclick.net"/>
+    <link rel="dns-prefetch" href="https://googleads.g.doubleclick.net"/>
+    <link rel="dns-prefetch" href="https://adservice.google.com.tr"/>
+    <link rel="dns-prefetch" href="https://adservice.google.com"/>
+    <link rel="dns-prefetch" href="https://www.googletagservices.com"/>
+    <link rel="dns-prefetch" href="https://tpc.googlesyndication.com"/>
+    <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com"/>
+    <link rel="dns-prefetch" href="https://static.criteo.net"/>
+    <link rel="dns-prefetch" href="https://gatr.hit.gemius.pl"/>
+    <link rel="dns-prefetch" href="https://medya.ilan.gov.tr"/>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net"/>
+    <link rel="dns-prefetch" href="https://av2.sozcu.com.tr"/>
+    <link rel="dns-prefetch" href="https://www.sozcu.com.tr"/>
+    <link rel="dns-prefetch" href="https://www.szctv.com.tr"/>
+    <link rel="dns-prefetch" href="https://www.korkusuz.com.tr"/>
+    <!-- Editorial image dead-connection recovery (iOS WebKit + desktop Safari).
+         Bound here in <head> BEFORE images load so above-the-fold failures are caught.
+         Bounded (max/page), kill-switch'li (window.imageOneRetryDisabled), sadece editöryel sozcucdn.
+         imageOneRetry.ts bundle ile dataset.imgRetry üzerinden koordineli (çift retry yok). -->
+    <script>
+        (function () {
+            try {
+                var ua = navigator.userAgent;
+                var isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1);
+                var isDesktopSafari = /\bSafari\//.test(ua) && !/\b(Chrome|Chromium|CriOS|HeadlessChrome|Edg|OPR|Firefox|FxiOS)\//.test(ua);
+                if (!(isIOS || isDesktopSafari) || window.imageOneRetryDisabled === true) return;
+                var MAX = 50, done = 0;
+                function isCdn(h) { return h === 'sozcucdn.com' || /\.sozcucdn\.com$/.test(h); }
+                function bust(raw) { try { var u = new URL(raw, location.origin); if (!isCdn(u.hostname)) return null; u.searchParams.set('safari_img_retry', '1'); return u.toString(); } catch (e) { return null; } }
+                document.addEventListener('error', function (e) {
+                    var img = e.target;
+                    if (done >= MAX || !(img instanceof HTMLImageElement) || img.dataset.imgRetry === '1') return;
+                    var src = img.currentSrc || img.getAttribute('src') || '';
+                    if (!/sozcucdn\.com/.test(src) || src.indexOf('safari_img_retry') > -1) return;
+                    var next = bust(src); if (!next) return;
+                    img.dataset.imgRetry = '1'; done++;
+                    var pic = img.closest && img.closest('picture');
+                    if (pic) Array.prototype.forEach.call(pic.querySelectorAll('source'), function (s) {
+                        var ss = s.getAttribute('srcset');
+                        if (ss && /sozcucdn\.com/.test(ss)) s.setAttribute('srcset', ss.replace(/[^\s,]+/g, function (m) { return bust(m) || m; }));
+                    });
+                    img.removeAttribute('srcset'); img.setAttribute('loading', 'eager'); img.setAttribute('src', next);
+                }, true);
+            } catch (e) {}
+        })();
+    </script>
+    <!-- Basın İlan Takip (BİK Analitik v2 — v1 tracker 2026-07-10'da BİK talebiyle kaldırıldı) -->
+    <script> var script = document.createElement("script");script.src="//cdn-v2.p.analitik.bik.gov.tr/t-"+(typeof self !== "undefined" && self.crypto && typeof self.crypto.randomUUID === "function" ? "1-" : typeof Promise !== "undefined" ? "2-" : "3-")+"sozcu-com-tr-"+"0"+".js";document.head.appendChild(script);</script>
+    <!-- Aps Tag -->
+    <script>
+        //load the apstag.js library
+        !function(a9,a,p,s,t,A,g){if(a[a9])return;function q(c,r){a[a9]._Q.push([c,r])}a[a9]={init:function(){q("i",arguments)},fetchBids:function(){q("f",arguments)},setDisplayBids:function(){},targetingKeys:function(){return[]},_Q:[]};A=p.createElement(s);A.async=!0;A.src=t;g=p.getElementsByTagName(s)[0];g.parentNode.insertBefore(A,g)}("apstag",window,document,"script","//c.amazon-adsystem.com/aax2/apstag.js");
+        //initialize the apstag.js library on the page to allow bidding
+        apstag.init({
+            pubID: 'dcfa1fed-b0d2-4af7-9c30-d3ac125401e9', //enter your pub ID here as shown above, it must within quotes
+            adServer: 'googletag'
+        });
+    </script>
+    <!-- Aps Tag -->
+    <script>
+    (function () {
+        try {
+            if (window.inAppInterstitialBlockDisabled === true) return;
+
+            var ua = navigator.userAgent || '';
+            var isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1);
+
+            // iOS WKWebView'de gerçek Safari'nin "Safari/" token'ı yoktur; CriOS/FxiOS ise
+            // token'ı taşıdığı için yanlışlıkla yakalanmaz. Android tarafında WebView'in
+            // "; wv)" işareti + bilinen uygulama imzaları kullanılır.
+            var isInApp =
+                /;\s*wv\)/.test(ua) ||
+                /(FBAN|FBAV|FB_IAB|FBIOS|Instagram|LinkedInApp|Line\/|MicroMessenger|TwitterAndroid|Snapchat|Pinterest|GSA\/)/i.test(ua) ||
+                (isIOS && !/Safari\//.test(ua));
+
+            var forced = location.search.indexOf('inAppAdTest=1') > -1;
+            var blocked = [];
+            window.szcInAppAdBlock = { isInApp: isInApp, forced: forced, blocked: blocked };
+
+            if (!isInApp && !forced) return;
+
+            var BLOCKED_AD_UNITS = /sozcu_mobile_interstial|sozcu_popup/;
+
+            window.googletag = window.googletag || { cmd: [] };
+            googletag.cmd.push(function () {
+                var original = googletag.defineOutOfPageSlot;
+                if (typeof original !== 'function') return;
+                googletag.defineOutOfPageSlot = function (adUnitPath) {
+                    if (typeof adUnitPath === 'string' && BLOCKED_AD_UNITS.test(adUnitPath)) {
+                        blocked.push(adUnitPath);
+                        return null;
+                    }
+                    return original.apply(this, arguments);
+                };
+            });
+
+            // İkinci katman: slot başka bir yoldan tanımlanırsa creative'in render edileceği
+            // div kalmasın. adsv2'deki tüm getElementById kullanımları null-guard'lı.
+            document.addEventListener('DOMContentLoaded', function () {
+                var ids = ['div-sozcu_popup', 'div-sozcu_mobile_interstial'];
+                for (var i = 0; i < ids.length; i++) {
+                    var el = document.getElementById(ids[i]);
+                    if (el && el.parentNode) el.parentNode.removeChild(el);
+                }
+            });
+        } catch (e) {}
+    })();
+</script>
+
+    <!-- ads -->
+    <link rel="preload" fetchpriority="high" href="https://securepubads.g.doubleclick.net/tag/js/gpt.js" as="script"/>
+    <link rel="preload" fetchpriority="high" href="/lib/adsv2_dist/prebid10.25.0.js?v=gjEtuTsv5kwQpPbgXEqsOCBuUrLGWcnlFPNgoFA9eSY" as="script" />
+    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+    <script async src="/lib/adsv2_dist/prebid10.25.0.js?v=gjEtuTsv5kwQpPbgXEqsOCBuUrLGWcnlFPNgoFA9eSY"></script>
+    <link rel="stylesheet" href="/lib/css/bs-icons/bootstrap-icons.min.css?v=dlPushMDzVFy0HNKWpCM4Gm0WfqQKmtWlJl_zSEyho4">
+
+    <!-- ads -->
+    
+
+
+    <meta name="robots" content="max-image-preview:large">
+            <!-- domain tags -->
+            <script type="text/javascript">
+        const catSlug = 'otomotiv';
+        const postId = '365798';
+        window.postId=postId;
+        window.contentCategoryName='Otomotiv';
+        window.contentCategoryId='148';
+        const isEnabled=true;
+        const isSecure=true;
+        window.domainTag = window.domainTag || {cmd:[]};
+        window.domainAdsConfForDesktop={isEnabled:isEnabled,isSecure:isSecure, targetingMap:{'tehlikeli': isSecure ? 'hayir':'evet', 'sistem': 'anasistem','tipi':'single', 'sozcuCat':catSlug, 'postId':postId}};
+        window.domainAdsConfForMobile={isEnabled:isEnabled,isSecure:isSecure, targetingMap:{'tehlikeli': isSecure ? 'hayir':'evet', 'sistem': 'mobil','tipi':'single','mobilCat': catSlug, 'postId':postId}};
+    </script>
+                <link rel="modulepreload" crossorigin fetchpriority="high" href="/lib/adsv2_dist/postDetailPageClient_tr.js?v=RehCD-f1rmX34-FjppnRRDrqd1GPcHVUrd-Q0a5tyRg" />
+                <script async="async" type="module" id="domainTag" src="/lib/adsv2_dist/postDetailPageClient_tr.js?v=RehCD-f1rmX34-FjppnRRDrqd1GPcHVUrd-Q0a5tyRg"></script>
+            <!-- domain tags -->
+            <script defer type="text/javascript" src="https://gatr.hit.gemius.pl/gplayer.js"></script>
+
+
+        <link rel="amphtml" href="https://www.sozcu.com.tr/amp/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798"/>
+
+    <link rel="canonical" href="https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798"/>
+    <!-- LOAD MORE SAYFALARI İÇİN TABOOLA COUNTER -->
+    <script>
+    window.page_counter = 0;
+</script>
+    <!-- /LOAD MORE SAYFALARI İÇİN TABOOLA COUNTER -->
+
+    <link rel="stylesheet" href="/lib/css/swiper-bundle.css">
+
+        <meta name="title" content="Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli">
+        <meta name="url"content="https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798">
+            <meta name="datePublished" content="2026-10-03T15:08:21&#x2B;0300">
+            <meta name="dateModified" content="2026-10-03T15:08:21&#x2B;0300">
+        <meta name="articleAuthor" content="Derleyen: Burak Erdoğan">
+                <meta name="articleSection" content="news">
+        <title>Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli - Sözcü</title>
+        <meta name="description" content="Türkiye ikinci el otomobil pazarında bütçe, bakım maliyeti ve yakıt tüketimi odaklı tercihler talep dengelerini değiştirdi. İkinci el pazarında en hızlı satılan otomobil modelleri sıralandı.">
+        <script type="module" src="/lib/js/detay.js?v=DNp-pBH7YwPGYzFpzlUwN3p5r2X-IWyMW3Nw2qdYO5c"></script>
+        <link rel="stylesheet" href="/lib/css/detay.css?v=_AgDuWfoihkE82BbvTUoXzDjTvNWLeZPSNfcGZi2fnY">
+        <link rel="image_src" href="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/sifir-otomobil-satin-alma-pexels-124178jpg-TYeiYYQIZkqOpef2RlRexw.jpg?w=1270&amp;h=675&amp;mode=crop&amp;scale=both"/>
+        <meta name="author" content="Derleyen: Burak Erdoğan">
+        <meta property="og:type" content="article">
+        <meta property="og:title" content="Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli - Sözcü Gazetesi">
+        <meta property="og:description" content="Türkiye ikinci el otomobil pazarında bütçe, bakım maliyeti ve yakıt tüketimi odaklı tercihler talep dengelerini değiştirdi. İkinci el pazarında en hızlı satılan otomobil modelleri sıralandı.">
+        <meta property="og:url" content="https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798">
+        <meta property="og:image" content="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/sifir-otomobil-satin-alma-pexels-124178jpg-TYeiYYQIZkqOpef2RlRexw.jpg?w=1270&amp;h=675&amp;mode=crop&amp;scale=both"/>
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="675">
+        <meta property="fb:app_id" content="1104414796238524">
+        <meta property="fb:pages" content="151997251518179">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:image" content="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/sifir-otomobil-satin-alma-pexels-124178jpg-TYeiYYQIZkqOpef2RlRexw.jpg?w=1200&amp;h=630&amp;mode=crop&amp;scale=both">
+        <meta name="twitter:site" content="@gazetesozcu">
+        <meta name="twitter:creator" content="@gazetesozcu">
+        <meta name="twitter:title" content="Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli - Sözcü Gazetesi">
+        <meta name="twitter:description" content="Türkiye ikinci el otomobil pazarında bütçe, bakım maliyeti ve yakıt tüketimi odaklı tercihler talep dengelerini değiştirdi. İkinci el pazarında en hızlı satılan otomobil modelleri sıralandı.">
+        <meta name="twitter:image:alt" content="Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli">
+        <meta name="twitter:url" content="https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798">
+        <meta name="twitter:domain" content="https://www.sozcu.com.tr">
+
+        <script defer src="/lib/js/sozcu_taboola.js"></script>
+    <link rel="modulepreload" crossorigin href="/lib/js/share.js?v=WaN7Zt78k8R_oVGf6oW8SWwBnk40rr2tStnndTrPDm4">
+    <link rel="modulepreload" crossorigin href="/lib/js/swiper-bundle.js?v=sMceKUCmVLIFItldG5JXfHWMSXuiDFZxJGYAqXOhG5s">
+    <link rel="modulepreload" crossorigin href="/lib/js/articleParts.js?v=vrNJSBs3aa2O6EOqPBUJ7KLDzUIBDydTUPlxfYonQFk">
+    <link rel="modulepreload" crossorigin href="/lib/js/helper.js?v=6oURW72NbnZrqPz5-ZPOSeAxmAICmvOXl41ErmnF4x4">
+    <link rel="modulepreload" crossorigin href="/lib/js/modulepreload-polyfill.js?v=sKWwUco3rEao_0XDigkQZFQhdPvmAoa-3Fq-FJJnny4">
+    <link rel="modulepreload" crossorigin href="/lib/js/articleFontSizer.js?v=aUgIQYahL37_iGZqtiWILvBZkucOn0jkz4VvYvgaxgQ">
+    <link rel="modulepreload" crossorigin href="/lib/js/navigation.js?v=49w1-jUD6NYpjeyAnMFq4C7IiAjWL7fvgx7zLuSomIo">
+    <link rel="modulepreload" crossorigin href="/lib/js/storage.js?v=nq8Dze4sfizidqGqkTKVusih3N5i-45PjcFTghJhNgc">
+    <link rel="modulepreload" crossorigin href="/lib/js/swiper.js?v=Z_HG-R8Hfjco4W-BbpgDOly6s1sVHlx63AivWi-zZ_E">
+
+
+
+    <script type="application/ld&#x2B;json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "NewsMediaOrganization",
+      "@id": "https://www.sozcu.com.tr/#organization",
+      "name": "Sözcü",
+      "alternateName": [
+        "Sözcü Gazetesi",
+        "Sozcu.com.tr"
+      ],
+      "url": "https://www.sozcu.com.tr/",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://www.sozcu.com.tr/"
+      },
+      "description": "Türkiye gündemini, son dakika gelişmelerini, ekonomi, dünya, spor, yaşam ve teknoloji haberlerini yayınlayan dijital haber platformu.",
+      "foundingDate": "2007",
+      "areaServed": {
+        "@type": "Country",
+        "name": "Türkiye"
+      },
+      "knowsAbout": [
+        "Son dakika haberleri",
+        "Gündem",
+        "Ekonomi",
+        "Dünya",
+        "Spor",
+        "Hayat",
+        "Magazin",
+        "Finans",
+        "Teknoloji",
+        "Köşe yazıları"
+      ],
+      "publishingPrinciples": "https://www.sozcu.com.tr/kunye-pg6",
+      "ethicsPolicy": "https://www.sozcu.com.tr/kunye-pg6",
+      "correctionsPolicy": "https://www.sozcu.com.tr/iletisim-pg14",
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "telephone": "+90-212-346-07-07",
+          "email": "musteridestek@sozcu.com.tr",
+          "areaServed": "TR",
+          "availableLanguage": [
+            "tr-TR"
+          ]
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "newsroom",
+          "telephone": "+90-212-708-50-60",
+          "email": "net@sozcu.com.tr",
+          "areaServed": "TR",
+          "availableLanguage": [
+            "tr-TR"
+          ]
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "newsroom",
+          "telephone": "+90-212-698-60-06",
+          "email": "net@sozcu.com.tr",
+          "areaServed": "TR",
+          "availableLanguage": [
+            "tr-TR"
+          ]
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "newsroom",
+          "telephone": "+90-212-698-35-35",
+          "email": "net@sozcu.com.tr",
+          "areaServed": "TR",
+          "availableLanguage": [
+            "tr-TR"
+          ]
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "advertising",
+          "telephone": "+90-212-290-21-22",
+          "areaServed": "TR",
+          "availableLanguage": [
+            "tr-TR"
+          ]
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "legal",
+          "email": "hukuk@sozcu.com.tr",
+          "areaServed": "TR",
+          "availableLanguage": [
+            "tr-TR"
+          ]
+        }
+      ],
+      "address": [
+        {
+          "@type": "PostalAddress",
+          "streetAddress": "Maslak Mah. Maslak Meydan Sok. Veko Giz Plaza 3/81",
+          "addressLocality": "Sarıyer",
+          "addressRegion": "İstanbul",
+          "addressCountry": "TR"
+        },
+        {
+          "@type": "PostalAddress",
+          "streetAddress": "Dereboyu Cad. Meydan Sk. Veko Giz Plaza, No: 3, Kat: 16, Maslak",
+          "addressLocality": "Sarıyer",
+          "addressRegion": "İstanbul",
+          "addressCountry": "TR"
+        },
+        {
+          "@type": "PostalAddress",
+          "streetAddress": "Dereboyu Cad. Meydan Sk. Veko Giz Plaza, No: 3, Kat: 17, Maslak",
+          "addressLocality": "Sarıyer",
+          "addressRegion": "İstanbul",
+          "addressCountry": "TR"
+        }
+      ],
+      "email": "net@sozcu.com.tr",
+      "telephone": "+90-212-698-49-49",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://www.sozcu.com.tr/#logo",
+        "url": "https://www.sozcu.com.tr/static/web/assets/logo.svg",
+        "caption": "Sözcü logosu"
+      },
+      "brand": {
+        "@type": "Brand",
+        "name": "Sözcü"
+      },
+      "sameAs": [
+        "https://www.instagram.com/sozcucomtr/",
+        "https://www.facebook.com/sozcugazetesi/",
+        "https://x.com/gazetesozcu",
+        "https://www.linkedin.com/company/s-zc-gazetesi",
+        "https://www.dailymotion.com/user/Sozcu"
+      ],
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "Mega Ajans ve Rek. Tic. A.Ş."
+      },
+      "founder": {
+        "@type": "Organization",
+        "name": "Mega Ajans ve Rek. Tic. A.Ş."
+      },
+      "ownershipFundingInfo": "Copyright ve yayın hakları Mega Ajans ve Rek. Tic. A.Ş.'ye aittir.",
+      "member": [
+        {
+          "@type": "Person",
+          "name": "Ercüment İşleyen",
+          "jobTitle": "Genel Yayın Yönetmeni"
+        },
+        {
+          "@type": "Person",
+          "name": "Berk Cömert",
+          "jobTitle": "Tüzel Kişi Temsilcisi"
+        },
+        {
+          "@type": "Person",
+          "name": "Mahir Ağar",
+          "jobTitle": "Sorumlu Yazı İşleri Müdürü"
+        }
+      ],
+      "subOrganization": [
+        {
+          "@type": "Organization",
+          "additionalType": "https://schema.org/BroadcastService",
+          "name": "Sözcü TV",
+          "url": "https://www.szctv.com.tr/",
+          "sameAs": [
+            "https://www.youtube.com/@Sozcutelevizyonu",
+            "https://www.instagram.com/sozcutelevizyonu/",
+            "https://x.com/szctelevizyonu"
+          ]
+        }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.sozcu.com.tr/#website",
+      "url": "https://www.sozcu.com.tr/",
+      "name": "Sözcü",
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://www.sozcu.com.tr/#organization"
+      },
+      "inLanguage": "tr-TR",
+      "hasPart": [
+        {
+          "@type": "WebPage",
+          "name": "Yazarlar",
+          "url": "https://www.sozcu.com.tr/yazarlar"
+        },
+        {
+          "@type": "WebPage",
+          "name": "Gündem",
+          "url": "https://www.sozcu.com.tr/gundem"
+        },
+        {
+          "@type": "WebPage",
+          "name": "Ekonomi",
+          "url": "https://www.sozcu.com.tr/ekonomi"
+        },
+        {
+          "@type": "WebPage",
+          "name": "Dünya",
+          "url": "https://www.sozcu.com.tr/dunya"
+        },
+        {
+          "@type": "WebPage",
+          "name": "Spor",
+          "url": "https://www.sozcu.com.tr/spor"
+        },
+        {
+          "@type": "WebPage",
+          "name": "Hayat",
+          "url": "https://www.sozcu.com.tr/hayat"
+        },
+        {
+          "@type": "WebPage",
+          "name": "Finans",
+          "url": "https://www.sozcu.com.tr/finans"
+        },
+        {
+          "@type": "WebPage",
+          "name": "Teknoloji",
+          "url": "https://www.sozcu.com.tr/teknoloji"
+        }
+      ],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.sozcu.com.tr/arama?query={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "MobileApplication",
+      "name": "Sözcü iOS Uygulaması",
+      "applicationCategory": "NewsApplication",
+      "operatingSystem": "iOS",
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://www.sozcu.com.tr/#organization"
+      }
+    },
+    {
+      "@type": "MobileApplication",
+      "name": "Sözcü Android Uygulaması",
+      "applicationCategory": "NewsApplication",
+      "operatingSystem": "Android",
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://www.sozcu.com.tr/#organization"
+      }
+    }
+  ]
+}
+</script>
+
+    <!-- Google Tag Manager -->
+    <script type="text/javascript">
+    window.dataLayer = window.dataLayer || [];
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5N9MP4V4');
+    </script>
+    <!-- End Google Tag Manager -->
+    
+        <meta name="robots" content="FOLLOW, INDEX"/>
+    
+    
+    <link rel="shortcut icon" type="image/png" href="https://www.sozcu.com.tr/static/web/assets/favicon.png"/>
+    <link rel="alternate" type="application/rss+xml" title="Sözcü Gazetesi" href="https://www.sozcu.com.tr/feeds/rsssubpub"/>
+    <meta name="yandex-verification" content="48b7534a3c451a0e"/>
+    <script defer src="https://fws.forinvestcdn.com/f-ws.min.js"></script>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5N9MP4V4"
+            height="0" width="0" style="display:none;visibility:hidden">
+    </iframe>
+</noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+
+<!-- Navbar -->
+    
+<!-- OFFCANVAS -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sideMenu" aria-labelledby="sideMenuLabel">
+    <div class="offcanvas-body p-0">
+        <div class="d-flex quick-access">
+            <a href="/son-dakika" class="d-flex flex-column align-items-center">
+                    <span class="mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                             class="bi bi-alarm" viewBox="0 0 16 16">
+                            <path
+                                d="M8.5 5.5a.5.5 0 0 0-1 0v3.362l-1.429 2.38a.5.5 0 1 0 .858.515l1.5-2.5A.5.5 0 0 0 8.5 9z"/>
+                            <path
+                                d="M6.5 0a.5.5 0 0 0 0 1H7v1.07a7.001 7.001 0 0 0-3.273 12.474l-.602.602a.5.5 0 0 0 .707.708l.746-.746A6.97 6.97 0 0 0 8 16a6.97 6.97 0 0 0 3.422-.892l.746.746a.5.5 0 0 0 .707-.708l-.601-.602A7.001 7.001 0 0 0 9 2.07V1h.5a.5.5 0 0 0 0-1zm1.038 3.018a6 6 0 0 1 .924 0 6 6 0 1 1-.924 0M0 3.5c0 .753.333 1.429.86 1.887A8.04 8.04 0 0 1 4.387 1.86 2.5 2.5 0 0 0 0 3.5M13.5 1c-.753 0-1.429.333-1.887.86a8.04 8.04 0 0 1 3.527 3.527A2.5 2.5 0 0 0 13.5 1"/>
+                        </svg>
+                    </span>
+                <span class="small">Son Dakika</span>
+            </a>
+            <a href="https://uyelik.sozcu.com.tr/giris" class="d-flex flex-column align-items-center">
+                    <span class="mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="62.44" height="13.778"
+                             viewBox="0 0 62.44 13.778"><path
+                                d="M2.619-12.683-.062,0H3.656l.738-3.463H6.2C9.835-3.463,12.1-5.5,12.1-8.736c0-2.364-1.679-3.946-4.676-3.946ZM5.748-9.87h.976c1.063,0,1.644.466,1.644,1.468a2.072,2.072,0,0,1-2.145,2.18H4.966ZM21.384-3.041H16.225l2.048-9.642H14.546L11.848,0h8.886ZM28.028.22c2.9,0,5.194-1.564,5.748-4.192l1.837-8.71H31.887L30.226-4.8a2.02,2.02,0,0,1-2.039,1.881,1.623,1.623,0,0,1-1.793-1.591,3.272,3.272,0,0,1,.079-.677l1.591-7.5H24.337l-1.6,7.532a5.264,5.264,0,0,0-.114,1.081C22.623-1.529,24.68.22,28.028.22Zm7.189-3.955C35.227-1.23,37.239.22,40.658.22c3.349,0,5.634-1.661,5.634-4.333,0-1.828-.984-2.777-3.261-3.437l-1.389-.4c-1.02-.3-1.371-.65-1.371-1.16,0-.6.633-1.037,1.608-1.037,1.055,0,1.767.5,1.793,1.257h3.4c-.018-2.514-2.013-4.008-5.282-4.008-3.076,0-5.309,1.688-5.309,4.271,0,1.731,1.125,2.874,3.243,3.516l1.327.4c1.2.369,1.433.642,1.433,1.107,0,.633-.677,1.063-1.758,1.063-1.046,0-1.881-.5-1.986-1.2Zm21.9-1.116h4.395l.867-4.078H57.984l.984-4.629H54.75L53.766-8.93H49.371L48.5-4.852H52.9L51.914-.223h4.219Z"
+                                transform="translate(0.062 13.559)" fill="#F71515"/></svg>
+                    </span>
+            </a>
+        </div>
+        <div class="d-flex align-items-center px-4 py-3" style="background-color:#F8FAFE">
+            <div class="d-flex align-items-center flex-grow-1">
+                <div id="dayNumber" class="fw-bold fs-2 me-2"></div>
+                <div class="lh-1">
+                    <div id="monthName" class="text-secondary"></div>
+                    <div id="dayName" class="small"></div>
+                </div>
+            </div>
+                <div class="d-flex align-items-center justify-content-between flex-grow-1">
+                    <a href="https://www.sozcu.com.tr/finans/dolar"
+                       class="currency-item lh-1 up">
+                        <span class="currency-item-name position-relative">DOLAR</span>
+                        <span class="d-flex flex-column align-items-start text-nowrap">
+                            <span class="currency-item-value m-0">49,13</span>
+                            <span>
+                                <span class="currency-item-range">0,04</span> <span
+                                    class="currency-item-range">(%0,08)</span>
+                            </span>
+                        </span>
+                    </a>
+                    <a href="https://www.sozcu.com.tr/finans/euro"
+                       class="currency-item lh-1 down">
+                        <span class="currency-item-name position-relative">EURO</span>
+                        <span class="d-flex flex-column align-items-start text-nowrap">
+                            <span class="currency-item-value m-0">55,32</span>
+                            <span>
+                                <span class="currency-item-range">-0,01</span> <span
+                                    class="currency-item-range">(%-0,02)</span>
+                            </span>
+                        </span>
+                    </a>
+                </div>
+        </div>
+        <ul class="list-unstyled side-menu align-items-center p-4 border-bottom">
+                <li>
+                    <a target="_blank" href="https://www.sozcu.com.tr/son-dakika/"
+                       class="fw-bold fs-5">SON DAKİKA</a>
+                </li>
+                <li>
+                    <a target="_blank" href="https://www.sozcu.com.tr/yazarlar"
+                       class="fw-bold fs-5">YAZARLAR</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/gundem"
+                       class="fw-bold fs-5">GÜNDEM</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/ekonomi"
+                       class="fw-bold fs-5">EKONOMİ</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/dunya"
+                       class="fw-bold fs-5">DÜNYA</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/gunun-icinden"
+                       class="fw-bold fs-5">GÜNÜN İÇİNDEN</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/spor"
+                       class="fw-bold fs-5">SPOR</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/hayat"
+                       class="fw-bold fs-5">HAYAT</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/magazin"
+                       class="fw-bold fs-5">MAGAZİN</a>
+                </li>
+                <li>
+                    <a target="_blank" href="https://www.sozcu.com.tr/e-gazete"
+                       class="fw-bold fs-5">E-GAZETE</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/otomotiv"
+                       class="fw-bold fs-5">OTOMOTİV</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/finans"
+                       class="fw-bold fs-5">FİNANS</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/bilim-teknoloji"
+                       class="fw-bold fs-5">TEKNOLOJİ</a>
+                </li>
+                <li>
+                    <a target="_blank" href="/egitim"
+                       class="fw-bold fs-5">EĞİTİM</a>
+                </li>
+                <li>
+                    <a target="_blank" href="https://www.sozcu.com.tr/resmi-ilanlar"
+                       class="fw-bold fs-5">RESMİ İLANLAR</a>
+                </li>
+        </ul>
+        <div class="px-4 mb-5">
+            <div class="text-secondary mb-3">Sosyal Medya</div>
+            <div class="social-pages mb-4 d-flex">
+                <a href="https://www.instagram.com/sozcucomtr/" target="_blank" rel="noopener"
+                   class="social-page-button border rounded-3" aria-label="İnstagram">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20.356" height="20.36" viewBox="0 0 20.356 20.36">
+                        <g transform="translate(-0.449)">
+                            <path
+                                d="M20.754,5.986a7.44,7.44,0,0,0-.473-2.47A5.216,5.216,0,0,0,17.3.537a7.459,7.459,0,0,0-2.47-.473C13.742.012,13.4,0,10.631,0s-3.11.012-4.2.06a7.442,7.442,0,0,0-2.47.473A4.968,4.968,0,0,0,2.16,1.71a5.013,5.013,0,0,0-1.173,1.8,7.46,7.46,0,0,0-.473,2.47c-.052,1.09-.064,1.436-.064,4.2s.012,3.11.06,4.2a7.439,7.439,0,0,0,.473,2.47,5.215,5.215,0,0,0,2.979,2.979,7.46,7.46,0,0,0,2.47.473c1.086.048,1.432.06,4.2.06s3.11-.012,4.2-.06a7.438,7.438,0,0,0,2.47-.473,5.208,5.208,0,0,0,2.979-2.979,7.465,7.465,0,0,0,.473-2.47c.048-1.086.06-1.432.06-4.2S20.8,7.072,20.754,5.986ZM18.92,14.3a5.581,5.581,0,0,1-.35,1.889,3.377,3.377,0,0,1-1.933,1.933,5.6,5.6,0,0,1-1.889.35c-1.074.048-1.4.06-4.113.06s-3.043-.012-4.113-.06a5.578,5.578,0,0,1-1.889-.35,3.133,3.133,0,0,1-1.169-.76,3.165,3.165,0,0,1-.76-1.169,5.6,5.6,0,0,1-.35-1.889c-.048-1.074-.06-1.4-.06-4.113s.012-3.043.06-4.113A5.578,5.578,0,0,1,2.7,4.188a3.1,3.1,0,0,1,.764-1.169,3.161,3.161,0,0,1,1.169-.76,5.6,5.6,0,0,1,1.889-.35c1.074-.048,1.4-.06,4.113-.06s3.043.012,4.113.06a5.581,5.581,0,0,1,1.889.35,3.131,3.131,0,0,1,1.169.76,3.165,3.165,0,0,1,.76,1.169,5.6,5.6,0,0,1,.35,1.889c.048,1.074.06,1.4.06,4.113S18.968,13.225,18.92,14.3Zm0,0"
+                                transform="translate(0 0)" fill="#444"/>
+                            <path
+                                d="M130.18,124.5a5.23,5.23,0,1,0,5.23,5.23A5.232,5.232,0,0,0,130.18,124.5Zm0,8.623a3.393,3.393,0,1,1,3.393-3.393A3.393,3.393,0,0,1,130.18,133.123Zm0,0"
+                                transform="translate(-119.548 -119.548)" fill="#444"/>
+                            <path
+                                d="M364.891,89.823A1.221,1.221,0,1,1,363.67,88.6,1.221,1.221,0,0,1,364.891,89.823Zm0,0"
+                                transform="translate(-347.602 -85.078)" fill="#444"/>
+                        </g>
+                    </svg>
+                </a>
+                <a href="https://www.facebook.com/sozcugazetesi/" target="_blank" rel="noopener"
+                   class="social-page-button border rounded-3" aria-label="Facebook">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="9.476" height="18.949" viewBox="0 0 9.476 18.949">
+                        <path
+                            d="M13.933,3.146h1.73V.133A22.339,22.339,0,0,0,13.142,0c-2.494,0-4.2,1.569-4.2,4.452V7.106H6.187v3.368H8.939V18.95h3.375V10.475h2.641l.419-3.368H12.313V4.786c0-.974.263-1.64,1.619-1.64Z"
+                            transform="translate(-6.187)" fill="#444"/>
+                    </svg>
+                </a>
+                <a href="https://twitter.com/gazetesozcu" target="_blank" rel="noopener"
+                   class="social-page-button border rounded-3" aria-label="Twitter">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#444" class="bi bi-twitter-x"
+                         viewBox="0 0 16 16">
+                        <path
+                            d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
+                    </svg>
+                </a>
+                <a href="https://www.youtube.com/channel/UCOulx_rep5O4i9y6AyDqVvw" target="_blank" rel="noopener"
+                   class="social-page-button border rounded-3" aria-label="Youtube">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17.711" height="12.4" viewBox="0 0 17.711 12.4">
+                        <path
+                            d="M17.346-4.142A2.219,2.219,0,0,0,15.785-5.7a51.842,51.842,0,0,0-6.93-.379,53.862,53.862,0,0,0-6.93.365A2.264,2.264,0,0,0,.365-4.142,23.38,23.38,0,0,0,0,.118a23.294,23.294,0,0,0,.365,4.26A2.219,2.219,0,0,0,1.926,5.939a51.936,51.936,0,0,0,6.93.379,53.862,53.862,0,0,0,6.93-.365,2.219,2.219,0,0,0,1.561-1.561,23.388,23.388,0,0,0,.365-4.26A22.194,22.194,0,0,0,17.346-4.142ZM7.09,2.774v-5.31L11.7.118Zm0,0"
+                            transform="translate(0 6.082)" fill="#444"/>
+                    </svg>
+                </a>
+                <a href="https://www.dailymotion.com/Sozcu" target="_blank" rel="noopener"
+                   class="social-page-button border rounded-3" aria-label="Dailymotion">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13.714" height="17.696" viewBox="0 0 13.714 17.696">
+                        <g transform="translate(113.142 -247.369)">
+                            <path
+                                d="M-93.164,249.854v17.572h-3.72V266.08a5.375,5.375,0,0,1-3.843,1.471,6.322,6.322,0,0,1-6.151-6.485,6.489,6.489,0,0,1,6.151-6.525,5.335,5.335,0,0,1,3.843,1.518V250.6Zm-6.72,14.284A3.139,3.139,0,0,0-96.747,261a3.139,3.139,0,0,0-3.136-3.137A3.139,3.139,0,0,0-103.02,261,3.139,3.139,0,0,0-99.884,264.138Z"
+                                transform="translate(-6.264 -2.485)" fill="#444"/>
+                        </g>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <div class="d-flex flex-column px-4 mb-5">
+            <a href="https://apps.apple.com/tr/app/s%C3%B6zc%C3%BC-gazetesi-haberler/id405952318?l=tr" class="mb-3">
+                <img src="/lib/img/_appstore.svg" alt="">
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=org.studionord.sozcu.gazete&hl=tr&gl=US&pli=1"
+               class="mb-3">
+                <img src="/lib/img/_playstore.svg" alt="">
+            </a>
+            <a href="https://appgallery.huawei.com/app/C112215613" class="mb-3">
+                <img src="/lib/img/_appgallery.svg" alt="">
+            </a>
+        </div>
+    </div>
+</div>
+<!-- /OFFCANVAS -->
+<!-- NAVBAR -->
+<div class="navbar ">
+    <div class="container px-2"><a href="/" class="logo">
+            <img src="/static/web/assets/logo.svg" alt=""> </a>
+
+        <div class="d-flex align-items-center">
+            <a href="https://www.youtube.com/channel/UCOulx_rep5O4i9y6AyDqVvw" target="_blank" rel="nofollow"
+               class="d-flex align-items-center text-white me-2 me-lg-4">
+                <span class="">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                         class="bi bi-youtube" viewBox="0 0 16 16">
+                      <path
+                          d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z"/>
+                    </svg>
+                </span>
+                <span class="fw-bold small d-none d-sm-block ms-1">Sözcü Tv</span>
+            </a>
+
+            <div class="dropdown me-1 me-lg-3 user-area">
+                <button class="btn btn-sm text-white shadow-none border-0 rounded-0 p-1" type="button"
+                        data-bs-toggle="dropdown">
+                    <img loading="lazy" src="/lib/img/plus_icon.svg" alt="Sözcü Plus" height="14">
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-0">
+                    <li>
+                        <a class="dropdown-item fw-semibold py-2 px-3" href="https://uyelik.sozcu.com.tr/giris?base_url=https%3A%2F%2Fwww.sozcu.com.tr%2F">Giriş Yap</a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item fw-semibold py-2 px-3" href="https://uyelik.sozcu.com.tr/kayit?base_url=https%3A%2F%2Fwww.sozcu.com.tr%2F">Abone Ol</a>
+                    </li>
+                    <li class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item fw-semibold py-2 px-3" href="#">Daha fazla bilgi al</a>
+                    </li>
+                </ul>
+            </div>
+
+            <button type="button" name="menu" class="menuButton btn p-0 shadow-none border-0" data-bs-toggle="offcanvas"
+                    href="#sideMenu">
+                <svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px"
+                     fill="#ffffff">
+                    <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+<!-- /NAVBAR -->
+
+    <div class="sub-navbar d-none d-lg-block">
+        <div class="container">
+            <ul class="d-flex list-unstyled small m-0 main-menu">
+                            <li>
+                                <a target="_blank"
+                                   href="https://www.sozcu.com.tr/son-dakika/">SON DAKİKA</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="https://www.sozcu.com.tr/yazarlar">YAZARLAR</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="/gundem">GÜNDEM</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="/ekonomi">EKONOMİ</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="/dunya">DÜNYA</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="/gunun-icinden">GÜNÜN İÇİNDEN</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="/spor">SPOR</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="/hayat">HAYAT</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="/magazin">MAGAZİN</a>
+                            </li>
+                            <li>
+                                <a target="_self"
+                                   href="/finans">FİNANS</a>
+                            </li>
+                            <li>
+                                <a target="_self"
+                                   href="/egitim">EĞİTİM</a>
+                            </li>
+                            <li>
+                                <a target="_blank"
+                                   href="https://www.sozcu.com.tr/resmi-ilanlar">RESMİ İLANLAR</a>
+                            </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- CURRENCY TICKER -->
+    <div class="currency mb-4" style="padding: 8px 2px;">
+        <div class="container p-0 px-lg-2 lh-1">
+            <div class="marquee-container">
+                    <a href="https://www.sozcu.com.tr/finans/dolar"
+                       class="currency-item up">
+                        <span class="currency-item-name" data-currency="TRY">DOLAR</span>
+                        <span class="text-nowrap">
+                                <span class="currency-item-value">49,13</span>
+                                <span>
+                                    <span class="currency-item-range">0,04</span> <span
+                                        class="currency-item-range">(%0,08)</span>
+                                </span>
+                            </span>
+                    </a>
+                    <a href="https://www.sozcu.com.tr/finans/euro"
+                       class="currency-item down">
+                        <span class="currency-item-name" data-currency="TRY">EURO</span>
+                        <span class="text-nowrap">
+                                <span class="currency-item-value">55,32</span>
+                                <span>
+                                    <span class="currency-item-range">-0,01</span> <span
+                                        class="currency-item-range">(%-0,02)</span>
+                                </span>
+                            </span>
+                    </a>
+                    <a href="https://www.sozcu.com.tr/finans/sterlin"
+                       class="currency-item down">
+                        <span class="currency-item-name" data-currency="TRY">STERLIN</span>
+                        <span class="text-nowrap">
+                                <span class="currency-item-value">64,86</span>
+                                <span>
+                                    <span class="currency-item-range">-0,01</span> <span
+                                        class="currency-item-range">(%-0,02)</span>
+                                </span>
+                            </span>
+                    </a>
+                    <a href="https://www.sozcu.com.tr/finans/bitcoin"
+                       class="currency-item up">
+                        <span class="currency-item-name" data-currency="USDT">BITCOIN</span>
+                        <span class="text-nowrap">
+                                <span class="currency-item-value">84.897,71</span>
+                                <span>
+                                    <span class="currency-item-range">517,71</span> <span
+                                        class="currency-item-range">(%0,61)</span>
+                                </span>
+                            </span>
+                    </a>
+                    <a href="https://www.sozcu.com.tr/finans/gram-altin"
+                       class="currency-item up">
+                        <span class="currency-item-name" data-currency="TRY">ALTIN</span>
+                        <span class="text-nowrap">
+                                <span class="currency-item-value">6.593,76</span>
+                                <span>
+                                    <span class="currency-item-range">42,14</span> <span
+                                        class="currency-item-range">(%0,64)</span>
+                                </span>
+                            </span>
+                    </a>
+                    <a href="https://www.sozcu.com.tr/finans/faiz"
+                       class="currency-item up">
+                        <span class="currency-item-name" data-currency="TRY">FAİZ</span>
+                        <span class="text-nowrap">
+                                <span class="currency-item-value">36,84</span>
+                                <span>
+                                    <span class="currency-item-range">0,02</span> <span
+                                        class="currency-item-range">(%0,06)</span>
+                                </span>
+                            </span>
+                    </a>
+            </div>
+        </div>
+    </div>
+    <!-- /CURRENCY TICKER -->
+
+<!-- /Navbar -->
+
+    
+<div class="container position-relative mb-4">
+            <div class="ad pageskin-top">
+    <div id="div-sozcu_anasayfa_pageskin_tepe" style="display: none;"></div> 
+    <div id="div-sozcu_gen_pageskin_tepe" style="display: none;"></div>
+</div>
+
+            <div class="ad masthead masthead-main mb-4">
+                 
+    <div id="div-sozcu_masthead" style="display: none;"></div>
+    <div id="div-sozcu_mobile_320x50" style="display: none;"></div>
+          
+    <div id="div-sozcu_gen_masthead" style="display: none;"></div>
+    <div id="div-sozcu_m_gen_masthead" style="display: none;"></div> 
+            </div>
+            <div class="ad ad-cols d-none d-lg-block">
+    <div class="ad-col ad-col-left text-end">
+        <div class="ad-col-container">
+            <div id="div-sozcu_gen_left" style="display: none;"></div>
+        </div>
+    </div>
+    <div class="ad-col ad-col-right">
+        <div class="ad-col-container">
+            <div id="div-sozcu_gen_right" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+    <div class="news-body"
+         data-url="https://www.sozcu.com.tr/feeds/simpleposts?excludePostId=365798&amp;handler=TrendPost"
+         data-adv="False">
+        <div class="row mb-5">
+            <div class="col-lg-12">
+                <header class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between breadcrumb">
+                        <div class="pe-2">
+                            <a href="https://www.sozcu.com.tr" class="text-muted small fw-bold lh-1">Haberler
+                                -</a>
+                            <a href="https://www.sozcu.com.tr/otomotiv"
+                               class="small fw-bold text-primary text-nowrap lh-1">Otomotiv</a>
+
+                        </div>
+                        <div class="googleNews d-flex align-items-center">
+                            <a class="btn btn-sm"
+                               href="https://news.google.com/publications/CAAqBwgKMPefoQkwz8lx?r=3&oc=1&hl=tr&gl=TR&ceid=TR:tr"
+                               target="_blank" rel="nofollow noopener" title="Abone Ol">
+                                <img fetchpriority="low" loading="lazy" src="/lib/img/googlenews.svg" alt="Google News" height="16">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="content-meta-dates mb-4">
+            <span class="content-meta-date">
+                <time
+                    datetime="2026-10-03T15:08:21&#x2B;03:00">03 Ekim 2026 - 15:08</time>
+            </span>
+                    </div>
+                    <h1 class="fw-bold mb-4">Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli</h1>
+                    <h2 class="description mb-4 fw-medium fs-5 lh-base">Türkiye ikinci el otomobil pazarında bütçe, bakım maliyeti ve yakıt tüketimi odaklı tercihler talep dengelerini değiştirdi. İkinci el pazarında en hızlı satılan otomobil modelleri sıralandı.</h2>
+                    <div class="content-meta">
+                        <div class="content-meta-info">
+                            <div class="content-meta-name">
+                    <span class="d-flex align-items-center">
+                            <span class="img-holder me-2">
+                                <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2023/11/logouzmanjpg-Us1NNWt-sUie7J12hDLMyQ.jpg?w=90&h=90&mode=crop&scale=both"
+                                     alt="Derleyen: Burak Erdoğan">
+
+                            </span>
+Derleyen: Burak Erdoğan                    </span>
+                            </div>
+                        </div>
+                        <div class="share-area">
+                            <div>
+                                <div class="share-actions me-2">
+                                    <button aria-label="Twitter'da Paylaş"
+                                            class="btn btn-option border p-0 me-1 share-on-twitter"
+                                            data-url="https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798" data-company="gazetesozcu"
+                                            data-title="Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli">
+                                        <i class="bi bi-twitter-x"></i>
+                                    </button>
+                                    <a href="whatsapp://send?text=Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli - https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798"
+                                       aria-label="Whatsapp'da Paylaş"
+                                       class="btn btn-option border me-1 share-on-whatsapp"
+                                       data-action="share/whatsapp/share">
+                                        <i class="bi bi-whatsapp fs-5"></i>
+                                    </a>
+
+                                    <div class="dropdown">
+                                        <button class="btn btn-option border p-0" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots fs-5"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <button type="button" class="dropdown-item share-on-facebook"
+                                                        data-url="https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798">
+                                                    <i class="bi bi-facebook"></i> Facebook ile paylaş
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button type="button" class="dropdown-item share-on-messenger"
+                                                        data-url="https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798">
+                                                    <i class="bi bi-messenger"></i>
+                                                    Messenger ile gönder
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="mailto:?subject=Haber&amp;body=Sözcü - Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798"
+                                                   target="_blank" aria-label="E-posta ile Paylaş">
+                                                    <i class="bi bi-envelope"></i>
+                                                    E-posta ile gönder
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="content-options">
+                                    <div class="dropdown">
+                                        <button class="btn btn-option btn-type dropdown-toggle no-arrow border"
+                                                type="button" id="fontSize" data-bs-toggle="dropdown"
+                                                aria-expanded="false" aria-label="Yazı boyutu"></button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="fontSize">
+                                            <li>
+                                                <span class="dropdown-item btn fontSizeLarge">Yazıları büyüt</span>
+                                            </li>
+                                            <li>
+                                                <span class="dropdown-item btn fontSizeSmall">Yazıları küçült</span>
+                                            </li>
+                                            <li>
+                                                <span class="dropdown-item btn fontSizeZero">Standart boyut</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </header>
+            </div>
+            <div class="col-lg-8 ">
+
+                <!-- ARTICLE -->
+                <article data-url="/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798"
+                         data-title="Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli">
+
+                    <!-- Google "favori kaynak" CTA -->
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
+<a class="google-favorite-cta"
+   href="https://bit.ly/4tTk8VB"
+   target="_blank"
+   rel="noopener"
+   title="Google'da favori kaynağınız yapın"
+   onclick="(function(){var p={event:'google_favorite_source_click',event_category:'engagement',event_label:'sozcu'};if(window.gtag){gtag('event','google_favorite_source_click',{event_category:p.event_category,event_label:p.event_label});}if(window.dataLayer){window.dataLayer.push(p);}})();">
+    <span class="google-favorite-cta__icon" aria-hidden="true">
+        <svg width="30" height="31" viewBox="0 0 30 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M29.4 15.84c0-1.06-.09-2.07-.26-3.05H15v5.78h8.06c-.35 1.87-1.4 3.45-2.97 4.51v3.74h4.81c2.8-2.59 4.43-6.4 4.43-10.98z" fill="#4285F4"/>
+            <path d="M15 30.5c4 0 7.37-1.33 9.81-3.59l-4.8-3.73c-1.34.9-3.05 1.43-5.01 1.43-3.85 0-7.12-2.6-8.28-6.09H1.8v3.83A14.999 14.999 0 0 0 15 30.5z" fill="#34A853"/>
+            <path d="M6.72 18.52c-.3-.9-.47-1.85-.47-2.83 0-.98.17-1.94.47-2.83V9.03H1.8A14.998 14.998 0 0 0 0 15.69c0 2.42.58 4.7 1.8 6.71l4.92-3.88z" fill="#FBBC05"/>
+            <path d="M15 6.47c2.17 0 4.12.75 5.66 2.22l4.25-4.25C22.36 1.98 18.99.5 15 .5 9.12.5 4.05 3.9 1.8 9.02L6.72 12.86C7.88 9.37 11.15 6.47 15 6.47z" fill="#EA4335"/>
+        </svg>
+    </span>
+    <span class="google-favorite-cta__text">Google algoritmasına bırakmayın, okuyacağınız haberi siz seçin! Tıkla ve ekle</span>
+</a>
+
+                    <!-- ANA GÖRSEL YA DA VİDEO -->
+                    <div class="main-image img-holder wide radius-base mb-4">
+                            <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/sifir-otomobil-satin-alma-pexels-124178jpg-TYeiYYQIZkqOpef2RlRexw.jpg?w=776&amp;h=436&amp;mode=crop&amp;scale=both"
+                                 alt="Türkiye&#x27;de peynir ekmekten daha hızlı satılan 5 otomobil modeli"
+                                 fetchpriority="high"
+                                 loading="eager"
+                                 decoding="async">
+                                <figcaption>Türkiye ikinci el otomobil pazarında bütçe, bakım maliyeti ve yakıt tüketimi odaklı tercihler talep dengelerini değiştirdi. İkinci el pazarında en hızlı satılan otomobil modelleri sıralandı.</figcaption>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 mx-auto position-relative">
+                            <div class="article-body " property="articleBody" data-adv="False"
+                                 data-author="False">
+                                <p>Türkiye ikinci el otomobil pazarında otomobil alıcılarının öncelikleri; ekonomik koşullar, bakım maliyetleri, yedek parça bulunabilirliği ve yakıt tüketimi doğrultusunda yeniden şekilleniyor. </p>
+<p>Pazarın popüler modelleri Fiat Egea, Toyota Corolla ve Honda Civic gibi araçlar talep görmeye devam etse de, ikinci elde en kısa sürede el değiştiren araçlar listesinde ilk sırayı farklı bir model aldı.</p>
+<h2>İKİNCİ ELDE TERCİH KRİTERLERİ DÖNÜŞÜYOR</h2>
+<p>Alıcıların bütçe dostu ve pratik kullanım sunan araçlara yönelmesi, ilanlarda kalma sürelerini doğrudan etkiliyor.</p>
+<p>İkinci el piyasasında satış hızıyla öne çıkan modellerin büyük bir kısmını Fransız ve Japon üreticilerin araçları oluşturuyor. Sürücüler arasında Hyundai i20 gibi popüler şehir içi modellerin listede yer almaması dikkat çekerken, satış hareketliliğinde ilk 5 sıralaması şu şekilde oluştu:</p>
+<h2>TÜRKİYE'DE EN HIZLI SATILAN 5 OTOMOBİL MODELİ</h2>
+<p><strong>5. Honda Civic: </strong>Sedan segmentindeki güçlü pazar payına rağmen ikinci elde en hızlı el değiştiren araçlar arasında 5. sırada yer aldı.</p>
+<p><strong>4. Renault Clio:</strong> B segmentinin bütçe odaklı yapısı ve düşük kullanım maliyetleri sayesinde hızlı satış grafiğini sürdürerek 4. sıraya yerleşti.</p>
+<p><strong>3. Toyota Corolla: </strong>Dayanıklılık ve yüksek ikinci el değeriyle öne çıkan model, listede 3. sıranın sahibi oldu.</p>
+<p><strong>2. Fiat Egea: </strong>Türkiye’de toplam satış adetlerinde uzun süredir zirvede bulunan model, ikinci eldeki satış hızı sıralamasında 2. sırada kaldı.</p>
+<p><strong>1. Renault Megane:</strong> Yaygın servis ağı, yedek parça erişimi ve motor seçeneklerinin sağladığı avantajla ikinci el pazarında ilana çıkmasının ardından en hızlı satılan otomobil olarak 1. sıraya yerleşti.</p><div class="post-inline-content-block postincludeblock" style="">
+  <a href="https://bit.ly/4tJNENq" target="_blank" rel="noopener sponsored">
+    <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/6/j453hjreghepng-ljO2VL5kaku23Dyt31kNLg.png" alt="Kaynak olarak ekle" loading="lazy" decoding="async" style="max-width:100%;height:auto;display:block;margin:0 auto;border-radius:8px;">
+  </a>
+</div>
+                            </div>
+
+
+                                <p class="small text-secondary">
+                                    www.sozcu.com.tr internet sitesinde yayınlanan yazı, haber ve fotoğrafların her
+                                    türlü telif hakkı Mega Ajans
+                                    ve Rek. Tic. A.Ş'ye aittir. İzin alınmadan, kaynak gösterilerek dahi iktibas
+                                    edilemez.
+                                </p>
+                            <div class="reactions mb-5">
+                                <h3 class="fs-4 mb-4">Bu habere emoji ile tepki ver</h3>
+                                <div class="reaction-list border rounded-pill d-inline-grid">
+                                    <div>
+                                        <button class="post-reaction"
+                                                data-reaction-name="Kızgın"
+                                                data-reaction-count="2"
+                                                data-reaction-full-count="2"
+                                                data-post-id="365798"
+                                                data-emotion-id="Angry">
+                                            <img src="/lib/img/emoji/angry.png" width="44" height="44" alt="Kızgın">
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button class="post-reaction"
+                                                data-reaction-name="Bayıldım"
+                                                data-reaction-count="0"
+                                                data-reaction-full-count="0"
+                                                data-post-id="365798"
+                                                data-emotion-id="Gorgeous">
+                                            <img src="/lib/img/emoji/gorgeous.png" width="44" height="44" alt="Bayıldım">
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button class="post-reaction"
+                                                data-reaction-name="Hahaha"
+                                                data-reaction-count="0"
+                                                data-reaction-full-count="0"
+                                                data-post-id="365798"
+                                                data-emotion-id="Happy">
+                                            <img src="/lib/img/emoji/happy.png" width="44" height="44" alt="Hahaha">
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button class="post-reaction"
+                                                data-reaction-name="Beğendim"
+                                                data-reaction-count="0"
+                                                data-reaction-full-count="0"
+                                                data-post-id="365798"
+                                                data-emotion-id="Liked">
+                                            <img src="/lib/img/emoji/liked.png" width="44" height="44" alt="Beğendim">
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button class="post-reaction"
+                                                data-reaction-name="Muhteşem"
+                                                data-reaction-count="0"
+                                                data-reaction-full-count="0"
+                                                data-post-id="365798"
+                                                data-emotion-id="Amazing">
+                                            <img src="/lib/img/emoji/amazing.png" width="44" height="44" alt="Muhteşem">
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button class="post-reaction"
+                                                data-reaction-name="Üzgün"
+                                                data-reaction-count="0"
+                                                data-reaction-full-count="0"
+                                                data-post-id="365798"
+                                                data-emotion-id="Sad">
+                                            <img src="/lib/img/emoji/sad.png" width="44" height="44" alt="Üzgün">
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <button class="post-reaction"
+                                                data-reaction-name="İnanılmaz"
+                                                data-reaction-count="0"
+                                                data-reaction-full-count="0"
+                                                data-post-id="365798"
+                                                data-emotion-id="Incredible">
+                                            <img src="/lib/img/emoji/incredible.png" width="44" height="44" alt="İnanılmaz">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </article>
+                <div class="taboola-content">
+
+                </div>
+                    <div class="section-divider mb-4"></div>
+                    <section class="mb-4 gunun-mansetleri" data-ads-total="6" data-ads-perview="3" data-nosnippet>
+                        <header class="fw-bold text-center mb-4 fs-5">
+                            <span class="bg-primary text-white py-2 px-3 fw-bolder fst-italic">GÜNÜN MANŞETLERİ</span>
+                        </header>
+                        <div id="singleGununMansetleri">
+                            <div class="_gm-container position-relative mb-4">
+                                <!---->
+                                <div class="swiper swiper-gunun-mansetleri">
+                                    <div class="swiper-wrapper">
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/besiktas-genel-kurulunda-ortalik-karisti-ihrac-oylamasinda-salon-gerildi-p365790?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0eb47d83705fac6547458png-v22rxn5zqEyb23bQZSgDLg.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Beşiktaş Genel Kurulu&#x27;nda ortalık karıştı: İhraç oylamasında salon gerildi">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/aziz-yildirimacun-ilicali-krizi-artarak-buyuyor-ihrac-sureci-basladi-p365788?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0e697d83705fac653a3b7png-c2-pbJtOEUewRfqNiYmrvA.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Aziz Yıldırım-Acun Ilıcalı krizi artarak büyüyor! İhraç süreci başladı">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/akpli-tayyardan-fon-skandalinda-israil-ve-abd-iddiasina-olay-yanit-milletin-akliyla-dalga-gecmeyin-p365776?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0d9d2d83705fac6527bd2png-4ycy0_Q4E0a8SkuApaK-hg.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="AKP&#x27;li Tayyar&#x27;dan fon skandalında İsrail ve ABD iddiasına olay yanıt: Milletin aklıyla dalga geçmeyin">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/trump-yeni-tarih-verdi-iran-la-savas-bitiyor-p365771?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0d06dd83705fac65080d9png-0BLtgb0QqUiAZ1jUD0BnWA.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Trump yeni tarih verdi: &quot;İran&#x27;la savaş bitiyor&quot;">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/bu-pozisyon-sonrasi-sosyal-medya-yikildi-elestiri-yagmuruna-tutuldu-p365760?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0a824d83705fac645c369png-yQQtB0gS506OKQQew4496Q.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Bu pozisyon sonrası sosyal medya yıkıldı! Eleştiri yağmuruna tutuldu">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/ozgur-ozel-den-atasehir-tepkisi-milletin-vermedigi-istanbul-u-alacaklar-p365758?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0c423d83705fac64e3f21png-y30vbz_jhU_Oe6t2eQ0m2A.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Özgür Özel&#x27;den Ataşehir tepkisi: Milletin vermediği İstanbul&#x27;u alacaklar">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/yangin-susu-verilen-yasli-ciftin-cinayetinde-yeni-gelisme-p365749?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0c092d83705fac64d3ddbpng-lTJoJDxYe0iEvqJO7oA1ww.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Yangın süsü verilen yaşlı çiftin cinayetinde yeni gelişme">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/tff-olaganustu-toplanti-karari-aldi-tarihi-belli-oldu-p365744?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/tffolaganustutoplantikararialditarihibellioldu6ac0bacad83705fac64d3ce9png-PJ9W1GMtH0eLd0Y5zc1maQ.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="TFF olağanüstü toplantı kararı aldı! Tarihi belli oldu">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/kavanozdaki-3-beyin-birbiriyle-konusmaya-basladi-matrix-gercek-oluyor-p365732?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/matjpg-553IXVhITEGuOz-fDrVbcA.jpg?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Kavanozdaki 3 beyin birbiriyle konuşmaya başladı: Matrix gerçek oluyor">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/herkes-montella-nin-bu-cevabini-konusuyor-buyuk-tepki-aldi-p365714?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0a55ad83705fac644e001png-k6qVSvPqK0Sk08xG7e7nKQ.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Herkes Montella&#x27;nın bu cevabını konuşuyor! Büyük tepki aldı">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/nihat-kahveciden-olay-sozler-canli-yayinda-ofke-patlamasi-yasadi-p365711?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/nihatkahvecidenmontellayaanasiagladianasi6ac0a16bd83705fac643e7d5png-UNEa__GAsE6v0ZGUyZf0Dg.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Nihat Kahveci&#x27;den olay sözler: Canlı yayında öfke patlaması yaşadı">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/lukakudan-fenerbahceye-olay-mesaj-donuste-gorusecegim-p365702?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac09cf8d83705fac643e78dpng-nk4X7FX9eEuhH63FHB1XVw.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Lukaku&#x27;dan Fenerbahçe&#x27;ye olay mesaj! Dönüşte görüşeceğim">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/soma-da-aci-ve-umut-yan-yana-bir-yanda-yurek-yakan-veda-diger-yanda-kucaklasma-p365695?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac09764d83705fac643e660png-fJhwvg_1FkeI1KkVghPNBQ.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Soma&#x27;da acı ve umut yan yana: Bir yanda yürek yakan veda, diğer yanda kucaklaşma">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/istanbul-u-iki-yandan-vuracak-firtina-ve-saganak-geliyor-p365690?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac094c4d83705fac643e5f8png-2RY4FUK500mZcqLSwTC-rw.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="İstanbul&#x27;u iki yandan vuracak: Fırtına ve sağanak geliyor">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/son-dakika-mhk-baskani-ferhat-gundogdu-tutuklandi-p365685?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac08eb5d83705fac643e5c7png-eJ07YUAAHEq23BWLGqN8pA.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="MHK Başkanı Ferhat Gündoğdu tutuklandı, ifadesi ortaya çıktı">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/fon-sorusturmasinda-yeni-iddia-mustafa-sandal-in-esinin-vurgununda-dudak-ucuklatan-rakam-p365683?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac08360d83705fac643e49apng-iRk95ArpUEuX2WdjtWLfGg.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Fon soruşturmasında yeni iddia! Mustafa Sandal’ın eşinin vurgununda dudak uçuklatan rakam">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/rum-kustahligi-p365679?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac04826d83705fac637bc36png-d3skSxEo40SUzeCWkkhqFg.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Rum küstahlığı">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/619-gun-gecti-ama-acimiz-gecmedi-adalet-nobeti-p365678?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac04553d83705fac637bbaepng-SA6JlrDjdkafpKxFSMBHLQ.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="619 gün geçti ama acımız geçmedi! Adalet nöbeti">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/ingiliz-futbolunda-arap-finans-skandali-p365675?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac03d61d83705fac637bb41png-NEramF0rI06xWRQHiRMwgQ.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="İngiliz futbolunda Arap finans skandalı">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/bilinmezlikten-girisimcilige-uzanan-hayat-oykusu-p365674?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac03b09d83705fac637bacdpng-SbGbZXo_10W7X_rfJOjiEQ.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Bilinmezlikten girişimciliğe uzanan hayat öyküsü">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/ogul-yazici-finans-sektorunde-5-lemis-p365673?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac03918d83705fac637ba5apng-IOh_7Ykm5Eau3qWopi_3kA.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Oğul Yazıcı finans sektöründe 5’lemiş">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/saymiyorlar-siliyorlar-p365672?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/l675ry4etjytjpg-hNo7zSEHo0KHAmG3AlCgpg.jpg?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Saymıyorlar siliyorlar">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/iade-hesabi-mi-kacis-yolu-mu-p365669?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/iadehesabimikacisyolumu6ac02a53d83705fac634fc18png-ClILF4KNFkGZlcyZ5iFp8Q.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="İade hesabı mı kaçış yolu mu?">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/halkin-parasina-coktuler-p365666?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac026dcd83705fac63458b0png-kY5c30tGR0OlxfrUlUVU4g.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Halkın parasına çöktüler">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/ferhat-gundogdu-hakkinda-karar-p365664?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac02e9ed83705fac6362728png-MYzreRFv20aK3ndWr7YWPA.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="MHK Başkanı Ferhat Gündoğdu hakkında tutuklama talebi">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/belcika-da-da-montella-istifa-sesleri-gurbetciler-isyan-etti-p365647?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac0106fd83705fac62d8a37png-VErHjQ2wh02Gg_ayGEIHpA.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Belçika&#x27;da da Montella istifa sesleri! Gurbetçiler isyan etti">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/serkan-bayram-dan-fatma-betul-sayan-kaya-ya-tepki-p365646?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac00d17d83705fac62d2326png-fEdZBb2890a1XqzDrdRrtQ.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="AKP&#x27;li vekilden Fatma Betül Sayan Kaya&#x27;ya tepki">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/uskudar-da-bir-chp-li-meclis-uyesi-daha-akp-ye-gecti-p365642?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/uskudarda-bir-chpli-meclis-uyesi-daha-akpye-gectipng-AyfHB5StfEOhz34cLMrxIg.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Bir CHP’li meclis üyesi daha AKP’ye geçti">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/yardim-istedigi-kurumda-calisiyor-yuzde-99-engelli-oglu-icin-aylik-alamiyor-p365640?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6ac001cdd83705fac6295788png-9y_mfeRMzkKpomMaYwg4Nw.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Yardım istediği kurumda çalışıyor: Yüzde 99 engelli oğlu için aylık alamıyor">
+                                                    </a>
+                                                </div>
+                                                <div class="swiper-slide">
+                                                    <a href="https://www.sozcu.com.tr/gaziantep-te-aile-faciasi-p365636?utm_source=haberdetay_1&utm_medium=free&utm_campaign=gununMansetleri"
+                                                       class="img-holder square">
+                                                        <img fetchpriority="low" loading="lazy"
+                                                             src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/habergorseli6abff7f8d83705fac61ad527png-JcXyHlrUBUC4oWLlCTFzfw.png?w=320&amp;h=248&amp;mode=crop&amp;scale=both"
+                                                             alt="Gaziantep&#x27;te aile faciası: 2&#x27;nci kattan düşen anne hayatını kaybetti, baba ve oğul yaralı">
+                                                    </a>
+                                                </div>
+                                    </div>
+                                </div>
+                                <div class="swiper-button-next gunun-mansetleri-swiper-button-next"></div>
+                                <div class="swiper-button-prev gunun-mansetleri-swiper-button-prev"></div>
+                            </div>
+                        </div>
+                    </section>
+                        <div class="m-auto taboola-feed"></div>
+
+            </div>
+                <div class="col-lg-4 sidebar d-none d-lg-block">
+                    <div class="sidebar-inner">
+                            <div class="ad multisize mb-4 justify-content-center">
+                                <div class="position-sticky">
+                                    <div id="div-sozcu_gen_body_box_1" style="display: none;"></div> 
+
+                                </div>
+                            </div>
+
+                            <div class="_sidebar-kesfet">
+                                        <div class="ad news-card mb-4">
+                                            <a href="https://bit.ly/4j4hb2z?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               target="_blank" class="img-holder wide mb-2">
+                                                <picture>
+                                                    <source media="(min-width:992px)"
+                                                            srcset="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/z10cpceylul26776x437jpg-Q5ZbdiRVtES1YtXHJ9rtNQ.jpg?w=288&amp;h=162&amp;scale=both&amp;mode=crop">
+                                                    <source media="(min-width:576px)"
+                                                            srcset="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/z10cpceylul26776x437jpg-Q5ZbdiRVtES1YtXHJ9rtNQ.jpg?w=288&amp;h=162&amp;scale=both&amp;mode=crop">
+                                                    <img fetchpriority="low" loading="lazy"
+                                                         src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/z10cpceylul26776x437jpg-Q5ZbdiRVtES1YtXHJ9rtNQ.jpg?w=288&amp;h=162&amp;scale=both&amp;mode=crop" alt="Laptop gibi Tablet PAD Z10 PRO">
+                                                </picture>
+                                            </a>
+                                            <a href="https://bit.ly/4j4hb2z?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               target="_blank" class="news-card-footer">
+                                                Laptop gibi Tablet PAD Z10 PRO
+                                            </a>
+                                        </div>
+
+                            </div>
+
+                            <h3 class="fs-5 fw-bold mb-4">
+                                <a href="https://www.sozcu.com.tr/otomotiv"
+                                   aria-label="Otomotiv Haberleri" target="_self">
+                                    Otomotiv Haberleri
+                                </a>
+                            </h3>
+                            <ul class="list-unstyled">
+                                    <li class="row gx-0 align-items-center mb-3 bg-light radius-base">
+                                        <div class="col-6">
+                                            <a href="https://www.sozcu.com.tr/elektrikli-araca-binen-pisman-oluyor-dev-ureticiden-itiraf-gibi-aciklama-p365765?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               class="img-holder _4x3" target="_blank">
+                                                <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/elektrikli-arcjpg-tWTpR4G4gkC5qek3oNTDdg.jpg?w=450&amp;h=328&amp;mode=crop&amp;scale=both" alt="Elektrikli araca binen pişman oluyor: Dev üreticiden itiraf gibi açıklama">
+                                            </a>
+                                        </div>
+                                        <div class="col-6 ps-3">
+                                            <a href="https://www.sozcu.com.tr/elektrikli-araca-binen-pisman-oluyor-dev-ureticiden-itiraf-gibi-aciklama-p365765?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               target="_blank">
+                                                <span
+                                                    class="text-truncate-3 fw-semibold mb-2">Elektrikli araca binen pişman oluyor: Dev üreticiden itiraf gibi açıklama</span>
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="row gx-0 align-items-center mb-3 bg-light radius-base">
+                                        <div class="col-6">
+                                            <a href="https://www.sozcu.com.tr/otomotiv-devi-4-fabrikasinda-uretimi-durdurma-karari-aldi-p365716?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               class="img-holder _4x3" target="_blank">
+                                                <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/fdfpng-OMK5UG2hjEC7_B39UkrAsA.PNG?w=450&amp;h=328&amp;mode=crop&amp;scale=both" alt="Otomotiv devi 4 fabrikasında üretimi durdurma kararı aldı">
+                                            </a>
+                                        </div>
+                                        <div class="col-6 ps-3">
+                                            <a href="https://www.sozcu.com.tr/otomotiv-devi-4-fabrikasinda-uretimi-durdurma-karari-aldi-p365716?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               target="_blank">
+                                                <span
+                                                    class="text-truncate-3 fw-semibold mb-2">Otomotiv devi 4 fabrikasında üretimi durdurma kararı aldı</span>
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="row gx-0 align-items-center mb-3 bg-light radius-base">
+                                        <div class="col-6">
+                                            <a href="https://www.sozcu.com.tr/900-kilometre-menzilli-canavar-yollara-cikti-9-dakikada-sarj-oluyor-p365598?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               class="img-holder _4x3" target="_blank">
+                                                <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/yeni-proje-20261002t164852384jpg-WUlnTurWAkqA_760VHFWmg.jpg?w=450&amp;h=328&amp;mode=crop&amp;scale=both" alt="900 kilometre menzilli canavar yollara çıktı: 9 dakikada şarj oluyor">
+                                            </a>
+                                        </div>
+                                        <div class="col-6 ps-3">
+                                            <a href="https://www.sozcu.com.tr/900-kilometre-menzilli-canavar-yollara-cikti-9-dakikada-sarj-oluyor-p365598?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               target="_blank">
+                                                <span
+                                                    class="text-truncate-3 fw-semibold mb-2">900 kilometre menzilli canavar yollara çıktı: 9 dakikada şarj oluyor</span>
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="row gx-0 align-items-center mb-3 bg-light radius-base">
+                                        <div class="col-6">
+                                            <a href="https://www.sozcu.com.tr/yeni-icat-otomatik-vitesi-manuele-ceviriyor-debriyaj-pedalina-bile-gerek-yok-p365539?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               class="img-holder _4x3" target="_blank">
+                                                <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/manueljpg-Ycn156D25E2RTsrzvMg2RQ.jpg?w=450&amp;h=328&amp;mode=crop&amp;scale=both" alt="Yeni icat, otomatik vitesi manuele çeviriyor: Debriyaj pedalına bile gerek yok">
+                                            </a>
+                                        </div>
+                                        <div class="col-6 ps-3">
+                                            <a href="https://www.sozcu.com.tr/yeni-icat-otomatik-vitesi-manuele-ceviriyor-debriyaj-pedalina-bile-gerek-yok-p365539?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                               target="_blank">
+                                                <span
+                                                    class="text-truncate-3 fw-semibold mb-2">Yeni icat, otomatik vitesi manuele çeviriyor: Debriyaj pedalına bile gerek yok</span>
+                                            </a>
+                                        </div>
+                                    </li>
+                            </ul>
+
+                            <div class="sidebar-related position-sticky sticky-top">
+                                    <div class="ad sidebar-300x250 mb-4">
+                                        <div id="div-sozcu_gen_body_box_2" style="display: none;"></div> 
+                                    </div>
+                                    <ul class="list-unstyled">
+                                            <li class="row gx-0 align-items-center mb-3 bg-light radius-base">
+                                                <div class="col-6">
+                                                    <a href="https://www.sozcu.com.tr/manuel-mi-otomatik-mi-derken-trafikte-depoyu-sifirlayan-asil-suclu-ispatlandi-p365412?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                                       class="img-holder _4x3" target="_blank">
+                                                        <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/manuel-otomatik-benzin-yakitpng-HMiFGdAjakmDZyYz24jLFg.png?w=450&amp;h=328&amp;mode=crop&amp;scale=both"
+                                                             alt="Manuel mi otomatik mi derken trafikte depoyu sıfırlayan asıl suçlu ispatlandı">
+                                                    </a>
+                                                </div>
+                                                <div class="col-6 ps-3">
+                                                    <a href="https://www.sozcu.com.tr/manuel-mi-otomatik-mi-derken-trafikte-depoyu-sifirlayan-asil-suclu-ispatlandi-p365412?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                                       target="_blank">
+                                                        <span
+                                                            class="text-truncate-3 fw-semibold mb-2">Manuel mi otomatik mi derken trafikte depoyu sıfırlayan asıl suçlu ispatlandı</span>
+                                                    </a>
+                                                </div>
+                                            </li>
+                                            <li class="row gx-0 align-items-center mb-3 bg-light radius-base">
+                                                <div class="col-6">
+                                                    <a href="https://www.sozcu.com.tr/otomotiv-devi-logosunu-degistirdi-gorenler-taniyamadi-p365251?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                                       class="img-holder _4x3" target="_blank">
+                                                        <img src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/10/asdasdadadspng-5XcI8Q24JU66X_0R1GkvYw.PNG?w=450&amp;h=328&amp;mode=crop&amp;scale=both"
+                                                             alt="Otomotiv devi logosunu değiştirdi: Görenler tanıyamadı">
+                                                    </a>
+                                                </div>
+                                                <div class="col-6 ps-3">
+                                                    <a href="https://www.sozcu.com.tr/otomotiv-devi-logosunu-degistirdi-gorenler-taniyamadi-p365251?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                                       target="_blank">
+                                                        <span
+                                                            class="text-truncate-3 fw-semibold mb-2">Otomotiv devi logosunu değiştirdi: Görenler tanıyamadı</span>
+                                                    </a>
+                                                </div>
+                                            </li>
+                                    </ul>
+                                    <div class="_sidebar-kesfet">
+                                                <div class="ad news-card mb-4">
+                                                    <a href="https://bit.ly/4vThCzu?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                                       target="_blank" class="img-holder wide mb-2">
+                                                        <picture>
+                                                            <source media="(min-width:992px)"
+                                                                    srcset="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/fibabankcpceylul26776x437jpg-edhWGkPkFUCNcepQ4xN3Ew.jpg?w=288&amp;h=162&amp;scale=both&amp;mode=crop">
+                                                            <source media="(min-width:576px)"
+                                                                    srcset="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/fibabankcpceylul26776x437jpg-edhWGkPkFUCNcepQ4xN3Ew.jpg?w=288&amp;h=162&amp;scale=both&amp;mode=crop">
+                                                            <img fetchpriority="low" loading="lazy"
+                                                                 src="https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/fibabankcpceylul26776x437jpg-edhWGkPkFUCNcepQ4xN3Ew.jpg?w=288&amp;h=162&amp;scale=both&amp;mode=crop"
+                                                                 alt="Kiraz Hesap’la Her Gün Kazanın">
+                                                        </picture>
+                                                    </a>
+                                                    <a href="https://bit.ly/4vThCzu?utm_source=haberdetay_1&utm_medium=free&utm_campaign=oneriHaber"
+                                                       target="_blank" class="news-card-footer">
+                                                        Kiraz Hesap’la Her Gün Kazanın
+                                                    </a>
+                                                </div>
+                                    </div>
+                            </div>
+                    </div>
+                </div>
+
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    window._taboola = window._taboola || [];
+    _taboola.push({flush: true});
+</script>
+
+
+<script type="application/ld&#x2B;json">
+    {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"item":{"@id":"https://www.sozcu.com.tr","name":"Anasayfa"}},{"@type":"ListItem","position":2,"item":{"@id":"www.sozcu.com.tr/otomotiv","name":"Otomotiv"}},{"@type":"ListItem","position":3,"item":{"@id":"https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798","name":"Türkiye'de peynir ekmekten daha hızlı satılan 5 otomobil modeli"}}]}
+</script>
+<script type="application/ld&#x2B;json">
+    {"@context":"https://schema.org","@type":"NewsArticle","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798"},"url":"https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798","@id":"https://www.sozcu.com.tr/turkiye-de-peynir-ekmekten-daha-hizli-satilan-5-otomobil-modeli-p365798","headline":"Türkiye'de peynir ekmekten daha hızlı satılan 5 otomobil modeli","articleBody":"Türkiye ikinci el otomobil pazarında otomobil alıcılarının öncelikleri; ekonomik koşullar, bakım maliyetleri, yedek parça bulunabilirliği ve yakıt tüketimi doğrultusunda yeniden şekilleniyor. Pazarın popüler modelleri Fiat Egea, Toyota Corolla ve Honda Civic gibi araçlar talep görmeye devam etse de, ikinci elde en kısa sürede el değiştiren araçlar listesinde ilk sırayı farklı bir model aldı. İKİNCİ ELDE TERCİH KRİTERLERİ DÖNÜŞÜYOR Alıcıların bütçe dostu ve pratik kullanım sunan araçlara yönelmesi, ilanlarda kalma sürelerini doğrudan etkiliyor. İkinci el piyasasında satış hızıyla öne çıkan modellerin büyük bir kısmını Fransız ve Japon üreticilerin araçları oluşturuyor. Sürücüler arasında Hyundai i20 gibi popüler şehir içi modellerin listede yer almaması dikkat çekerken, satış hareketliliğinde ilk 5 sıralaması şu şekilde oluştu: TÜRKİYE'DE EN HIZLI SATILAN 5 OTOMOBİL MODELİ 5. Honda Civic: Sedan segmentindeki güçlü pazar payına rağmen ikinci elde en hızlı el değiştiren araçlar arasında 5. sırada yer aldı. 4. Renault Clio: B segmentinin bütçe odaklı yapısı ve düşük kullanım maliyetleri sayesinde hızlı satış grafiğini sürdürerek 4. sıraya yerleşti. 3. Toyota Corolla: Dayanıklılık ve yüksek ikinci el değeriyle öne çıkan model, listede 3. sıranın sahibi oldu. 2. Fiat Egea: Türkiye’de toplam satış adetlerinde uzun süredir zirvede bulunan model, ikinci eldeki satış hızı sıralamasında 2. sırada kaldı. 1. Renault Megane: Yaygın servis ağı, yedek parça erişimi ve motor seçeneklerinin sağladığı avantajla ikinci el pazarında ilana çıkmasının ardından en hızlı satılan otomobil olarak 1. sıraya yerleşti.","articleSection":"Otomotiv","image":[{"@type":"ImageObject","url":"https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/sifir-otomobil-satin-alma-pexels-124178jpg-TYeiYYQIZkqOpef2RlRexw.jpg?w=1200&h=900&mode=crop&scale=both","width":1200,"height":900},{"@type":"ImageObject","url":"https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/sifir-otomobil-satin-alma-pexels-124178jpg-TYeiYYQIZkqOpef2RlRexw.jpg?w=1200&h=675&mode=crop&scale=both","width":1200,"height":675},{"@type":"ImageObject","url":"https://sozcu01.sozcucdn.com/sozcu/production/uploads/images/2026/9/sifir-otomobil-satin-alma-pexels-124178jpg-TYeiYYQIZkqOpef2RlRexw.jpg?w=900&h=900&mode=crop&scale=both","width":900,"height":900}],"datePublished":"2026-10-03T15:08:21+03:00","dateCreated":"2026-10-03T15:08:21+03:00","dateModified":"2026-10-03T15:08:21+03:00","genre":"News","wordCount":224,"inLanguage":"tr-TR","author":[{"@type":"Person","@id":"https://www.sozcu.com.tr","name":"Derleyen: Burak Erdoğan"}],"publisher":{"@type":"Organization","@id":"https://www.sozcu.com.tr/#organization","name":"Sözcü","logo":{"@type":"ImageObject","@id":"https://www.sozcu.com.tr/#logo","url":"https://www.sozcu.com.tr/static/web/assets/logo-192x192.png","width":192,"height":192}},"description":"Türkiye ikinci el otomobil pazarında bütçe, bakım maliyeti ve yakıt tüketimi odaklı tercihler talep dengelerini değiştirdi. İkinci el pazarında en hızlı satılan otomobil modelleri sıralandı."}
+</script>
+
+
+    <div id="div-sozcu_popup" style="display: none;"></div>
+<div id="div-sozcu_mobile_interstial" style="display: none;"></div> 
+<div id="div-sozcu_gravity" style="display: none;"></div>
+ 
+
+<!-- Footer -->
+
+<footer class="py-4">
+    <div class="container">
+        <div class="d-flex align-items-center lh-1 border-bottom border-secondary pb-4 mb-4">
+            <a target="_blank" href="https://www.szctv.com.tr/" aria-label="Sözcü Televizyonu" class="me-4">
+                <img loading="lazy" src="https://www.sozcu.com.tr/static/web/assets/szctv_logo.png" alt="Sözcü Televizyonu" height="27">
+            </a>
+            <a target="_blank" href="https://www.sozcu.com.tr/finans" aria-label="Sözcü Televizyonu" class="me-4">
+                <img loading="lazy" src="https://www.sozcu.com.tr/static/web/assets/finans_icon.svg" alt="Sözcü Finans" height="17">
+            </a>
+            <a target="_blank" href="https://www.sozcu.com.tr/hayat" aria-label="Sözcü Hayat" class="me-4">
+                <img loading="lazy" src="https://www.sozcu.com.tr/static/web/assets/hayat.svg" alt="Sözcü Hayat" height="24">
+            </a>
+            <a target="_blank" href="https://uyelik.sozcu.com.tr/" aria-label="Sözcü Plus">
+                <img loading="lazy" src="https://www.sozcu.com.tr/static/web/assets/plus_icon.svg" alt="Sözcü Plus" height="15">
+            </a>
+        </div>
+        <div class="row">
+                    <div class="col-lg-3 mb-4">
+                        <div class="fw-bold mb-4 text-light">
+                            <a target="_blank" href="https://www.sozcu.com.tr/" class="fw-bold mb-4 text-light">Haberler</a>
+                        </div>
+                        <ul class="list-unstyled">
+                                    <li>
+                                        <a target="_blank" href="https://secim.sozcu.com.tr/secim2024mart31">31 Mart 2024 Yerel Seçim Sonuçları</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://secim.sozcu.com.tr/secim2023Mayis28">2023 Seçim Sonuçları</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/yazarlar">Yazarlar</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="/finans">Finans Haberleri</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="/ekonomi">Ekonomi Haberleri</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="/hayat">Hayat Haberleri</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="/dunya">Dünya Haberleri</a>
+                                    </li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 mb-4">
+                        <div class="fw-bold mb-4 text-light">
+                            <a target="_blank" href="https://www.sozcu.com.tr/gundem" class="fw-bold mb-4 text-light">Güncel Haberler</a>
+                        </div>
+                        <ul class="list-unstyled">
+                                    <li>
+                                        <a target="_blank" href="/gunun-icinden">Günün İçinden Haberler</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.szctv.com.tr">Sözcü Web TV</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="/spor">Spor Haberleri</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/e-gazete">Sözcü E-Gazete</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/tum-haberler">Tüm Haberler</a>
+                                    </li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 mb-4">
+                        <div class="fw-bold mb-4 text-light">
+                            <a target="_blank" class="fw-bold mb-4 text-light">İletişim</a>
+                        </div>
+                        <ul class="list-unstyled">
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/iletisim-pg14">İletişim</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/kunye-pg6">Künye</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/reklam-ver-pg7">Reklam Ver</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://adv.sozcu.com.tr/kesfet/vefat-ilanlari/sozcu-vefat-ilanlari-servisi/">Vefat İlanları</a>
+                                    </li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 mb-4">
+                        <div class="fw-bold mb-4 text-light">
+                            <a target="_blank" class="fw-bold mb-4 text-light">Kvkk</a>
+                        </div>
+                        <ul class="list-unstyled">
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/hukuk/kvkk">Kişisel Verileri Koruma Kanunu</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/hukuk/musteri-aydinlatma-metni">Müşteri Aydınlatma Metni</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/hukuk/cerez-politikasi">Çerez Politikası</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/hukuk/kisisel-verileri-saklama-ve-imha-politikasi">Kişisel Verileri Saklama ve İmha Politikası</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/hukuk/kamera-aydinlatma-metni">Kamera Aydınlatma Metni</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/hukuk/kisisel-verilerin-korunmasi-kanunu-kapsaminda-basvuru-formu">KVKK Başvuru Formu</a>
+                                    </li>
+                                    <li>
+                                        <a target="_blank" href="https://www.sozcu.com.tr/rss-servisleri">RSS</a>
+                                    </li>
+                        </ul>
+                    </div>
+            
+            <div class="col-lg-3 mb-4">
+                <div class="fw-bold mb-4 text-light">Sosyal Medya</div>
+                <div class="social-pages mb-4 d-flex">
+                    <a href="https://www.instagram.com/sozcucomtr/" target="_blank" rel="noopener" class="social-page-button" aria-label="İnstagram"><svg xmlns="http://www.w3.org/2000/svg" width="20.356" height="20.36" viewBox="0 0 20.356 20.36"><g transform="translate(-0.449)"><path d="M20.754,5.986a7.44,7.44,0,0,0-.473-2.47A5.216,5.216,0,0,0,17.3.537a7.459,7.459,0,0,0-2.47-.473C13.742.012,13.4,0,10.631,0s-3.11.012-4.2.06a7.442,7.442,0,0,0-2.47.473A4.968,4.968,0,0,0,2.16,1.71a5.013,5.013,0,0,0-1.173,1.8,7.46,7.46,0,0,0-.473,2.47c-.052,1.09-.064,1.436-.064,4.2s.012,3.11.06,4.2a7.439,7.439,0,0,0,.473,2.47,5.215,5.215,0,0,0,2.979,2.979,7.46,7.46,0,0,0,2.47.473c1.086.048,1.432.06,4.2.06s3.11-.012,4.2-.06a7.438,7.438,0,0,0,2.47-.473,5.208,5.208,0,0,0,2.979-2.979,7.465,7.465,0,0,0,.473-2.47c.048-1.086.06-1.432.06-4.2S20.8,7.072,20.754,5.986ZM18.92,14.3a5.581,5.581,0,0,1-.35,1.889,3.377,3.377,0,0,1-1.933,1.933,5.6,5.6,0,0,1-1.889.35c-1.074.048-1.4.06-4.113.06s-3.043-.012-4.113-.06a5.578,5.578,0,0,1-1.889-.35,3.133,3.133,0,0,1-1.169-.76,3.165,3.165,0,0,1-.76-1.169,5.6,5.6,0,0,1-.35-1.889c-.048-1.074-.06-1.4-.06-4.113s.012-3.043.06-4.113A5.578,5.578,0,0,1,2.7,4.188a3.1,3.1,0,0,1,.764-1.169,3.161,3.161,0,0,1,1.169-.76,5.6,5.6,0,0,1,1.889-.35c1.074-.048,1.4-.06,4.113-.06s3.043.012,4.113.06a5.581,5.581,0,0,1,1.889.35,3.131,3.131,0,0,1,1.169.76,3.165,3.165,0,0,1,.76,1.169,5.6,5.6,0,0,1,.35,1.889c.048,1.074.06,1.4.06,4.113S18.968,13.225,18.92,14.3Zm0,0" transform="translate(0 0)" fill="#fff"/><path d="M130.18,124.5a5.23,5.23,0,1,0,5.23,5.23A5.232,5.232,0,0,0,130.18,124.5Zm0,8.623a3.393,3.393,0,1,1,3.393-3.393A3.393,3.393,0,0,1,130.18,133.123Zm0,0" transform="translate(-119.548 -119.548)" fill="#fff"/><path d="M364.891,89.823A1.221,1.221,0,1,1,363.67,88.6,1.221,1.221,0,0,1,364.891,89.823Zm0,0" transform="translate(-347.602 -85.078)" fill="#fff"/></g></svg></a>
+                    <a href="https://www.facebook.com/sozcugazetesi/" target="_blank" rel="noopener" class="social-page-button" aria-label="Facebook"><svg xmlns="http://www.w3.org/2000/svg" width="9.476" height="18.949" viewBox="0 0 9.476 18.949"><path d="M13.933,3.146h1.73V.133A22.339,22.339,0,0,0,13.142,0c-2.494,0-4.2,1.569-4.2,4.452V7.106H6.187v3.368H8.939V18.95h3.375V10.475h2.641l.419-3.368H12.313V4.786c0-.974.263-1.64,1.619-1.64Z" transform="translate(-6.187)" fill="#fff"/></svg></a>
+                    <a href="https://twitter.com/gazetesozcu" target="_blank" rel="noopener" class="social-page-button" aria-label="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="15.999" height="13" viewBox="0 0 15.999 13"><path d="M16,49.539a6.839,6.839,0,0,1-1.89.518,3.262,3.262,0,0,0,1.443-1.813,6.555,6.555,0,0,1-2.08.794A3.28,3.28,0,0,0,7.8,51.281a3.377,3.377,0,0,0,.076.748A9.284,9.284,0,0,1,1.114,48.6a3.281,3.281,0,0,0,1.008,4.384,3.239,3.239,0,0,1-1.482-.4v.036a3.3,3.3,0,0,0,2.628,3.223,3.274,3.274,0,0,1-.86.108,2.9,2.9,0,0,1-.621-.056,3.311,3.311,0,0,0,3.065,2.285,6.591,6.591,0,0,1-4.067,1.4A6.145,6.145,0,0,1,0,59.528,9.234,9.234,0,0,0,5.032,61a9.271,9.271,0,0,0,9.336-9.334c0-.145,0-.285-.012-.424A6.544,6.544,0,0,0,16,49.539Z" transform="translate(0 -48)" fill="#fff"/></svg></a>
+                    <a href="https://www.youtube.com/channel/UCOulx_rep5O4i9y6AyDqVvw" target="_blank" rel="noopener" class="social-page-button" aria-label="Youtube"><svg xmlns="http://www.w3.org/2000/svg" width="17.711" height="12.4" viewBox="0 0 17.711 12.4"><path d="M17.346-4.142A2.219,2.219,0,0,0,15.785-5.7a51.842,51.842,0,0,0-6.93-.379,53.862,53.862,0,0,0-6.93.365A2.264,2.264,0,0,0,.365-4.142,23.38,23.38,0,0,0,0,.118a23.294,23.294,0,0,0,.365,4.26A2.219,2.219,0,0,0,1.926,5.939a51.936,51.936,0,0,0,6.93.379,53.862,53.862,0,0,0,6.93-.365,2.219,2.219,0,0,0,1.561-1.561,23.388,23.388,0,0,0,.365-4.26A22.194,22.194,0,0,0,17.346-4.142ZM7.09,2.774v-5.31L11.7.118Zm0,0" transform="translate(0 6.082)" fill="#fff"/></svg></a>
+                    <a href="https://www.dailymotion.com/Sozcu" target="_blank" rel="noopener" class="social-page-button" aria-label="Dailymotion"><svg xmlns="http://www.w3.org/2000/svg" width="13.714" height="17.696" viewBox="0 0 13.714 17.696"><g transform="translate(113.142 -247.369)">
+                        <path d="M-93.164,249.854v17.572h-3.72V266.08a5.375,5.375,0,0,1-3.843,1.471,6.322,6.322,0,0,1-6.151-6.485,6.489,6.489,0,0,1,6.151-6.525,5.335,5.335,0,0,1,3.843,1.518V250.6Zm-6.72,14.284A3.139,3.139,0,0,0-96.747,261a3.139,3.139,0,0,0-3.136-3.137A3.139,3.139,0,0,0-103.02,261,3.139,3.139,0,0,0-99.884,264.138Z" transform="translate(-6.264 -2.485)" fill="#fff"/>
+                    </g></svg></a>
+                    <a href="https://www.linkedin.com/company/s-zc-gazetesi" target="_blank" rel="noopener" class="social-page-button" aria-label="Linkedin"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-linkedin" viewBox="0 0 16 16">
+                            <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z" fill="#fff"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <div class="fw-bold mb-4 text-light">Uygulamalarımız</div>
+                <a href="https://apps.apple.com/tr/app/s%C3%B6zc%C3%BC-gazetesi-haberler/id405952318?l=tr" rel="noopener" target="_blank" aria-label="Sözcü iOS Uygulaması"><img loading="lazy" src="https://www.sozcu.com.tr/static/web/assets/appstore.svg" alt="Sözcü iOS Uygulaması" height="35"></a>
+                <a href="https://play.google.com/store/apps/details?id=org.studionord.sozcu.gazete&hl=tr&gl=US" rel="noopener" target="_blank" aria-label="Sözcü Android Uygulaması"><img loading="lazy" src="https://www.sozcu.com.tr/static/web/assets/googleplay.svg" alt="Sözcü Android Uygulaması" height="35"></a>
+            </div>
+            <div class="col-lg-12">
+                <div class="border-top border-secondary pt-4">
+                    <!--<p class="small text-secondary">BİST hisse verileri 15 dakika gecikmelidir. BİST isim ve logosu "Koruma Marka Belgesi" altında korunmakta olup izinsiz kullanılamaz, iktibas edilemez, değiştirilemez. BİST ismi altında açıklanan tüm bilgilerin telif hakları tamamen BİST'e ait olup, tekrar yayınlanamaz. Veriler <a href="http://www.foreks.com" class="text-decoration-none" target="_blank"> <img loading="lazy" src="https://webservice.foreks.com/foreks-web-widget/assets/images/forekslogo.svg" alt="FOREKS" class="align-middle" height="16"/></a> tarafından sağlanmaktadır.</p>-->
+                    <!--<f-ws wid="FWS_NUBOZOS66" lang="tr"></f-ws>-->
+                    <p class="small text-secondary">
+                        www.sozcu.com.tr internet sitesinde yayınlanan yazı, haber ve fotoğrafların her türlü telif hakkı Mega Ajans ve Rek. Tic. A.Ş'ye aittir. İzin alınmadan, kaynak gösterilerek dahi iktibas edilemez.<br>
+                        Copyright © 2023 - Tüm hakları saklıdır. Mega Ajans ve Rek. Tic. A.Ş.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+ 
+<!-- /Footer -->
+    <div id="div-sozcu_desktop_detay_sticky_parent" class="bg-light position-sticky d-flex align-items-center justify-content-center bottom-0 w-100" style="z-index: 1044">
+    <div id="div-sozcu_desktop_detay_sticky" style="display: none;"></div>
+</div>
+    <div id="div-sozcu_mobile_post_sticky_parent" class="position-sticky d-flex align-items-center justify-content-center bottom-0 w-100" style="z-index: 1044">
+    <div id="div-sozcu_mobile_detay_320x50_sticky" style="display: none;"></div>
+</div>
+    <!-- VIDEO PARTNER ROTATION (membrana / reklamup) -->
+<script>
+    (function () {
+        var REKLAMUP_PERCENT = 100; // gösterim yüzdesi — tek ayar noktası
+
+        var partner = null;
+        try {
+            var qs = new URLSearchParams(window.location.search).get('videoPartner');
+            if (qs === 'reklamup' || qs === 'membrana') partner = qs; // test override
+        } catch (e) { /* eski tarayıcı — kuraya düş */ }
+
+        if (!partner) {
+            partner = (Math.random() * 100 < REKLAMUP_PERCENT) ? 'reklamup' : 'membrana';
+        }
+
+        var s = document.createElement('script');
+        s.async = true;
+
+        s.src = 'https://videoapi.reklamup.com/datastore/generated/player/1/0/1/1.js';
+        var q = [];
+        q.push = function () {};
+        window.yieldMasterCmd = q;
+
+        var cur = document.currentScript;
+        if (cur && cur.parentNode) {
+            cur.parentNode.insertBefore(s, cur);
+        } else {
+            document.head.appendChild(s);
+        }
+
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: 'video_partner_selected', video_partner: partner });
+    })();
+</script>
+<!-- /VIDEO PARTNER ROTATION -->
+
+    <!-- TABOOLA SCRIPT -->
+    <!-- TABOOLA SCRIPT -->
+
+<script type="module">
+    const runAnalytics = async () => {
+        const content_id='365798';
+        const content_category_name='Otomotiv';
+        const content_category_id='148';
+        const { setupAnalyticsV2 } = await import("https://av2.sozcu.com.tr/dist/analytics-client-V2.js?v=2023-13");
+        const prod_SozcuWebConfig = {
+            projectId: '12711008347319657740',
+            apiKey: '928777779467891939',
+            measurementId: '5001',
+        };
+        const analyticsV2 = setupAnalyticsV2(prod_SozcuWebConfig);
+        window.analyticsV2 = analyticsV2;
+        const eventData1 = await analyticsV2.prepareEvent();
+        eventData1.contentId= content_id;
+        eventData1.contentCategoryName=content_category_name;
+        eventData1.contentCategoryId=content_category_id;
+        await analyticsV2.sendAsync(eventData1);
+    };
+
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => { void runAnalytics(); }, { timeout: 2500 });
+    } else {
+        window.setTimeout(() => { void runAnalytics(); }, 1200);
+    }
+</script>
+<script async type="text/javascript">
+    function gtmEvent() {
+        const content_author_full_name='Derleyen: Burak Erdoğan';
+        const content_author_id='2290';
+        const content_author_slug='derleyen-burak-erdogan';
+        const content_creator_full_name = 'Merve Kapan';
+        const content_creator_id = '0ae92c6f-129b-4fd3-901e-3b5bcb79d830';
+        const content_category_id='148';
+        const content_category_name='Otomotiv';
+        const content_category_slug='otomotiv';
+        const content_editor_uuid='id4qcbHArUKSXkOZJyvBgQ';
+        const content_type='news-article';
+        const content_id='365798';
+        const page_type='post';
+        const device_type=window.domainDevice.type;
+        const dataLayerBaseObject = {
+            event: "customDimsLoaded",
+            content_author_full_name: content_author_full_name,
+            content_author_id: content_author_id,
+            content_author_slug: content_author_slug,
+            content_creator_full_name: content_creator_full_name,
+            content_creator_id: content_creator_id,
+            content_category_id: content_category_id,
+            content_category_name: content_category_name,
+            content_category_slug: content_category_slug,
+            content_editor_uuid: content_editor_uuid,
+            content_type: content_type,
+            content_id:content_id,
+            page_type: page_type,
+            device_type:device_type
+        };
+        const dataLayerObject=Object.fromEntries(Object.entries(dataLayerBaseObject).filter((q)=>{if(q[1]){ return true; }}));
+        window.dataLayer.push(dataLayerObject);
+    }
+    const queueGtmEvent = () => domainTag.cmd.push(gtmEvent);
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(queueGtmEvent, { timeout: 2000 });
+    } else {
+        window.setTimeout(queueGtmEvent, 800);
+    }
+
+
+</script>
+<script async src="https://platform.twitter.com/widgets.js"></script>
+<script async src="https://www.instagram.com/embed.js"></script>
+
+
+
+
+<script async src="/lib/js/userConsentMessage.js"></script>
+<script async type="module" crossorigin src="/firebase-messaging-v2024.js?v=CXH79XBgdXZc7h3l4YxUwxrETenQ_VYw9_9dWEC3bTU"></script>
+</body>
+</html>

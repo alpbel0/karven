@@ -552,7 +552,7 @@ dediği için kural devreye girmedi); birim ve entegrasyon testlerinde kanıtlı
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-10-03, canlıda doğrulandı)
 **Bağımlılıklar:** Task 1.1
 
 **Referanslar:** `docs/DECISIONS.md` §6
@@ -561,15 +561,40 @@ dediği için kural devreye girmedi); birim ve entegrasyon testlerinde kanıtlı
 
 ### Checklist
 
-- [ ] 5 RSS kaynağını oku: Sabah ekonomi, Habertürk ekonomi, Sözcü ekonomi,
+- [x] 5 RSS kaynağını oku: Sabah ekonomi, Habertürk ekonomi, Sözcü ekonomi,
       BloombergHT, CNN Türk finans.
-- [ ] Her haberin sayfasından **tam metni** çek; RSS özeti yetmez.
-- [ ] Haberi başlık, link, yayın zamanı ve tam metinle kaydet.
-- [ ] Haberler **15 dakikada bir** çekilir.
-- [ ] Tekrar haber kontrolü MVP'de **yok**; her haber işlenir.
+- [x] Her haberin sayfasından **tam metni** çek; RSS özeti yetmez.
+- [x] Haberi başlık, link, yayın zamanı ve tam metinle kaydet.
+- [x] Haberler **15 dakikada bir** çekilir.
+- [x] Tekrar haber kontrolü MVP'de **yok**; her haber işlenir.
 
 **Kabul kriteri:** Beş kaynaktan gerçek haberler tam metinleriyle kaydediliyor;
 tam metni çekilemeyen haber nedeniyle birlikte işaretleniyor.
+
+**Sonuç (2026-10-03, canlıda doğrulandı):** `app/news/` paketi: `feeds.py` (5
+kaynak, saf RSS 2.0 ayrıştırıcı, `external_id` = normalize `<link>`),
+`extract.py` (trafilatura 2.3.0 + Giriş/Güncelleme temizliği), `service.py`
+(`poll_feeds` / `fetch_article` / `requeue_pending`), `tasks.py` (`news.poll`
+beat 900 sn, `news.fetch_article`), `__main__.py` CLI. Migration 0017
+`news_articles`. Celery `news.*` kuyruğu, compose worker `-Q fetch,news`.
+Feed'ler: Sabah `/rss/ekonomi.xml`, Habertürk `/rss/ekonomi.xml`, Sözcü
+`/feeds-rss-category-ekonomi`, BloombergHT `/rss` (tek genel feed), CNN Türk
+`/feed/rss/ekonomi/news`. Ayrıntı `docs/source-profiles/news.md`.
+Kurallar (kullanıcı kararı): ilk turda kaynak başına en yeni 4 haber; sonraki
+turlarda yalnız ilk turun saatinden yeni haberler; metin < 200 karakter =
+`no_text`; HTTP hatası = `failed`; bunlar ajana gitmez. Canlı kanıt: beat'in kendi
+15 dk'lık turu çalıştı, 5 siteden 20 haber tam metinle `ok`; ikinci tur eski
+yığını almadı (`inserted=0`), beat turu yalnız 1 yeni haber ekledi; `no_text` ve
+`failed: HTTP 404` yolları canlıda görüldü (deneme satırları silindi). Birim 880,
+entegrasyon 98 test geçti. **İnceleme ve canlıda yakalanan hatalar:** (1) ilk
+turdan sonra feed'deki tüm eski haberler alınıyordu (baseline kuralı eklendi);
+(2) CNN Türk `pubDate` "GMT" etiketli ama yerel saat (UTC+3), kayıt 3 saat
+yanlıştı (sabit +03:00 ile düzeltildi, canlı 4 satır güncellendi); (3) hiç haber
+dönmeyen feed sessizce kabul ediliyordu (artık hata); (4) çıkarma istisnası
+sessizce yutuluyordu (artık `text_error`'a yazılıyor). **Bilinen sınırlar:**
+tam metin çıkarımında site başına seçici yok (trafilatura beş sitede yetti);
+yayın saati bir yazar güncellemesiyle ileri kayarsa eski bir haber "yeni" sayılıp
+alınabilir; Sabah tam metni "Giriş Tarihi" satırlarını başta taşır (temizleniyor).
 
 ## Task 1.8 — Elle girilen göstergeler
 

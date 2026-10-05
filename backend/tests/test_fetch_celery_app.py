@@ -29,7 +29,7 @@ from app.fetching.celery_app import app
 app.loader.import_default_modules()
 
 print(json.dumps({
-    "tasks": sorted(t for t in app.tasks if t.startswith("fetch.")),
+    "tasks": sorted(t for t in app.tasks if t.startswith(("fetch.", "news."))),
     "beat": [entry["task"] for entry in app.conf.beat_schedule.values()],
     "default_queue": app.conf.task_default_queue,
 }))

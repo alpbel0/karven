@@ -335,9 +335,12 @@ def test_a_tool_call_in_the_loop_returns_metadata_only() -> None:
 def test_migration_0016_round_trips() -> None:
     from alembic import command
     from alembic.config import Config
+    from alembic.script import ScriptDirectory
 
     config = Config(str(BACKEND_ROOT / "alembic.ini"))
     config.set_main_option("script_location", str(BACKEND_ROOT / "migrations" / "postgres"))
+    # Do not hard-code the head: a later migration must not break this test.
+    head = ScriptDirectory.from_config(config).get_current_head()
 
     engine = create_db_engine()
     try:
@@ -363,4 +366,4 @@ def test_migration_0016_round_trips() -> None:
         )
     finally:
         engine.dispose()
-    assert version == "0016"
+    assert version == head

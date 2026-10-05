@@ -420,6 +420,15 @@ class Observation(Base):
     )
 
 
+#: The five news feeds the MVP polls (kept here and in migration 0017).
+NEWS_SOURCES: tuple[str, ...] = ("sabah", "haberturk", "sozcu", "bloomberght", "cnnturk")
+_NEWS_SOURCE_CHECK = "source IN (" + ", ".join(f"'{source}'" for source in NEWS_SOURCES) + ")"
+#: Article text-extraction lifecycle: pending -> ok / no_text / failed.
+NEWS_TEXT_STATUSES: tuple[str, ...] = ("pending", "ok", "no_text", "failed")
+_NEWS_TEXT_STATUS_CHECK = (
+    "text_status IN (" + ", ".join(f"'{status}'" for status in NEWS_TEXT_STATUSES) + ")"
+)
+
 _REGION_METHOD_CHECK = "method IN ('label_match', 'manual')"
 # Region levels the crosswalk knows about. Only provinces are mapped today; add
 # a value here (and in migration 0006) to extend the check.
@@ -904,4 +913,59 @@ class DataAlert(Base):
             postgresql_where=text("status = 'open'"),
         ),
         Index("ix_data_alerts_status", "status"),
+    )
+
+
+class NewsArticle(Base):
+    """One news item ingested from an RSS feed, with its full article text (Task 1.7).
+
+    A row is identified by ``(source, external_id)`` where ``external_id`` is the
+    normalised article URL (the only dedup in the MVP: the same item is never
+    inserted twice). The RSS item's metadata is stored immediately; the article
+    page is fetched separately and its extracted text written back, so
+    ``text_status`` moves ``pending -> ok`` / ``no_text`` / ``failed``:
+
+    - ``ok`` means ``content_text`` is at least ``news_min_text_chars`` long,
+    - ``no_text`` means the page was fetched (HTTP 200) but extraction was empty
+      or too short (``text_error`` says which),
+    - ``failed`` means HTTP/timeout/transport failed after every attempt.
+
+    A row whose text could not be fetched is kept (never dropped) so the later
+    agent can skip it by status. ``raw_object_key`` points at the stored article
+    HTML in MinIO; ``fetch_attempts`` counts every network attempt.
+    """
+
+    __tablename__ = "news_articles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    external_id: Mapped[str] = mapped_column(Text, nullable=False)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    rss_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    content_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    text_status: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'pending'"), default="pending"
+    )
+    text_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fetch_attempts: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0"), default=0
+    )
+    raw_object_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    attributes: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+
+    __table_args__ = (
+        UniqueConstraint("source", "external_id", name="uq_news_articles_source_external_id"),
+        CheckConstraint(_NEWS_SOURCE_CHECK, name="ck_news_articles_source"),
+        CheckConstraint(_NEWS_TEXT_STATUS_CHECK, name="ck_news_articles_text_status"),
+        Index("ix_news_articles_text_status", "text_status"),
+        Index("ix_news_articles_source_published_at", "source", "published_at"),
     )

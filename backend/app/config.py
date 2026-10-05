@@ -244,6 +244,24 @@ class Settings(BaseSettings):
     # may still be diagnosed but cannot request another retry (round < max_rounds).
     fetch_agent_max_rounds: int = 2
 
+    # News intake (Task 1.7). The beat polls the five feeds every
+    # ``news_poll_interval_seconds``; the first time a source is seen only its
+    # ``news_first_run_limit`` newest items are taken. Article pages are fetched
+    # up to ``news_max_attempts`` times (timeout/transport/5xx only); a page
+    # whose extracted text is shorter than ``news_min_text_chars`` is
+    # ``no_text``. A ``pending`` row never fetched is requeued once it is older
+    # than ``news_pending_requeue_seconds``. All are env-overridable.
+    news_poll_interval_seconds: int = 900
+    news_first_run_limit: int = 4
+    news_request_timeout_s: float = 30.0
+    news_max_attempts: int = 3
+    news_min_text_chars: int = 200
+    news_pending_requeue_seconds: int = 600
+    news_user_agent: str = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+    )
+
     @model_validator(mode="after")
     def _validate_fetch_settings(self) -> "Settings":
         if self.fetch_heartbeat_stall_minutes <= 0:
@@ -261,6 +279,21 @@ class Settings(BaseSettings):
                 "FETCH_HEARTBEAT_INTERVAL_SECONDS must be less than "
                 "FETCH_HEARTBEAT_STALL_MINUTES * 60"
             )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_news_settings(self) -> "Settings":
+        positive = (
+            "news_poll_interval_seconds",
+            "news_first_run_limit",
+            "news_request_timeout_s",
+            "news_max_attempts",
+            "news_min_text_chars",
+            "news_pending_requeue_seconds",
+        )
+        for name in positive:
+            if getattr(self, name) <= 0:
+                raise ValueError(f"{name.upper()} must be positive")
         return self
 
     minio_endpoint: str | None = None

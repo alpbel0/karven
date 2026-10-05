@@ -213,10 +213,11 @@ services:
       retries: 5
       start_period: 120s
 
-  # Celery worker: runs on-demand fetch jobs from the `fetch` queue (Task 1.5).
-  # FETCH_* env comes from .env via the backend-base anchor (like CORE_*); the
-  # concurrency can be overridden at compose time. The host can sit near 100% CPU,
-  # so the healthcheck timings are deliberately generous.
+  # Celery worker: runs on-demand fetch jobs (`fetch`) and news intake (`news`)
+  # from both queues (Tasks 1.5, 1.7). FETCH_* / NEWS_* env comes from .env via
+  # the backend-base anchor (like CORE_*); the concurrency can be overridden at
+  # compose time. The host can sit near 100% CPU, so the healthcheck timings are
+  # deliberately generous.
   worker:
     <<: *backend-base
     depends_on: *app-deps
@@ -228,7 +229,7 @@ services:
         "app.fetching.celery_app",
         "worker",
         "-Q",
-        "fetch",
+        "fetch,news",
         "--concurrency",
         "${FETCH_WORKER_CONCURRENCY:-2}",
         "--loglevel",

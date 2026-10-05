@@ -6,15 +6,24 @@ and the required environment). A session fixture refuses to run otherwise.
 
 import os
 import urllib.request
+from pathlib import Path
 
 import boto3
 import pytest
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from neo4j import GraphDatabase
 from sqlalchemy import create_engine, text
 
 from app.config import settings
 
 pytestmark = pytest.mark.integration
+
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+# Do not hard-code the head: a later migration must not break this test.
+ALEMBIC_HEAD = ScriptDirectory.from_config(
+    Config(str(BACKEND_ROOT / "alembic.ini"))
+).get_current_head()
 
 
 def test_alembic_version_is_at_head() -> None:
@@ -27,7 +36,7 @@ def test_alembic_version_is_at_head() -> None:
     finally:
         engine.dispose()
 
-    assert version == "0016"
+    assert version == ALEMBIC_HEAD
 
 
 def test_neo4j_migration_node_and_constraint() -> None:

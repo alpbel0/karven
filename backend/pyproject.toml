@@ -15,6 +15,7 @@ dependencies = [
     "httpx>=0.28.1",
     "websockets>=15",
     "celery[redis]",
+    "trafilatura>=2.3.0",
 ]
 
 [dependency-groups]

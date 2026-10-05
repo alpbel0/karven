@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title><![CDATA[Bloomberg HT - Tüm Haberler]]></title>
+    <link>https://www.bloomberght.com/haberler</link>
+    <description><![CDATA[Bloomberg HT son dakika ekonomi, piyasa ve finans haberleri.]]></description>
+    <language>tr</language>
+    <copyright>Copyright 2026 Bloomberg HT</copyright>
+    <category><![CDATA[Tüm Haberler]]></category>
+    <generator>Bloomberg HT</generator>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <lastBuildDate>Sat, 03 Oct 2026 20:16:37 GMT</lastBuildDate>
+    <pubDate>Sat, 03 Oct 2026 20:16:37 GMT</pubDate>
+    <ttl>5</ttl>
+    <atom:link href="https://www.bloomberght.com/rss/tum-haberler.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <title>Bloomberg HT</title>
+      <link>https://www.bloomberght.com</link>
+      <url>https://www.bloomberght.com/images/common/manifest/180x180.png</url>
+      <width>144</width>
+      <height>144</height>
+    </image>
+    <item>
+      <title><![CDATA[Erdoğan: Türkiye ekonomisi bu sorunun üstesinden gelecek kapasitededir]]></title>
+      <description><![CDATA[Cumhurbaşkanı Recep Tayyip Erdoğan, Şanlıurfa Şehir Hastanesi'nin açılışına katıldı.]]></description>
+      <link>https://www.bloomberght.com/erdogan-ddk-hazine-bakanligimizla-diger-kurumlarimizla-her-turlu-adimi-atiyoruz-3790281</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/erdogan-ddk-hazine-bakanligimizla-diger-kurumlarimizla-her-turlu-adimi-atiyoruz-3790281</guid>
+      <pubDate>Sat, 03 Oct 2026 18:51:00 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791053609/3790281/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791053609/3790281/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791053609/3790281/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Hangi yatırım aracı ne kazandırdı?]]></title>
+      <description><![CDATA[Bu hafta yatırım araçlarından borsa ve altın değer kaybederken, dolar değer kazandı.]]></description>
+      <link>https://www.bloomberght.com/hangi-yatirim-araci-ne-kazandirdi-3790280</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/hangi-yatirim-araci-ne-kazandirdi-3790280</guid>
+      <pubDate>Sat, 03 Oct 2026 13:55:09 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791035739/3790280/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791035739/3790280/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791035739/3790280/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Gazprom Başkanı Miller: Avrupa'da doğalgaz stokları tarihi düşük seviyelerde]]></title>
+      <description><![CDATA[Rus enerji şirketi Gazprom'un Başkanı Aleksey Miller, Avrupa Birliği (AB) ülkelerinin sonbahar-kış sezonu öncesinde doğalgaz stoklarının tarihi düşük seviyelere gerilediğini söyledi.]]></description>
+      <link>https://www.bloomberght.com/gazprom-baskani-miller-avrupa-da-dogalgaz-stoklari-tarihi-dusuk-seviyelerde-3790279</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/gazprom-baskani-miller-avrupa-da-dogalgaz-stoklari-tarihi-dusuk-seviyelerde-3790279</guid>
+      <pubDate>Sat, 03 Oct 2026 13:51:19 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791035513/3790279/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791035513/3790279/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791035513/3790279/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[SPK, kredili işlemlerde özkaynak oranı uygulamasını uzattı]]></title>
+      <description><![CDATA[Sermaye Piyasası Kurulu (SPK), Borsa İstanbul piyasalarındaki gelişmeleri dikkate alarak, kredili sermaye piyasası işlemlerinde özkaynak oranının esnetilerek uygulanmasına ilişkin tedbirin süresini 30 Ekim 2026 seans sonuna kadar uzattı.]]></description>
+      <link>https://www.bloomberght.com/spk-kredili-islemlerde-ozkaynak-orani-uygulamasini-uzatti-3790278</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/spk-kredili-islemlerde-ozkaynak-orani-uygulamasini-uzatti-3790278</guid>
+      <pubDate>Sat, 03 Oct 2026 13:40:16 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791034879/3790278/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791034879/3790278/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791034879/3790278/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[TİM/Gültepe: Var olan desteğin geri çekilmesi doğru bir hamle olmadı]]></title>
+      <description><![CDATA[TİM Başkanı Mustafa Gültepe, Eylül ayında ihracat rakamlarının beklentilerinin üstünde artış kaydettiğini belirtirken, değer bazındaki artışa karşı miktar bazında artışın sınırlı olduğunu söyledi.]]></description>
+      <link>https://www.bloomberght.com/timgultepe-var-olan-destegin-geri-cekilmesi-dogru-bir-hamle-olmadi-3790277</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/timgultepe-var-olan-destegin-geri-cekilmesi-dogru-bir-hamle-olmadi-3790277</guid>
+      <pubDate>Sat, 03 Oct 2026 11:33:35 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791027359/3790277/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791027359/3790277/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791027359/3790277/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Bakan Bolat: Yıl sonu ihracat hedefimizi 3 ay öncesinden aştık]]></title>
+      <description><![CDATA[Ticaret Bakanı Ömer Bolat, Eylül ayı ihracat verilerine ilişkin Bloomberg HT'ye yaptığı değerlendirmede, "2026 yılı ilk çeyrek hariç ihracatımızı çok iyi gidiyor. Yıllık ihracat hedefi olan 282 milyar doları, yılın bitmesine 3 ay kala 1,7 milyar dolar fazla ile aşmış olduk" dedi.]]></description>
+      <link>https://www.bloomberght.com/bakan-bolat-282-milyar-dolarlik-ihracat-hedefini-3-ay-kala-astik-3790276</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/bakan-bolat-282-milyar-dolarlik-ihracat-hedefini-3-ay-kala-astik-3790276</guid>
+      <pubDate>Sat, 03 Oct 2026 11:12:14 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791026263/3790276/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791026263/3790276/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791026263/3790276/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Şimşek: Yıllıklandırılmış ihracat 283,7 milyar dolara ulaştı]]></title>
+      <description><![CDATA[Hazine ve Maliye Bakanı Mehmet Şimşek, ihracatın eylülde yıllık bazda yüzde 15,4 arttığını, ilk üç ayda ihracat artışının yüzde 5,2 olduğunu ve yıllıklandırılmış ihracatın 283,7 milyar dolara ulaştığını bildirdi.]]></description>
+      <link>https://www.bloomberght.com/simsek-yilliklandirilmis-ihracat-283-7-milyar-dolara-ulasti-3790275</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/simsek-yilliklandirilmis-ihracat-283-7-milyar-dolara-ulasti-3790275</guid>
+      <pubDate>Sat, 03 Oct 2026 09:16:41 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791019101/3790275/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791019101/3790275/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791019101/3790275/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[TİM/Gültepe: Eylül'de ihracat yüzde 15,4 arttı]]></title>
+      <description><![CDATA[Türkiye İhracatçılar Meclisi (TİM) Başkanı Mustafa Gültepe, eylülde geçen yılın aynı dönemine göre 56 ilin ihracatını artırdığını belirterek, "En çok ihracat yaptığımız 3 ülke Almanya, ABD ve Birleşik Krallık oldu." dedi.]]></description>
+      <link>https://www.bloomberght.com/timgultepe-3790274</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/timgultepe-3790274</guid>
+      <pubDate>Sat, 03 Oct 2026 09:14:26 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791019809/3790274/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791019809/3790274/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791019809/3790274/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA["Lüks turizmde kişi başı harcama 950 euroyu aştı"]]></title>
+      <description><![CDATA[Four Seasons İstanbul Sultanahmet Genel Müdürü Serap Akkuş, 2026'da Türkiye'ye gelen turist sayısında geçen yıla göre yüzde 3 düşüş yaşanmasına rağmen kişi başı harcamanın arttığını belirterek, "Bu sene bunlar birbirlerini dengeledi" dedi. Akkuş, lüks segmentte günlük kişi başı harcamanın 950 euronun üzerine çıktığını söyledi.]]></description>
+      <link>https://www.bloomberght.com/luks-turizmde-kisi-basi-harcama-950-euroyu-asti-3790273</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/luks-turizmde-kisi-basi-harcama-950-euroyu-asti-3790273</guid>
+      <pubDate>Sat, 03 Oct 2026 09:07:55 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791018501/3790273/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791018501/3790273/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791018501/3790273/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Gelecek hafta küresel piyasalar yoğun veri gündemine odaklandı]]></title>
+      <description><![CDATA[Küresel piyasalarda tahvil piyasasındaki satış baskısının etkisiyle bu hafta satış ağırlıklı bir seyir öne çıkarken, gözler gelecek hafta yoğun veri gündemine çevrildi.]]></description>
+      <link>https://www.bloomberght.com/gelecek-hafta-kuresel-piyasalar-yogun-veri-gundemine-odaklandi-3790272</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/gelecek-hafta-kuresel-piyasalar-yogun-veri-gundemine-odaklandi-3790272</guid>
+      <pubDate>Sat, 03 Oct 2026 08:37:16 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791016665/3790272/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791016665/3790272/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791016665/3790272/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Eylül ayı dış ticaret verileri açıklandı]]></title>
+      <description><![CDATA[Ticaret Bakanı Ömer Bolat, geçen ay mal ihracatında en yüksek eylül ayı rekorunun kırıldığını belirterek, "Yıllık bazda yüzde 15,4'lük artışla 26 milyar dolar ihracatı başardık." dedi.]]></description>
+      <link>https://www.bloomberght.com/ticaret-bakani-bolat-eylul-ayi-dis-ticaret-verilerini-acikladi-3790271</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/ticaret-bakani-bolat-eylul-ayi-dis-ticaret-verilerini-acikladi-3790271</guid>
+      <pubDate>Sat, 03 Oct 2026 08:26:27 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791036001/3790271/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791036001/3790271/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791036001/3790271/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Fed yetkililerinin açıklamaları faiz artışı beklentisini düşürdü]]></title>
+      <description><![CDATA[Fed Başkanı Kevin Warsh, faizlerin gelecekteki seyrine ilişkin yatırımcılara net sinyaller vermekten kaçınacağını belirtirken, Başkan Yardımcısı Philip Jefferson ve New York Fed Başkanı John Williams da bu hafta benzer bir yaklaşım sergiledi.]]></description>
+      <link>https://www.bloomberght.com/fed-yetkililerinin-aciklamalari-faiz-artisi-beklentisini-dusurdu-3790270</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/fed-yetkililerinin-aciklamalari-faiz-artisi-beklentisini-dusurdu-3790270</guid>
+      <pubDate>Sat, 03 Oct 2026 08:05:43 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791015504/3790270/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791015504/3790270/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791015504/3790270/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[7 başlıkla geçen hafta]]></title>
+      <description><![CDATA[Küresel piyasalarda geçen hafta Fed yetkililerinden gelen mesajlar tahvil piyasasındaki gelişmeler öne çıkarken, yurt içi piyasalarda fon piyasasında yaşanan gelişmeler yakından takip edildi.]]></description>
+      <link>https://www.bloomberght.com/7-baslikla-gecen-hafta-3790269</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/7-baslikla-gecen-hafta-3790269</guid>
+      <pubDate>Sat, 03 Oct 2026 06:30:24 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791012791/3790269/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791012791/3790269/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791012791/3790269/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Fon krizinde tasfiye hızlanıyor, yatırımcıya ara ödeme geliyor]]></title>
+      <description><![CDATA[SPK, tasfiye sürecindeki fonlarda yatırımcıların önemli bir kısmının bekleme süresini kısaltacak ara bir mekanizma devreye aldı. Tera Portföy, Pusula Portföy, Atlas Portföy ve Hedef Portföy'ün kurucusu olduğu fonlarda mutabakatı tamamlanan yatırımcılara, nihai tasfiye ödemesinden mahsup edilmek üzere 1 milyon TL'ye kadar ara ödeme yapılacak. A1 Capital Portföy, Bulls Portföy ve Pardus Portföy fonlarında ise tasfiye, yatırımcı sayısı en yüksek para piyasası fonlarından başlayacak.]]></description>
+      <link>https://www.bloomberght.com/fon-krizinde-tasfiye-hizlaniyor-yatirimciya-ara-odeme-geliyor-3790268</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/fon-krizinde-tasfiye-hizlaniyor-yatirimciya-ara-odeme-geliyor-3790268</guid>
+      <pubDate>Sat, 03 Oct 2026 06:17:45 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791008467/3790268/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791008467/3790268/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791008467/3790268/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[ABD ve Ukrayna, enerji ve kritik mineraller için yeni yatırımları onayladı]]></title>
+      <description><![CDATA[ABD Hazine Bakanlığı, ABD-Ukrayna Yeniden Yapılandırma Yatırım Fonu'nun Ukrayna'nın enerji ve kritik mineraller sektörlerine yönelik yeni yatırımları onayladığını duyurdu.]]></description>
+      <link>https://www.bloomberght.com/abd-ve-ukrayna-enerji-ve-kritik-mineraller-icin-yeni-yatirimlari-onayladi-3790267</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/abd-ve-ukrayna-enerji-ve-kritik-mineraller-icin-yeni-yatirimlari-onayladi-3790267</guid>
+      <pubDate>Sat, 03 Oct 2026 05:33:58 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791008553/3790267/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791008553/3790267/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791008553/3790267/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Ekonomi ve siyaset gündemi- 3 Ekim 2026]]></title>
+      <description><![CDATA[Ekonomi ve siyaset gündeminde öne çıkanlar...]]></description>
+      <link>https://www.bloomberght.com/ekonomi-ve-siyaset-gundemi-3-ekim-2026-3790266</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/ekonomi-ve-siyaset-gundemi-3-ekim-2026-3790266</guid>
+      <pubDate>Sat, 03 Oct 2026 05:30:43 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1791005480/3790266/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1791005480/3790266/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1791005480/3790266/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Resmi Gazete'de bugün (03.10.2026)]]></title>
+      <description><![CDATA[Resmi Gazete'de yayımlanan yönetmelikler, tebliğler ve kararlar...]]></description>
+      <link>https://www.bloomberght.com/resmi-gazete-de-bugun-03102026-3790265</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/resmi-gazete-de-bugun-03102026-3790265</guid>
+      <pubDate>Fri, 02 Oct 2026 21:20:19 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1790976131/3790265/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1790976131/3790265/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1790976131/3790265/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[TCMB'den bir elektronik para kuruluşuna faaliyet izni]]></title>
+      <description><![CDATA[TCMB, NXT Elektronik Para ve Ödeme Hizmetleri A.Ş.'ye elektronik para kuruluşu olarak faaliyet izni verdi.]]></description>
+      <link>https://www.bloomberght.com/tcmb-den-bir-elektronik-para-kurulusuna-faaliyet-izni-3790264</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/tcmb-den-bir-elektronik-para-kurulusuna-faaliyet-izni-3790264</guid>
+      <pubDate>Fri, 02 Oct 2026 21:14:48 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/03/ver1790975805/3790264/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/03/ver1790975805/3790264/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/03/ver1790975805/3790264/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Trump: İran meselesi çözülünce petrol fiyatları düşecek]]></title>
+      <description><![CDATA[ABD Başkanı Donald Trump, İran'la yaşanan sorunun çözülmesinin ardından petrol fiyatlarının eski seviyelerine, hatta daha aşağıya gerileyebileceğini belirterek, dizel ihracatına yasak getirilmeyeceğini söyledi.]]></description>
+      <link>https://www.bloomberght.com/trump-iran-meselesi-cozulunce-petrol-fiyatlari-dusecek-3790263</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/trump-iran-meselesi-cozulunce-petrol-fiyatlari-dusecek-3790263</guid>
+      <pubDate>Fri, 02 Oct 2026 20:58:36 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790974741/3790263/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790974741/3790263/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790974741/3790263/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Vakıfbank GM Arslan'dan fon soruşturmalarıyla ilgili açıklama]]></title>
+      <description><![CDATA[Vakıfbank Genel Müdürü Osman Arslan, fon piyasasında yaşananlara ilişkin Bloomberg HT'ye değerlendirmelerde bulundu. Arslan "Bu geçici bir durumdur ve bankacılık sektörü üzerinde de herhangi bir risk oluşturmuş değildir. Vakıfbank'a bu geçen süre içerisinde fon kaynaklı bir nedenden dolayı likidite talebinde bulunan müşterimiz olmadı" dedi.]]></description>
+      <link>https://www.bloomberght.com/vakifbank-gm-arslan-dan-fon-sorusturmalariyla-ilgili-aciklama-3790262</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/vakifbank-gm-arslan-dan-fon-sorusturmalariyla-ilgili-aciklama-3790262</guid>
+      <pubDate>Fri, 02 Oct 2026 20:35:18 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790973365/3790262/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790973365/3790262/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790973365/3790262/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Rivian, R2 modeli sayesinde yeni bir satış rekoru kırdı]]></title>
+      <description><![CDATA[Rivian, daha uygun fiyatlı R2 SUV modeli sayesinde, üçüncü çeyrekte şimdiye kadarki en yüksek elektrikli araç satış rakamına ulaştı. Şirket, 19 bin 751 araç ürettiğini ve 19 bin 248 aracın teslimatını gerçekleştirdiğini duyurdu. Bu rakam, geçen yılın aynı dönemindeki teslimat sayısının yaklaşık yüzde 45 üzerinde.]]></description>
+      <link>https://www.bloomberght.com/rivian-r2-modeli-sayesinde-yeni-bir-satis-rekoru-kirdi-3790261</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/rivian-r2-modeli-sayesinde-yeni-bir-satis-rekoru-kirdi-3790261</guid>
+      <pubDate>Fri, 02 Oct 2026 20:18:19 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790972333/3790261/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790972333/3790261/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790972333/3790261/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[TBB Başkanı Çakar: Fon krizi bankacılık sektörünü negatif etkilemez]]></title>
+      <description><![CDATA[Türkiye Bankalar Birliği ve Ziraat Bankası Genel Müdürü Alpaslan Çakar, fon piyasasında yaşanan gelişmeler hakkında yaptığı açıklamada, "Fon konusu sınırlı bir alan, rakamsal büyüklüğü çok değil. Bankacılık sektörüne negatif yansımasını beklemiyoruz. Oradan çıkan para bankacılık sektörüne gidiyor" dedi.]]></description>
+      <link>https://www.bloomberght.com/tbb-baskani-cakar-fon-krizi-bankacilik-sektorunu-negatif-etkilemez-3790260</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/tbb-baskani-cakar-fon-krizi-bankacilik-sektorunu-negatif-etkilemez-3790260</guid>
+      <pubDate>Fri, 02 Oct 2026 20:11:17 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790971927/3790260/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790971927/3790260/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790971927/3790260/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Fon soruşturmasında 20 şüpheliye tutuklama talebi]]></title>
+      <description><![CDATA[Sermaye piyasasında gerçekleştirilen işlemlere yönelik soruşturmalar kapsamında gözaltına alınan 20 şüphelinin tamamı, savcılık ifadelerinin ardından tutuklama talebiyle sulh ceza hakimliğine sevk edildi.]]></description>
+      <link>https://www.bloomberght.com/fon-sorusturmasinda-20-supheliye-tutuklama-talebi-3790259</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/fon-sorusturmasinda-20-supheliye-tutuklama-talebi-3790259</guid>
+      <pubDate>Fri, 02 Oct 2026 19:53:49 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790970910/3790259/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790970910/3790259/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790970910/3790259/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA["Enerji sektörüne kullandırılan kredi 1 trilyon TL'yi aştı"]]></title>
+      <description><![CDATA[TBB Başkanı Alpaslan Çakar, Türk bankacılık sektörünün enerji sektörüne kullandırdığı kredi miktarının 1 trilyon TL'yi aştığını, proje finansmanında her 100 TL'lik enerji kredisinin 53 TL'sinin yenilenebilir enerjiye sağlandığını açıkladı.]]></description>
+      <link>https://www.bloomberght.com/enerji-sektorune-kullandirilan-kredi-1-trilyon-tl-yi-asti-3790257</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/enerji-sektorune-kullandirilan-kredi-1-trilyon-tl-yi-asti-3790257</guid>
+      <pubDate>Fri, 02 Oct 2026 18:51:19 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790967152/3790257/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790967152/3790257/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790967152/3790257/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[BDDK'dan cep telefonu kredileri ve kredi kartı asgari ödemelerine güncelleme]]></title>
+      <description><![CDATA[BDDK, kredi kartlarında asgari ödeme oranını limiti 100 bin lira ve altında olan kartlarda dönem borcunun yüzde 20'si, 100 bin liranın üzerindeki kartlarda ise yüzde 40'ı olarak belirledi.]]></description>
+      <link>https://www.bloomberght.com/bddk-dan-cep-telefonu-kredileri-ve-kredi-karti-asgari-odemelerine-guncelleme-3790241</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/bddk-dan-cep-telefonu-kredileri-ve-kredi-karti-asgari-odemelerine-guncelleme-3790241</guid>
+      <pubDate>Fri, 02 Oct 2026 17:50:56 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790963485/3790241/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790963485/3790241/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790963485/3790241/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Paramount-Warner Bros. birleşmesinde yeni şirketin adı belli oldu]]></title>
+      <description><![CDATA[Paramount Skydance CEO'su David Ellison, yaklaşık 110 milyar dolarlık Paramount-Warner Bros. Discovery birleşmesinin tamamlanmasının ardından yeni şirketin adının "Skydance" olacağını açıkladı.]]></description>
+      <link>https://www.bloomberght.com/paramount-warner-bros-birlesmesinde-yeni-sirketin-adi-belli-oldu-3790240</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/paramount-warner-bros-birlesmesinde-yeni-sirketin-adi-belli-oldu-3790240</guid>
+      <pubDate>Fri, 02 Oct 2026 16:50:35 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790959880/3790240/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790959880/3790240/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790959880/3790240/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Flydubai, Tel Aviv uçuşlarını askıya aldı]]></title>
+      <description><![CDATA[Flydubai, Dubai-Tel Aviv seferini gerçekleştiren uçağın kokpitinde yaşanan "güvenlik olayı"nın ardından, yetkililerin talebi üzerine Tel Aviv uçuşlarını ikinci bir duyuruya kadar geçici olarak askıya aldı.]]></description>
+      <link>https://www.bloomberght.com/flydubai-tel-aviv-ucuslarini-askiya-aldi-3790239</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/flydubai-tel-aviv-ucuslarini-askiya-aldi-3790239</guid>
+      <pubDate>Fri, 02 Oct 2026 15:56:33 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790956634/3790239/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790956634/3790239/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790956634/3790239/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[TMO, 5,5 milyon ton buğdayı satışa sunuyor]]></title>
+      <description><![CDATA[Toprak Mahsulleri Ofisi (TMO), güçlü stok seviyesine ulaşılmasının ardından 5 Ekim'den itibaren 5,5 milyon ton ekmeklik ve makarnalık buğdayı satışa sunacağını açıkladı.]]></description>
+      <link>https://www.bloomberght.com/tmo-5-5-milyon-ton-bugdayi-satisa-sunuyor-3790225</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/tmo-5-5-milyon-ton-bugdayi-satisa-sunuyor-3790225</guid>
+      <pubDate>Fri, 02 Oct 2026 15:30:24 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790955079/3790225/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790955079/3790225/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790955079/3790225/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Ali Koç: Elektrifikasyon rekabet gücünü artırır]]></title>
+      <description><![CDATA[Koç Holding Yönetim Kurulu Başkan Vekili Ali Y. Koç, COP31'in 2035'te enerji tüketiminin yüzde 35'inin elektrikten karşılanması hedefinin özellikle enerjide dışa bağımlı ülkelerin maliyetlerini azaltacağını belirterek, "Bu, daha rekabetçi olabileceğiz demek" dedi.]]></description>
+      <link>https://www.bloomberght.com/ali-koc-elektrifikasyon-rekabet-gucunu-artirir-3790222</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/ali-koc-elektrifikasyon-rekabet-gucunu-artirir-3790222</guid>
+      <pubDate>Fri, 02 Oct 2026 15:02:50 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790953538/3790222/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790953538/3790222/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790953538/3790222/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Hedef Holding sermaye artırımından vazgeçti]]></title>
+      <description><![CDATA[Hedef Holding 7 Eylül tarihinde almış olduğu yüzde 100 bedelli sermaye artırımı kararından vazgeçtiğini duyurdu.]]></description>
+      <link>https://www.bloomberght.com/hedef-holding-sermaye-artirimindan-vazgecti-3790221</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/hedef-holding-sermaye-artirimindan-vazgecti-3790221</guid>
+      <pubDate>Fri, 02 Oct 2026 14:48:41 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790952595/3790221/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790952595/3790221/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790952595/3790221/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[ABD'de fabrika siparişleri hafif arttı]]></title>
+      <description><![CDATA[ABD'de imalat sanayi yeni siparişlerinin tutarı Ağustos'ta aylık bazda yüzde 0,1 ile beklentilerin bir miktar altında arttı.]]></description>
+      <link>https://www.bloomberght.com/abd-de-fabrika-siparisleri-hafif-artti-3790220</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/abd-de-fabrika-siparisleri-hafif-artti-3790220</guid>
+      <pubDate>Fri, 02 Oct 2026 14:26:13 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790951283/3790220/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790951283/3790220/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790951283/3790220/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[G7 piyasaya 100 milyon varil dizel ve petrol sürecek]]></title>
+      <description><![CDATA[G7 ülkeleri, artan yakıt fiyatlarını dizginlemek amacıyla acil durum petrol ve dizel stoklarından 100 milyon varile varan miktarda serbest bırakacak.]]></description>
+      <link>https://www.bloomberght.com/g7-piyasaya-100-milyon-varil-dizel-ve-petrol-surecek-3790219</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/g7-piyasaya-100-milyon-varil-dizel-ve-petrol-surecek-3790219</guid>
+      <pubDate>Fri, 02 Oct 2026 14:12:09 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790950385/3790219/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790950385/3790219/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790950385/3790219/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Nvidia Mayıs ayından beri ilk rekorunu kırdı]]></title>
+      <description><![CDATA[Nvidia hisseleri dört ayı aşkın bir süredir ilk kez rekor seviyeye ulaştı. Yatırımcılar yapay zeka çip sektörünün liderine yeniden yönelmeye başladı.]]></description>
+      <link>https://www.bloomberght.com/nvidia-mayis-ayindan-beri-ilk-rekorunu-kirdi-3790216</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/nvidia-mayis-ayindan-beri-ilk-rekorunu-kirdi-3790216</guid>
+      <pubDate>Fri, 02 Oct 2026 14:01:37 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790949772/3790216/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790949772/3790216/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790949772/3790216/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Tesla'nın teslimatları 3. çeyrekte beklentileri aştı]]></title>
+      <description><![CDATA[ABD'li elektrikli araç üreticisi Tesla'nın bu yılın üçüncü çeyreğinde gerçekleştirdiği araç teslimatları, 486 bin 532 ile piyasa beklentilerinin üzerinde gerçekleşti.]]></description>
+      <link>https://www.bloomberght.com/tesla-nin-teslimatlari-3-ceyrekte-beklentileri-asti-3790213</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/tesla-nin-teslimatlari-3-ceyrekte-beklentileri-asti-3790213</guid>
+      <pubDate>Fri, 02 Oct 2026 13:58:30 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790949541/3790213/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790949541/3790213/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790949541/3790213/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Tüketici kredi büyümesinde sert yavaşlama]]></title>
+      <description><![CDATA[Tüketici kredilerinin yıllıklandırılmış büyüme hızı, 2026 başında yüzde 62,5 ile gördüğü zirvenin ardından gerileyerek 25 Eylül itibarıyla yüzde 14,3'e indi.]]></description>
+      <link>https://www.bloomberght.com/tuketici-kredi-buyumesinde-sert-yavaslama-3790184</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/tuketici-kredi-buyumesinde-sert-yavaslama-3790184</guid>
+      <pubDate>Fri, 02 Oct 2026 12:27:23 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790944961/3790184/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790944961/3790184/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790944961/3790184/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[TL mevduat faizi üç yılın en düşük seviyesinde]]></title>
+      <description><![CDATA[Türkiye'de 1-3 ay vadeli ortalama TL mevduat faizi, 25 Eylül haftasında yüzde 36,9'a gerileyerek 2023'ten bu yana ilk kez yüzde 37 seviyesinin altına indi.]]></description>
+      <link>https://www.bloomberght.com/tl-mevduat-faizi-uc-yilin-en-dusuk-seviyesinde-3790183</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/tl-mevduat-faizi-uc-yilin-en-dusuk-seviyesinde-3790183</guid>
+      <pubDate>Fri, 02 Oct 2026 12:15:40 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790943382/3790183/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790943382/3790183/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790943382/3790183/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[ABD'de tarım dışı istihdamda aşağı yönlü sürpriz]]></title>
+      <description><![CDATA[ABD'de Eylül ayında tarım dışı istihdam beklentilerin çok altında arttı.]]></description>
+      <link>https://www.bloomberght.com/abd-de-tarim-disi-istihdamda-3790181</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/abd-de-tarim-disi-istihdamda-3790181</guid>
+      <pubDate>Fri, 02 Oct 2026 12:06:09 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790942896/3790181/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790942896/3790181/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790942896/3790181/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Alman kamu bütçe açığında faiz kaynaklı sert artış]]></title>
+      <description><![CDATA[Almanya'da federal devlet, eyaletler, belediyeler ve sosyal güvenlik fonlarını kapsayan kamu bütçesi açığı, bu yılın ilk yarısında artan harcamalar ve yükselen faizlerin etkisiyle 98,8 milyar euroya çıktı.]]></description>
+      <link>https://www.bloomberght.com/alman-kamu-butce-aciginda-faiz-kaynakli-sert-artis-3790180</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/alman-kamu-butce-aciginda-faiz-kaynakli-sert-artis-3790180</guid>
+      <pubDate>Fri, 02 Oct 2026 11:41:49 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790941349/3790180/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790941349/3790180/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790941349/3790180/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Sanko'dan Suriye'ye 200 milyon dolarlık çimento yatırımı]]></title>
+      <description><![CDATA[Sanko Holding bünyesinde faaliyet gösteren yapı malzemeleri sektörü şirketi Çimko, Suriye'nin Halep kentinde yaklaşık 200 milyon dolarlık çimento fabrikası yatırımı yapıyor.]]></description>
+      <link>https://www.bloomberght.com/sanko-dan-suriye-ye-200-milyon-dolarlik-cimento-yatirimi-3790179</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/sanko-dan-suriye-ye-200-milyon-dolarlik-cimento-yatirimi-3790179</guid>
+      <pubDate>Fri, 02 Oct 2026 11:24:21 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790940293/3790179/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790940293/3790179/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790940293/3790179/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Birol: İran'ın elinde bir Hürmüz varsa Çin'in elinde 5 Hürmüz var]]></title>
+      <description><![CDATA[Uluslararası Enerji Ajansı (IEA) Başkanı Fatih Birol, ABD/İsrail-İran Savaşı öncesine göre yaklaşık iki katına çıkan dizel fiyatlarına dikkati çekerek, "Dizel fiyatları, öyle ki çok kısa zamanda enflasyon rakamlarını bütün dünyada yukarıya doğru baskılayacak" dedi.]]></description>
+      <link>https://www.bloomberght.com/birol-iran-in-elinde-bir-hurmuz-varsa-cin-in-elinde-5-hurmuz-var-3790178</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/birol-iran-in-elinde-bir-hurmuz-varsa-cin-in-elinde-5-hurmuz-var-3790178</guid>
+      <pubDate>Fri, 02 Oct 2026 11:18:58 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790940032/3790178/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790940032/3790178/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790940032/3790178/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[THY Genel Müdürü Olmuştur: Boeing ile motor müzakereleri sürüyor]]></title>
+      <description><![CDATA[Türk Hava Yolları (THY) Genel Müdürü Ahmet Olmuştur, Orta Doğu'da yaşanan savaşla birlikte Uzakdoğu'dan Türkiye'ye yoğun bir talep olduğunu belirterek, "Krizin başladığı günde kapasitelerimizi çok iyi yöneterek yoğun talep gelebilecek yerlerde uçaklarımızı ve kapasitemizi kaydırdık" dedi.]]></description>
+      <link>https://www.bloomberght.com/thy-genel-muduru-olmustur-boeing-ile-motor-muzakereleri-suruyor-3790177</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/thy-genel-muduru-olmustur-boeing-ile-motor-muzakereleri-suruyor-3790177</guid>
+      <pubDate>Fri, 02 Oct 2026 11:16:34 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939847/3790177/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939847/3790177/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939847/3790177/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA["Otomotiv pazarının 1,2 milyon adedi geçmesi zor görünüyor"]]></title>
+      <description><![CDATA[Otomotiv Distribütörleri ve Mobilite Derneği (ODMD) Yönetim Kurulu Başkanı Hakan Tiftik, otomotiv pazarında eylül ayında yaşanan daralmanın beklentilerinden daha sert olduğunu belirterek, yıl sonunda toplam pazarın 1,2 milyon adedi aşmasının zor göründüğünü söyledi.]]></description>
+      <link>https://www.bloomberght.com/otomotiv-pazarinin-1-2-milyon-adedi-gecmesi-zor-gorunuyor-3790176</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/otomotiv-pazarinin-1-2-milyon-adedi-gecmesi-zor-gorunuyor-3790176</guid>
+      <pubDate>Fri, 02 Oct 2026 11:08:44 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939566/3790176/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939566/3790176/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939566/3790176/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[ING Global Türkiye'de enflasyonun gerilemesini bekliyor]]></title>
+      <description><![CDATA[ING Global, Türkiye'de yıllık enflasyonun Ağustos ayındaki yüzde 31,5 seviyesinden Eylül'de yüzde 30'a gerilemesini bekliyor.]]></description>
+      <link>https://www.bloomberght.com/ing-global-turkiye-de-enflasyonun-gerilemesini-bekliyor-3790175</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/ing-global-turkiye-de-enflasyonun-gerilemesini-bekliyor-3790175</guid>
+      <pubDate>Fri, 02 Oct 2026 11:02:52 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939025/3790175/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939025/3790175/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939025/3790175/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Enda Enerji'den Urla RES kapasitesini artıracak yatırım]]></title>
+      <description><![CDATA[Enda Enerji Holding, İzmir Urla'daki Rüzgâr Enerjisi Santrali'nin (RES) kapasitesini artırmak üzere 10 milyon dolarlık yatırım başlattı.]]></description>
+      <link>https://www.bloomberght.com/enda-enerji-den-urla-res-kapasitesini-artiracak-yatirim-3790174</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/enda-enerji-den-urla-res-kapasitesini-artiracak-yatirim-3790174</guid>
+      <pubDate>Fri, 02 Oct 2026 11:02:51 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939049/3790174/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939049/3790174/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790939049/3790174/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Para piyasası fonlarından çıkan para nereye gitti? Goldman'ın analizi]]></title>
+      <description><![CDATA[Goldman Sachs'ın analizine göre Türkiye'de para piyasası fonlarından çıkan paranın yarısı döviz ve altın mevduatına gitti]]></description>
+      <link>https://www.bloomberght.com/para-piyasasi-fonlarindan-cikan-para-nereye-gitti-goldman-in-analizi-3790172</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/para-piyasasi-fonlarindan-cikan-para-nereye-gitti-goldman-in-analizi-3790172</guid>
+      <pubDate>Fri, 02 Oct 2026 10:48:35 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790938140/3790172/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790938140/3790172/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790938140/3790172/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Küresel gıda fiyatları dört yılın zirvesinde]]></title>
+      <description><![CDATA[Birleşmiş Milletler Gıda ve Tarım Örgütü (FAO), lojistik aksamalar ve olumsuz hava koşullarının arz endişelerini artırmasıyla küresel gıda fiyatlarının Eylül'de yaklaşık son 4 yılın zirvesine çıktığını bildirdi.]]></description>
+      <link>https://www.bloomberght.com/kuresel-gida-fiyatlari-dort-yilin-zirvesinde-3790171</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/kuresel-gida-fiyatlari-dort-yilin-zirvesinde-3790171</guid>
+      <pubDate>Fri, 02 Oct 2026 10:41:06 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790937699/3790171/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790937699/3790171/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790937699/3790171/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Hayat Kimya'dan Kocaeli'ye 80 milyon dolarlık yatırım]]></title>
+      <description><![CDATA[Hayat Kimya, Kocaeli'deki üretim kampüsünde deterjan üretim altyapısını, üretim kapasitesini ve ürün çeşitliliğini artırmaya, yanı sıra depo altyapısını geliştirmeye yönelik yaklaşık 80 milyon dolarlık yeni bir yatırım gerçekleştiriyor.]]></description>
+      <link>https://www.bloomberght.com/hayat-kimyadan-kocaeliye-80-milyon-dolarlik-yatirim-3790170</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/hayat-kimyadan-kocaeliye-80-milyon-dolarlik-yatirim-3790170</guid>
+      <pubDate>Fri, 02 Oct 2026 10:33:51 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790937389/3790170/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790937389/3790170/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790937389/3790170/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Bitcoin yeniden 86 bin doların üzerinde]]></title>
+      <description><![CDATA[Kripto para piyasasında hareketlilik sürerken, bitcoinin fiyatı eylül ayındaki güçlü toparlanma ve ekim ayına yönelik tarihsel yükseliş beklentilerinin etkisiyle yeniden 86 bin doların üzerine çıktı.]]></description>
+      <link>https://www.bloomberght.com/bitcoin-yeniden-86-bin-dolarin-uzerinde-3790167</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/bitcoin-yeniden-86-bin-dolarin-uzerinde-3790167</guid>
+      <pubDate>Fri, 02 Oct 2026 10:28:10 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790936934/3790167/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790936934/3790167/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790936934/3790167/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Fon Kurulu'nun ikinci toplantısının sonuçları açıklandı]]></title>
+      <description><![CDATA[Cumhurbaşkanı Yardımcısı Cevdet Yılmaz başkanlığında toplanan Fon Koordinasyon Kurulu'nun ikinci toplantısı ile ilgili İletişim Başkanlığı açıklama yaptı.]]></description>
+      <link>https://www.bloomberght.com/fon-kurulu-nun-ikinci-toplantisinin-sonuclari-aciklandi-3790163</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/fon-kurulu-nun-ikinci-toplantisinin-sonuclari-aciklandi-3790163</guid>
+      <pubDate>Fri, 02 Oct 2026 10:05:26 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790936024/3790163/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790936024/3790163/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790936024/3790163/jpg/1280x720" type="image/jpeg"/>
+    </item>
+    <item>
+      <title><![CDATA[Euro Bölgesi enflasyonu son üç yılın zirvesinde]]></title>
+      <description><![CDATA[Euro Bölgesi enflasyonu beklentilerin üzerinde hızlanarak son üç yılın en yüksek seviyesine çıktı.]]></description>
+      <link>https://www.bloomberght.com/euro-bolgesi-enflasyonu-son-uc-yilin-zirvesinde-3790154</link>
+      <guid isPermaLink="true">https://www.bloomberght.com/euro-bolgesi-enflasyonu-son-uc-yilin-zirvesinde-3790154</guid>
+      <pubDate>Fri, 02 Oct 2026 09:20:33 GMT</pubDate>
+      <category><![CDATA[Haberler]]></category>
+      <media:content url="https://geoim.bloomberght.com/l/2026/10/02/ver1790932901/3790154/jpg/1280x720" type="image/jpeg" medium="image"/>
+      <media:thumbnail url="https://geoim.bloomberght.com/l/2026/10/02/ver1790932901/3790154/jpg/320x180"/>
+      <enclosure url="https://geoim.bloomberght.com/l/2026/10/02/ver1790932901/3790154/jpg/1280x720" type="image/jpeg"/>
+    </item>
+  </channel>
+</rss>
