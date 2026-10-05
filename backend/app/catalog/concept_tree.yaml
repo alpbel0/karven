@@ -5,8 +5,8 @@
 # - Atanabilir etiket = yaprak (alt dal). Ana dallar gezinme grubudur; veri setine yaprak
 #   atanınca ana dal otomatik devralınır. Jev önce ana dalları, sonra yalnız geçen ana
 #   dalların yapraklarını puanlar.
-# - Veri seti 1-3 yaprak etiketi alır. Kapsam üçü aşarsa etiket sessizce kesilmez: veri
-#   seti inceleme kuyruğuna gider. Çok konulu derlemeler (ör. Turcat IMF SDDS) istisnadır:
+# - Veri seti 1-3 yaprak etiketi alır. 0,60 ve üstü yaprak üçü aşarsa en yüksek puanlı
+#   3'ü alınır, kesilenler rejected kaydedilir (kullanıcı kararı 2026-10-04). Çok konulu derlemeler (ör. Turcat IMF SDDS) istisnadır:
 #   yalnız ana dal düzeyinde, sınırsız ana dal etiketi alırlar ve cok_konulu_derleme
 #   bayrağı taşırlar. Arama kodu geçen yaprakları VE geçen ana dalı doğrudan taşıyan
 #   (yalnız ana dal etiketli) veri setlerini getirir; sonra ölçü koduyla doğrulanır.
@@ -166,7 +166,7 @@ topics:
 
   - id: ulusal_hesaplar_buyume
     ad: Ulusal hesaplar ve büyüme
-    tanim: GSYH ve bileşenleri, kurumsal sektör hesapları, verimlilik, öncü göstergeler.
+    tanim: "GSYH ve bileşenleri, kurumsal sektör hesapları (genel yönetim, merkez bankası, hanehalkı gibi sektörlerin finansal varlık/yükümlülük stok ve akımları: S.1, S.13, S.121 ...), verimlilik, öncü göstergeler."
     degildir:
       - {id: uretim_endeksleri, ne: Sanayi/hizmet üretim endeksleri üretim dalındadır.}
       - {id: ekonomik_guven, ne: Güven endeksleri anket dalındadır.}

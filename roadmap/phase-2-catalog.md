@@ -27,8 +27,9 @@ adları ve meta bilgisi görür. Arama kalitesi küçük bir test setiyle ölç�
       vb. kırılım/meta) ağaçta yer aldığını doğrula. Opus 5.5 + Codex gpt-6-astra 2 tur inceledi.
 - [x] Onaylanan ağacı makinece okunabilir bir dosya olarak da sakla
       (`concept_tree.yaml` + bütünlük testi).
-- [ ] Gerçek TÜİK/TCMB/HMB veri setleri v2.1 etiketlerine karşı deneme etiketlemesinde
-      (Task 2.3 kalibrasyonu) çakışma/boşluk için tekrar gözden geçirilir.
+- [x] Gerçek TÜİK/TCMB/HMB veri setleri v2.1 etiketlerine karşı deneme etiketlemesinde
+      (Task 2.3 kalibrasyonu) çakışma/boşluk için tekrar gözden geçirildi: tek boşluk
+      `finansal_hesaplar` ailesiydi (dal tanımı düzeltildi); insani gelişme endeksi için yaprak yok.
 
 **Kabul kriteri:** Kullanıcı onaylı etiket ağacı dosyada; her etiketin kısa bir
 tanımı var.
@@ -67,7 +68,7 @@ ve birim bilgisiyle sorgulanabiliyor; meta bayrakları dolu ve testle denetleniy
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (canlıda doğrulandı, 2026-10-04)
 **Bağımlılıklar:** Task 2.2, Task 0.5
 
 **Referanslar:** `docs/DECISIONS.md` §7, `backend/app/catalog/concept_tree.yaml`
@@ -76,20 +77,22 @@ ve birim bilgisiyle sorgulanabiliyor; meta bayrakları dolu ve testle denetleniy
 
 ### Checklist
 
-- [ ] Tek etiketleyici **Jev**; önce TypeSafe kredisi, bitince OpenRouter'daki Jev.
-- [ ] Etiketleme yalnızca meta bilgiyle (ad, kurum kategorisi/tablosu, birim,
+- [x] Tek etiketleyici **Jev**; önce TypeSafe kredisi, bitince OpenRouter'daki Jev.
+- [x] Etiketleme yalnızca meta bilgiyle (ad, kurum kategorisi/tablosu, birim,
       frekans, kırılım); değer okunmaz.
-- [ ] Güven eşiğinin üstü otomatik kabul; altındakiler Claude'un inceleme
+- [x] Güven eşiğinin üstü otomatik kabul; altındakiler Claude'un inceleme
       kuyruğuna düşer. Eşik **kalibrasyonla** belirlenir: ilk ~200 seri
       etiketlenip Claude tarafından kontrol edilir, hataların yığıldığı güven
       seviyesine göre eşik seçilip `docs/DECISIONS.md`'ye yazılır.
-- [ ] Etiketleme **veri seti düzeyinde**, tam `category_path` ile yapılır; 1-3 yaprak,
-      aşan kapsam inceleme kuyruğuna gider (çok konulu derleme istisnası: yalnız ana dal).
-- [ ] **Tür** Jev'den gelmez: ölçü kodu → ölçüm türü eşlemesi Task 2.2'de bir kez
+- [x] Etiketleme **veri seti düzeyinde**, tam `category_path` ile yapılır; iki aşama (ana dal
+      ≥0,40 geçer, yaprak ≥0,60 aday); 1-3 yaprak, 3'ten fazlaysa en yüksek 3'ü alınır, kesilenler
+      `rejected` kaydedilir (çok konulu derleme istisnası: yalnız ana dal). Hiç yaprak ≥0,60
+      değilse veri seti inceleme kuyruğuna gider (`etiketsiz` yok). Kararlar: DECISIONS §7.
+- [x] **Tür** Jev'den gelmez: ölçü kodu → ölçüm türü eşlemesi Task 2.2'de bir kez
       yapılır (fiyat / oran / endeks, akım, stok, yüzde değişim ...; birim doğrulanır).
       Frekans eşleştirme ve enflasyondan arındırma bunu kullanır (`docs/DECISIONS.md` §8).
       Jev etiketi kategori ipucu tablosuyla uyuşmazsa veri seti inceleme kuyruğuna gider.
-- [ ] Yeni eklenen veri setleri de etiketlenir (veri seti başına bir kez).
+- [x] Yeni eklenen veri setleri de etiketlenir (veri seti başına bir kez).
 
 **Kabul kriteri:** Katalogdaki bütün veri setleri etiketli ya da inceleme kuyruğunda;
 rastgele 50 veri setinde etiketler elle kontrol edilmiş.

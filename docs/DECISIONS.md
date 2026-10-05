@@ -238,7 +238,9 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
   inceledi. Kurallar:
   - Atanabilir etiket yapraktır; ana dal gezinme grubudur ve otomatik devralınır.
     Jev önce ana dalları, sonra yalnız geçen ana dalların yapraklarını puanlar.
-  - Veri seti 1-3 yaprak alır; aşan kapsam sessizce kesilmez, inceleme kuyruğuna gider.
+  - Veri seti 1-3 yaprak alır. 0,60 ve üstü yaprak sayısı 3'ü aşarsa en yüksek puanlı 3'ü
+    otomatik alınır, kesilenler `rejected` durumuyla puanıyla kaydedilir (kullanıcı kararı
+    2026-10-04; önceki "inceleme kuyruğuna gider" kuralının yerine geçti).
     İstisna: çok konulu derlemeler (Turcat, TCMB Piyasa Katılımcıları Anketi) yalnız
     ana dal etiketi alır; arama geçen yaprakları ve geçen ana dalı taşıyan bu
     derlemeleri getirir.
@@ -284,6 +286,44 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
   - Kod: `backend/app/catalog/enrich*.py`; CLI `python -m app.catalog.enrich
     rules|jev|report|review-list|set-*`. Katalog yenilemesi açıklamayı ve
     zenginleştirme alanlarını silmez.
+- **Etiketleme kararları (Task 2.3, 2026-10-04; kullanıcı kararları):**
+  - Önce ~200 veri setlik kalibrasyon örneği etiketlenir ve Claude kontrol eder, eşik buna göre
+    seçilir, sonra kalan veri setleri etiketlenir. Örnek katmanlı: HMB'nin hepsi (24) + kalan
+    ~176 TÜİK ve TCMB arasında orantılı; çok konulu derlemeler ve yanıltıcı kategori adlı
+    zor vakalar (ör. TCMB "MAL GRUPLARI") mutlaka dahil.
+  - İki aşama, hepsi Jev `noul` soruları (dal/yaprak adı `instructions` içinde; puan = evet
+    olasılığı, her etiket bağımsız puanlanır): 24 ana dal tek çağrıda, **0,40 ve üstü dallar
+    geçer** (sayı sınırı yok); geçen dalların yaprakları ikinci çağrıda puanlanır. `choice`
+    kullanılmaz (olasılıklar toplamı 1, çok konulu veri setine uymaz). Canlı doğrulandı.
+  - Yaprak: puan **0,60 ve üstü** aday; 3'ten fazlaysa en yüksek 3'ü `accepted`, kesilenler
+    `rejected` (puanlı). Çok konulu derlemeler (Turcat, TCMB PKA) yalnız ana dal etiketi alır.
+  - İnceleme kuyruğu (`status=review`, Claude inceler): (1) hiçbir yaprak 0,60'a ulaşmadı
+    (en yüksek puan 0,40'ın altındaysa nota "boşluk" yazılır: ağaçta eksik yer olabilir);
+    (2) Jev etiketi kategori ipucu tablosuyla uyuşmuyor; (3) ana dal puanı yüksek ama
+    yapraklarından hiçbiri geçmedi. `etiketsiz` durumu yoktur.
+  - Yeni eklenen veri setleri katalog yenilemesinden sonra elle çalıştırılan komutla etiketlenir
+    (Task 2.2 ile aynı).
+- **Etiketleme sonucu (Task 2.3, canlı, 2026-10-04):**
+  - 883 veri setinin hepsi etiketli: 882 kabul, 1 inceleme (`DF_BESERI_KALKINMA_ENDEKS`,
+    insani gelişme endeksi; ağaçta uygun yaprak yok). Jev geçişi 883/883 hatasız, ~5 veri seti/sn.
+  - **Kalibrasyon (205 veri seti, Claude kontrolü):** kabul edilen 0,60-0,80 yaprak etiketlerinde
+    hata ~%3, 0,40-0,60 bandında ~%30. **0,60 yaprak eşiği korundu**, dal eşiği 0,40.
+  - Jev'in tek yaprak içeren dallarda doğru yaprağa 0,40-0,59 verdiği çok görüldü (bilişim,
+    eğitim, konut satışları, bütçe, ulaşım...); bu veri setleri 0,40-0,60 kuralıyla kuyruğa
+    düşer ve Claude inceler (ilk geçişte 119 veri seti, %13,5). Elle atanan: 118 (kaynak `manual`).
+  - **Kategori ipucu kontrolü gerçek hataları yakaladı:** TÜİK Finansal Aracı Kurum yapısal
+    iş istatistikleri (24 veri seti, "bankalarda istihdam" gibi) Jev'de `istihdam` (0,70) çıktı;
+    doğrusu `yapisal_is_istatistikleri`.
+  - **Ağaç boşluğu:** "Finansal Hesaplar" ailesi (HMB 16 + TCMB 8) hiçbir yaprağa ulaşmıyordu
+    çünkü `ulusal_hesaplar_buyume` dalının `tanim` metni sektör finansal hesaplarını anmıyordu;
+    metne "genel yönetim, merkez bankası, hanehalkı gibi sektörlerin finansal varlık/yükümlülük
+    stok ve akımları: S.1, S.13, S.121" eklendi (yapı/id değişmedi, kullanıcı onayı), 24 veri seti
+    yeniden etiketlendi (0,79-0,97). Jev bu aileyi kategori düzeyinde de yanlış anladığı için
+    `category_hints.yaml` içinde 8 kategori elle düzeltildi (`manual: true`, ipucu bağımsız denetim).
+  - Rastgele 50 veri seti (Jev kabulleri, seed 7) elle kontrol edildi: 50/50 birincil etiket doğru,
+    1 veri setinde yanlış ikincil etiket (`Finansal Yapı Oranları`, `banka_bilancolari`).
+  - İpucu tablosu Jev ile üretildiği için denetim kısmen bağımsızdır (aynı model, ama veri seti
+    adını görmeyen kategori sorusu); kullanıcı seçimi (B), elle düzeltmeye açık dosya.
 - **Etiketleme:** tek etiketleyici **Jev**. Güven eşiğinin üstü otomatik kabul;
   altındakileri Claude tek tek inceler. Eşik **kalibrasyonla** belirlenir: ilk
   ~200 veri seti Jev ile etiketlenip Claude tarafından kontrol edilir, hataların

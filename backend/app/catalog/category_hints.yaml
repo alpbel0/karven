@@ -1,0 +1,687 @@
+hmb|ARŞİV > BÜYÜME, İSTİHDAM KAMU MALİYESİ (ARŞİV) > KAMU MALİ İSTATİSTİKLERİ (ARŞİV):
+  branches:
+    kamu_maliyesi: 0.9
+    isgucu_istihdam_ucretler: 0.54
+  manual: false
+hmb|ARŞİV > ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER (ARŞİV) > TÜRKİYE BRÜT DIŞ BORÇ STOKU (HMB) (ARŞİV):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.93
+  manual: false
+? hmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FİNANSAL HESAPLAR (TCMB) > FİNANSAL VARLIK
+  VE YÜKÜMLÜLÜKLER, KONSOLİDE OLMAYAN, AKIM
+: branches:
+    ulusal_hesaplar_buyume: 1.0
+  manual: true
+? hmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FİNANSAL HESAPLAR (TCMB) > FİNANSAL VARLIK
+  VE YÜKÜMLÜLÜKLER, KONSOLİDE OLMAYAN, STOK
+: branches:
+    ulusal_hesaplar_buyume: 1.0
+  manual: true
+hmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FİNANSAL HESAPLAR (TCMB) > FİNANSAL VARLIK VE YÜKÜMLÜLÜKLER, KONSOLİDE, AKIM:
+  branches:
+    ulusal_hesaplar_buyume: 1.0
+  manual: true
+hmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FİNANSAL HESAPLAR (TCMB) > FİNANSAL VARLIK VE YÜKÜMLÜLÜKLER, KONSOLİDE, STOK:
+  branches:
+    ulusal_hesaplar_buyume: 1.0
+  manual: true
+tcmb|ARŞİV > BEKLENTİ VE EĞİLİM ANKETLERİ (ARŞİV) > PİYASA KATILIMCILARI ANKETİ (ARŞİV):
+  branches:
+    guven_beklenti_anketleri: 0.75
+    faiz_para_politikasi: 0.51
+  manual: false
+tcmb|ARŞİV > BEKLENTİ VE EĞİLİM ANKETLERİ (ARŞİV) > İKTİSADİ YÖNELİM ANKETİ (ARŞİV):
+  branches:
+    guven_beklenti_anketleri: 0.87
+  manual: false
+tcmb|ARŞİV > BÜYÜME, İSTİHDAM KAMU MALİYESİ (ARŞİV) > BİLEŞİK ÖNCÜ GÖSTERGELER ENDEKSİ (ARŞİV):
+  branches:
+    ulusal_hesaplar_buyume: 0.89
+    kamu_maliyesi: 0.47
+  manual: false
+tcmb|ARŞİV > DÖVİZ KURLARI VE KIYMETLİ MADENLER (ARŞİV) > TCMB DÖVİZ KURLARI (ARŞİV):
+  branches:
+    doviz_kurlari: 0.95
+  manual: false
+tcmb|ARŞİV > FİYAT ENDEKSLERİ (ARŞİV):
+  branches:
+    fiyatlar_enflasyon: 0.94
+  manual: false
+tcmb|ARŞİV > MERKEZ BANKASI BİLANÇO VE PİYASA VERİLERİ (ARŞİV) > MERKEZ BANKASI BİLANÇO VERİLERİ (ARŞİV):
+  branches:
+    para_kredi_bankacilik: 0.94
+  manual: false
+tcmb|ARŞİV > MERKEZ BANKASI BİLANÇO VE PİYASA VERİLERİ (ARŞİV) > PİYASA VERİLERİ (ARŞİV):
+  branches:
+    para_kredi_bankacilik: 0.86
+    finansal_piyasalar: 0.71
+    faiz_para_politikasi: 0.67
+    doviz_kurlari: 0.62
+  manual: false
+tcmb|ARŞİV > PARASAL VE FİNANSAL İSTATİSTİKLER (ARŞİV) > MENKUL KIYMET İSTATİSTİKLERİ (ARŞİV):
+  branches:
+    finansal_piyasalar: 0.88
+  manual: false
+tcmb|ARŞİV > PARASAL VE FİNANSAL İSTATİSTİKLER (ARŞİV) > PARA VE BANKA İSTATİSTİKLERİ (AYLIK) (ARŞİV):
+  branches:
+    para_kredi_bankacilik: 0.95
+    faiz_para_politikasi: 0.51
+  manual: false
+tcmb|ARŞİV > ÖDEME SİSTEMLERİ İSTATİSTİKLERİ (ARŞİV):
+  branches:
+    para_kredi_bankacilik: 0.94
+  manual: false
+tcmb|ARŞİV > ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER (ARŞİV) > DOĞRUDAN YATIRIMLAR (ARŞİV):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.76
+  manual: false
+tcmb|ARŞİV > ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER (ARŞİV) > KISA VADELİ DIŞ BORÇ (ARŞİV):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.95
+  manual: false
+tcmb|ARŞİV > ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER (ARŞİV) > ÖDEMELER DENGESİ İSTATİSTİKLERİ (ARŞİV):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.87
+  manual: false
+? tcmb|ARŞİV > ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER (ARŞİV) > ÖZEL SEKTÖRÜN YURT
+  DIŞINDAN SAĞLADIĞI KREDİ BORCU İSTATİSTİKLERİ (TCMB) (ARŞİV)
+: branches:
+    odemeler_dengesi_dis_finansman: 0.94
+  manual: false
+tcmb|BEKLENTİ VE EĞİLİM ANKETLERİ > BANKA KREDİLERİ EĞİLİM ANKETİ (TCMB):
+  branches:
+    guven_beklenti_anketleri: 0.92
+    para_kredi_bankacilik: 0.84
+  manual: false
+tcmb|BEKLENTİ VE EĞİLİM ANKETLERİ > FİNANSAL HİZMETLER ANKETİ (TCMB):
+  branches:
+    guven_beklenti_anketleri: 0.91
+  manual: false
+tcmb|BEKLENTİ VE EĞİLİM ANKETLERİ > PİYASA KATILIMCILARI ANKETİ (TCMB):
+  branches:
+    guven_beklenti_anketleri: 0.88
+    faiz_para_politikasi: 0.54
+  manual: false
+tcmb|BEKLENTİ VE EĞİLİM ANKETLERİ > İKTİSADİ YÖNELİM ANKETİ VE REEL KESİM GÜVEN ENDEKSİ (TCMB) > MAL GRUPLARI:
+  branches:
+    guven_beklenti_anketleri: 0.94
+    sanayi_uretim_is_dunyasi: 0.58
+  manual: false
+? tcmb|BEKLENTİ VE EĞİLİM ANKETLERİ > İKTİSADİ YÖNELİM ANKETİ VE REEL KESİM GÜVEN
+  ENDEKSİ (TCMB) > REEL KESİM GÜVEN ENDEKSİ (TCMB)
+: branches:
+    guven_beklenti_anketleri: 0.95
+    sanayi_uretim_is_dunyasi: 0.56
+    ulusal_hesaplar_buyume: 0.4
+  manual: false
+tcmb|BEKLENTİ VE EĞİLİM ANKETLERİ > İKTİSADİ YÖNELİM ANKETİ VE REEL KESİM GÜVEN ENDEKSİ (TCMB) > ÇALIŞAN SAYISI:
+  branches:
+    guven_beklenti_anketleri: 0.95
+    isgucu_istihdam_ucretler: 0.68
+    sanayi_uretim_is_dunyasi: 0.58
+  manual: false
+? tcmb|BEKLENTİ VE EĞİLİM ANKETLERİ > İKTİSADİ YÖNELİM ANKETİ VE REEL KESİM GÜVEN
+  ENDEKSİ (TCMB) > İKTİSADİ YÖNELİM ANKETİ (TCMB)
+: branches:
+    guven_beklenti_anketleri: 0.93
+    sanayi_uretim_is_dunyasi: 0.4
+  manual: false
+tcmb|BÜYÜME, İSTİHDAM, KAMU MALİYESİ > BİLEŞİK ÖNCÜ GÖSTERGELER ENDEKSİ (TCMB):
+  branches:
+    ulusal_hesaplar_buyume: 0.87
+    kamu_maliyesi: 0.45
+  manual: false
+tcmb|DÖVİZ KURLARI VE KIYMETLİ MADENLER > REEL EFEKTİF DÖVİZ KURLARI (TCMB):
+  branches:
+    doviz_kurlari: 0.96
+  manual: false
+tcmb|DÖVİZ KURLARI VE KIYMETLİ MADENLER > TCMB DÖVİZ KURLARI:
+  branches:
+    doviz_kurlari: 0.94
+  manual: false
+tcmb|FİYAT ENDEKSLERİ > KONUT FİYAT ENDEKSİ (TCMB):
+  branches:
+    konut_insaat_gayrimenkul: 0.92
+    fiyatlar_enflasyon: 0.86
+  manual: false
+tcmb|FİYAT ENDEKSLERİ > TİCARİ GAYRİMENKUL FİYAT ENDEKSİ (TCMB):
+  branches:
+    konut_insaat_gayrimenkul: 0.94
+    fiyatlar_enflasyon: 0.77
+  manual: false
+tcmb|MERKEZ BANKASI BİLANÇO VE PİYASA VERİLERİ > MERKEZ BANKASI ANALİTİK BİLANÇOSU:
+  branches:
+    para_kredi_bankacilik: 0.94
+    faiz_para_politikasi: 0.43
+  manual: false
+tcmb|MERKEZ BANKASI BİLANÇO VE PİYASA VERİLERİ > MERKEZ BANKASI BİLANÇOSU:
+  branches:
+    para_kredi_bankacilik: 0.95
+  manual: false
+tcmb|MERKEZ BANKASI BİLANÇO VE PİYASA VERİLERİ > MERKEZ BANKASI HAFTALIK VAZİYET:
+  branches:
+    para_kredi_bankacilik: 0.93
+    faiz_para_politikasi: 0.56
+  manual: false
+tcmb|MERKEZ BANKASI BİLANÇO VE PİYASA VERİLERİ > PİYASA VERİLERİ:
+  branches:
+    para_kredi_bankacilik: 0.8
+    faiz_para_politikasi: 0.76
+    finansal_piyasalar: 0.68
+    doviz_kurlari: 0.64
+  manual: false
+tcmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FAİZ VE KÂR PAYI İSTATİSTİKLERİ (TCMB) > REESKONT VE AVANS FAİZ ORANLARI (TCMB):
+  branches:
+    faiz_para_politikasi: 0.91
+  manual: false
+? tcmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FİNANSAL HESAPLAR (TCMB) > FİNANSAL VARLIK
+  VE YÜKÜMLÜLÜKLER, KONSOLİDE OLMAYAN, AKIM
+: branches:
+    ulusal_hesaplar_buyume: 1.0
+  manual: true
+? tcmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FİNANSAL HESAPLAR (TCMB) > FİNANSAL VARLIK
+  VE YÜKÜMLÜLÜKLER, KONSOLİDE OLMAYAN, STOK
+: branches:
+    ulusal_hesaplar_buyume: 1.0
+  manual: true
+tcmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FİNANSAL HESAPLAR (TCMB) > FİNANSAL VARLIK VE YÜKÜMLÜLÜKLER, KONSOLİDE, AKIM:
+  branches:
+    ulusal_hesaplar_buyume: 1.0
+  manual: true
+tcmb|PARASAL VE FİNANSAL İSTATİSTİKLER > FİNANSAL HESAPLAR (TCMB) > FİNANSAL VARLIK VE YÜKÜMLÜLÜKLER, KONSOLİDE, STOK:
+  branches:
+    ulusal_hesaplar_buyume: 1.0
+  manual: true
+tcmb|PARASAL VE FİNANSAL İSTATİSTİKLER > ZORUNLU KARŞILIKLARA TABİ MEVDUAT VE KATILIM FONLARI (TCMB):
+  branches:
+    para_kredi_bankacilik: 0.91
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > SEKTÖR BİLANÇOLARI (2009 - 2023) (TCMB) > BİLANÇO.:
+  branches:
+    firmalar: 0.86
+    sanayi_uretim_is_dunyasi: 0.44
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > SEKTÖR BİLANÇOLARI (2009 - 2023) (TCMB) > GELİR TABLOSU.:
+  branches:
+    firmalar: 0.89
+    sanayi_uretim_is_dunyasi: 0.67
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > SEKTÖR BİLANÇOLARI (2009 - 2023) (TCMB) > ORANLAR.:
+  branches:
+    firmalar: 0.91
+    sanayi_uretim_is_dunyasi: 0.54
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > SEKTÖR BİLANÇOLARI (2009 - 2023) (TCMB) > SEKTÖR RİSKİ.:
+  branches:
+    firmalar: 0.9
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > SEKTÖR BİLANÇOLARI (2023 - 2025) (TCMB) > BİLANÇO:
+  branches:
+    firmalar: 0.88
+    sanayi_uretim_is_dunyasi: 0.47
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > SEKTÖR BİLANÇOLARI (2023 - 2025) (TCMB) > GELİR TABLOSU:
+  branches:
+    firmalar: 0.91
+    sanayi_uretim_is_dunyasi: 0.67
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > SEKTÖR BİLANÇOLARI (2023 - 2025) (TCMB) > ORANLAR:
+  branches:
+    firmalar: 0.92
+    sanayi_uretim_is_dunyasi: 0.56
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > SEKTÖR BİLANÇOLARI (2023 - 2025) (TCMB) > SEKTÖR RİSKİ:
+  branches:
+    firmalar: 0.9
+    sanayi_uretim_is_dunyasi: 0.44
+  manual: false
+tcmb|REEL SEKTÖR İSTATİSTİKLERİ > İMALAT SANAYİ KAPASİTE KULLANIM ORANI (TCMB):
+  branches:
+    sanayi_uretim_is_dunyasi: 0.95
+  manual: false
+tcmb|ÖDEME SİSTEMLERİ VE EMİSYON > TEDAVÜLDEKİ BANKNOTLAR (TCMB):
+  branches:
+    para_kredi_bankacilik: 0.91
+  manual: false
+tcmb|ÖDEME SİSTEMLERİ VE EMİSYON > ÖDEME SİSTEMLERİ İSTATİSTİKLERİ (TCMB):
+  branches:
+    para_kredi_bankacilik: 0.92
+  manual: false
+tcmb|ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER > DIŞ BORÇ İSTATİSTİKLERİ > KISA VADELİ DIŞ BORÇ İSTATİSTİKLERİ (TCMB):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.95
+  manual: false
+tcmb|ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER > DIŞ BORÇ İSTATİSTİKLERİ > TÜRKİYE DIŞ BORÇ İSTATİSTİKLERİ (TCMB):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.95
+  manual: false
+tcmb|ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER > DOĞRUDAN YATIRIMLAR (TCMB) > DOĞRUDAN YATIRIMLAR (AKIM):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.82
+  manual: false
+tcmb|ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER > DOĞRUDAN YATIRIMLAR (TCMB) > DOĞRUDAN YATIRIMLAR (STOK):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.75
+  manual: false
+tcmb|ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER > ULUSLARARASI REZERVLER (TCMB):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.89
+  manual: false
+tcmb|ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER > ULUSLARARASI YATIRIM POZİSYONU (TCMB):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.95
+  manual: false
+tcmb|ÖDEMELER DENGESİ VE DIŞ İSTATİSTİKLER > ÖDEMELER DENGESİ İSTATİSTİKLERİ (TCMB):
+  branches:
+    odemeler_dengesi_dis_finansman: 0.86
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Agriculture / Agricultural Equipment and Machinery Statistics:
+  branches:
+    tarim: 0.82
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Agriculture / Animal Production Statistics:
+  branches:
+    tarim: 0.91
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Culture and Sports / Culture
+  Statistics / Cultural Heritage Statistics
+: branches:
+    toplum_kultur_secim: 0.85
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Culture and Sports / Culture
+  Statistics / Periodical Publication Statistics
+: branches:
+    toplum_kultur_secim: 0.88
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Education / Education Expenditure Statistics:
+  branches:
+    egitim_saglik_sosyal_koruma: 0.81
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Education / Higher Education Brain Drain Statistics:
+  branches:
+    egitim_saglik_sosyal_koruma: 0.86
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Education / Higher Education Employment Indicators:
+  branches:
+    egitim_saglik_sosyal_koruma: 0.8
+    isgucu_istihdam_ucretler: 0.42
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Education / National Education Statistics:
+  branches:
+    egitim_saglik_sosyal_koruma: 0.8
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Education / School Life Expectancy:
+  branches:
+    egitim_saglik_sosyal_koruma: 0.87
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Employment, Unemployment
+  and Wages / Labour Force Statistics / Monthly Labour Force Statistics
+: branches:
+    isgucu_istihdam_ucretler: 0.97
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Employment, Unemployment
+  and Wages / Labour Force Statistics / Quarterly Labour Force Statistics
+: branches:
+    isgucu_istihdam_ucretler: 0.96
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Employment, Unemployment
+  and Wages / Labour Input, Labour Cost and Earnings Statistics / Labor Cost Statistics
+: branches:
+    isgucu_istihdam_ucretler: 0.69
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Employment, Unemployment
+  and Wages / Labour Input, Labour Cost and Earnings Statistics / Labor Input Indices
+: branches:
+    isgucu_istihdam_ucretler: 0.86
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Employment, Unemployment
+  and Wages / Labour Input, Labour Cost and Earnings Statistics / Paid Employee Statistics
+: branches:
+    isgucu_istihdam_ucretler: 0.91
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Environment / Environmental Economic Accounts:
+  branches:
+    cevre: 0.89
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Environment / Greenhouse Gas Emission Statistics:
+  branches:
+    cevre: 0.96
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Environment / Waste Statistics:
+  branches:
+    cevre: 0.94
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Environment / Water and Wastewater Statistics:
+  branches:
+    cevre: 0.91
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / International Trade /
+  International Trade in Goods Statistics / Foreign Trade Indices
+: branches:
+    dis_ticaret: 0.82
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / International Trade /
+  International Trade in Services Statistics / International Trade in Services Statistics
+: branches:
+    dis_ticaret: 0.79
+    ulasim_turizm_iletisim: 0.49
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Multi-Domain Statistics
+  / Human Indexes / Human Development Index
+: branches:
+    egitim_saglik_sosyal_koruma: 0.45
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / National Accounts / Government Accounts:
+  branches:
+    kamu_maliyesi: 0.67
+    ulusal_hesaplar_buyume: 0.64
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / National Accounts / Institutional Sector Accounts:
+  branches:
+    ulusal_hesaplar_buyume: 0.9
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / National Accounts / Regional Accounts:
+  branches:
+    ulusal_hesaplar_buyume: 0.44
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Population and Demography
+  / Address Based Population Registration System / Results of Address Based Population
+  Registration System
+: branches:
+    nufus_demografi: 0.95
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Population and Demography
+  / Address Based Population Registration System / World Population Day
+: branches:
+    nufus_demografi: 0.94
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Population and Demography / Vital Statistics / Birth Statistics:
+  branches:
+    nufus_demografi: 0.97
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Population and Demography
+  / Vital Statistics / Divorce Statistics
+: branches:
+    nufus_demografi: 0.87
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Population and Demography
+  / Vital Statistics / Marriage Statistics
+: branches:
+    nufus_demografi: 0.98
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Agricultural Input Price Index (AIPI):
+  branches:
+    fiyatlar_enflasyon: 0.9
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Agricultural
+  Products Producer Price Index (Agriculture PPI)
+: branches:
+    fiyatlar_enflasyon: 0.94
+    tarim: 0.56
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Construction Cost Index:
+  branches:
+    konut_insaat_gayrimenkul: 0.74
+    fiyatlar_enflasyon: 0.73
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Consumer Price Index (CPI):
+  branches:
+    fiyatlar_enflasyon: 0.95
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Domestic Producer Price Index (D-PPI):
+  branches:
+    fiyatlar_enflasyon: 0.94
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Non-Domestic Producer Price Index (ND-PPI):
+  branches:
+    fiyatlar_enflasyon: 0.93
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Producer Price Index for Industry:
+  branches:
+    fiyatlar_enflasyon: 0.94
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Purchasing Power Parity (PPP) / PPP:
+  branches:
+    fiyatlar_enflasyon: 0.69
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Purchasing Power Parity (PPP) / Regional PPP:
+  branches:
+    fiyatlar_enflasyon: 0.65
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Price Statistics / Services Producer Price Index:
+  branches:
+    fiyatlar_enflasyon: 0.94
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Science, Technology and
+  Information Society / Information Society Statistics / Statistics on Information
+  and Communication Technology (ICT) Usage by Children
+: branches:
+    bilim_teknoloji_bilgi_toplumu: 0.95
+    ulasim_turizm_iletisim: 0.4
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Science, Technology and
+  Information Society / Information Society Statistics / Statistics on Information
+  and Communication Technology (ICT) Usage in Enterprises
+: branches:
+    bilim_teknoloji_bilgi_toplumu: 0.96
+    ulasim_turizm_iletisim: 0.41
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Science, Technology and
+  Information Society / Science, Technology and Innovation Statistics / Innovation
+  Statistics
+: branches:
+    bilim_teknoloji_bilgi_toplumu: 0.96
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Science, Technology and
+  Information Society / Science, Technology and Innovation Statistics / Research and
+  Development Statistics
+: branches:
+    bilim_teknoloji_bilgi_toplumu: 0.97
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Short-Term Economic Indicators / Confidence Indices:
+  branches:
+    guven_beklenti_anketleri: 0.92
+    sanayi_uretim_is_dunyasi: 0.45
+    ulusal_hesaplar_buyume: 0.43
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Short-Term Economic Indicators
+  / House and Commercial Property Sales Statistics
+: branches:
+    konut_insaat_gayrimenkul: 0.94
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Short-Term Economic Indicators / Production Indices:
+  branches:
+    sanayi_uretim_is_dunyasi: 0.88
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Short-Term Economic Indicators
+  / Rates of Return on Financial Investment Instruments
+: branches:
+    finansal_piyasalar: 0.78
+    faiz_para_politikasi: 0.42
+  manual: false
+tuik|Classification of Statistical Activities - Rev.1.0 / Short-Term Economic Indicators / Trade Sales Volume Index:
+  branches:
+    dis_ticaret: 0.46
+    sanayi_uretim_is_dunyasi: 0.45
+    ulusal_hesaplar_buyume: 0.4
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Short-Term Economic Indicators
+  / Turnover Indices (Industry, Construction, Trade, Services)
+: branches:
+    sanayi_uretim_is_dunyasi: 0.83
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Structural Business Statistics
+  and Business Demography / Annual Industry and Services Statistics
+: branches:
+    sanayi_uretim_is_dunyasi: 0.78
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Structural Business Statistics
+  and Business Demography / Business Registers
+: branches:
+    sanayi_uretim_is_dunyasi: 0.65
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Structural Business Statistics
+  and Business Demography / Entrepreneurship and Business Demography
+: branches:
+    sanayi_uretim_is_dunyasi: 0.52
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Structural Business Statistics
+  and Business Demography / Financial Intermediary Institution Statistics
+: branches:
+    firmalar: 0.47
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Structural Business Statistics
+  and Business Demography / Sector Balance Sheets
+: branches:
+    firmalar: 0.84
+    sanayi_uretim_is_dunyasi: 0.56
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Transport and Communication
+  / Transport Statistics / Road Motor Vehicles
+: branches:
+    ulasim_turizm_iletisim: 0.87
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Transport and Communication
+  / Transport Statistics / Road Traffic Accident Statistics
+: branches:
+    ulasim_turizm_iletisim: 0.9
+  manual: false
+? tuik|Classification of Statistical Activities - Rev.1.0 / Transport and Communication
+  / Transport Statistics / Vehicle-kilometer Statistics
+: branches:
+    ulasim_turizm_iletisim: 0.89
+  manual: false
+tuik|Dış Ticaret İstatistikleri:
+  branches:
+    dis_ticaret: 0.95
+  manual: false
+tuik|Eğitim / Yükseköğretim Beyin Göçü İstatistikleri:
+  branches:
+    egitim_saglik_sosyal_koruma: 0.69
+  manual: false
+tuik|Eğitim ve Kültür:
+  branches:
+    egitim_saglik_sosyal_koruma: 0.5
+    toplum_kultur_secim: 0.46
+  manual: false
+tuik|Nüfus ve Demografi:
+  branches:
+    nufus_demografi: 0.98
+  manual: false
+tuik|Nüfus ve Demografi / Göç İstatistikleri / Uluslararası Göç İstatistikleri:
+  branches:
+    nufus_demografi: 0.98
+  manual: false
+tuik|Nüfus ve Demografi / Göç İstatistikleri / İç Göç İstatistikleri:
+  branches:
+    nufus_demografi: 0.98
+  manual: false
+tuik|Nüfus ve Demografi / Hayati İstatistikler / Ölüm ve Ölüm Nedeni İstatistikleri:
+  branches:
+    nufus_demografi: 0.97
+    egitim_saglik_sosyal_koruma: 0.43
+  manual: false
+tuik|Nüfus ve Demografi / Hayati İstatistikler / İntihar İstatistikleri:
+  branches:
+    nufus_demografi: 0.78
+  manual: false
+tuik|Sanayi:
+  branches:
+    sanayi_uretim_is_dunyasi: 0.94
+  manual: false
+tuik|Sağlık ve Sosyal Koruma:
+  branches:
+    egitim_saglik_sosyal_koruma: 0.8
+    hanehalki: 0.46
+  manual: false
+tuik|Seçim İstatistikleri:
+  branches:
+    toplum_kultur_secim: 0.89
+  manual: false
+tuik|Sosyoekonomik Seviye:
+  branches:
+    hanehalki: 0.66
+  manual: false
+tuik|Tarım ve Hayvancılık:
+  branches:
+    tarim: 0.87
+  manual: false
+tuik|Turcat / Dış Sektör:
+  branches:
+    dis_ticaret: 0.86
+    odemeler_dengesi_dis_finansman: 0.71
+    doviz_kurlari: 0.54
+  manual: false
+tuik|Turcat / Finans Sektörü:
+  branches:
+    ulusal_hesaplar_buyume: 0.58
+    odemeler_dengesi_dis_finansman: 0.56
+    fiyatlar_enflasyon: 0.55
+    doviz_kurlari: 0.55
+    para_kredi_bankacilik: 0.55
+    hanehalki: 0.52
+    isgucu_istihdam_ucretler: 0.51
+    firmalar: 0.51
+    kamu_maliyesi: 0.49
+    dis_ticaret: 0.46
+    guven_beklenti_anketleri: 0.46
+    faiz_para_politikasi: 0.45
+    sanayi_uretim_is_dunyasi: 0.44
+  manual: false
+tuik|Turcat / Mali Sektör:
+  branches:
+    para_kredi_bankacilik: 0.63
+    kamu_maliyesi: 0.59
+    doviz_kurlari: 0.54
+    odemeler_dengesi_dis_finansman: 0.54
+    ulusal_hesaplar_buyume: 0.52
+    hanehalki: 0.51
+    isgucu_istihdam_ucretler: 0.49
+    firmalar: 0.49
+    fiyatlar_enflasyon: 0.42
+    faiz_para_politikasi: 0.42
+  manual: false
+tuik|Turcat / Nüfus:
+  branches:
+    nufus_demografi: 0.95
+  manual: false
+tuik|Turcat / Reel Sektör:
+  branches:
+    sanayi_uretim_is_dunyasi: 0.83
+    ulusal_hesaplar_buyume: 0.66
+    isgucu_istihdam_ucretler: 0.6
+    firmalar: 0.58
+    guven_beklenti_anketleri: 0.48
+    konut_insaat_gayrimenkul: 0.44
+    dis_ticaret: 0.43
+  manual: false
+tuik|Turizm İstatistikleri:
+  branches:
+    ulasim_turizm_iletisim: 0.84
+  manual: false
+tuik|Ulaştırma ve Haberleşme:
+  branches:
+    ulasim_turizm_iletisim: 0.76
+  manual: false
+tuik|Ulusal Hesaplar:
+  branches:
+    ulusal_hesaplar_buyume: 0.87
+  manual: false
+tuik|Çevre ve Enerji:
+  branches:
+    cevre: 0.76
+    enerji_emtia: 0.52
+  manual: false
+tuik|ÜRETİM YÖNTEMİ İLE GAYRİSAFİ YURT İÇİ HASILA:
+  branches:
+    ulusal_hesaplar_buyume: 0.75
+    sanayi_uretim_is_dunyasi: 0.6
+  manual: false
+tuik|İnşaat ve Konut:
+  branches:
+    konut_insaat_gayrimenkul: 0.91
+  manual: false
+tuik|İstihdam ve İşsizlik:
+  branches:
+    isgucu_istihdam_ucretler: 0.92
+  manual: false
