@@ -295,6 +295,10 @@ def parse_sector(payload: bytes | str, external_code: str) -> SectorParse:
     groups: list[TurcatGroup] = []
     errors: list[str] = []
     current_group: str | None = None
+    # A header linked to an IMF SDDS category (``METAVERI``) opens a top-level section;
+    # one without a link is a sub-heading of the section above it. Chaining every header
+    # under the previous one buried "Merkezi Hükümet Operasyonları" four levels deep.
+    current_section: str | None = None
 
     for order, row in enumerate(rows):
         row_id = row.get("ID")
@@ -311,11 +315,13 @@ def parse_sector(payload: bytes | str, external_code: str) -> SectorParse:
                     code=code,
                     name=name,
                     order=order,
-                    parent_code=current_group,
+                    parent_code=None if meta_url else current_section,
                     meta_url=meta_url,
                 )
             )
             current_group = code
+            if meta_url:
+                current_section = code
             continue
 
         unit = _clean_text(row.get("BIRIMI"))

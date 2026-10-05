@@ -191,3 +191,47 @@ def test_ingest_sector_creates_series_and_two_observations() -> None:
     assert series is not None
     assert series.coverage_start == date(2024, 1, 1)
     assert series.coverage_end == date(2025, 1, 1)
+
+
+def test_dataset_meta_marks_rows_without_a_published_period_or_value() -> None:
+    """30 SDDS rows (25 dis, 1 finans, 4 mali) are listed without a publication date.
+
+    The source shows a bare ``0`` (29 rows) or nothing (1 row). There is no inferable
+    frequency and a value without a period cannot be stored, so they carry ``no_data``
+    (Task 2.6) instead of looking like series with a missing frequency.
+    """
+    connector, _ = _connector()
+    counts = {}
+    for external_code in ("TURCAT_DIS", "TURCAT_FINANS", "TURCAT_MALI", "TURCAT_REEL"):
+        codes = connector.dataset_meta(external_code).dimensions[0].codes
+        counts[external_code] = sum(1 for code in codes if code.attributes.get("no_data"))
+        for code in codes:
+            attributes = code.attributes
+            if attributes.get("no_data"):
+                assert "frequency" not in attributes
+                assert "group" not in attributes
+            elif not attributes.get("group"):
+                assert "frequency" in attributes  # every other indicator keeps its frequency
+    assert counts == {"TURCAT_DIS": 25, "TURCAT_FINANS": 1, "TURCAT_MALI": 4, "TURCAT_REEL": 0}
+
+
+def test_mali_headers_form_sections_not_a_chain() -> None:
+    """Headers with an IMF category link are top-level; unlinked ones are sub-headings.
+
+    The old parser chained every header under the previous one, so the codes of
+    "Merkezi Hükümet Operasyonları" (54) sat four levels below the root and a
+    hierarchical choice rarely reached them (Task 2.6: h13/h15).
+    """
+    connector, _ = _connector()
+    codes = {c.code: c for c in connector.dataset_meta("TURCAT_MALI").dimensions[0].codes}
+    for section in ("22", "54", "97"):
+        assert codes[section].parent_code is None
+        assert codes[section].attributes["group"] is True
+    # unlinked sub-headings hang under the section above them, not under each other
+    assert codes["39"].parent_code == "22"
+    assert codes["44"].parent_code == "22"
+    # indicators keep their nearest header
+    assert codes["61"].parent_code == "54"
+    assert codes["83"].parent_code == "54"
+    assert codes["129"].parent_code == "97"
+    assert codes["40"].parent_code == "39"

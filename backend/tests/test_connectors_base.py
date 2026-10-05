@@ -420,3 +420,34 @@ def test_ensure_series_refreshes_aggregation_on_existing_row() -> None:
     assert series is existing
     assert series.attributes["aggregation"] == "avg"
     assert series.attributes["keep"] == "me"
+
+
+def _dataset_with(attributes: dict) -> Dataset:
+    dataset = Dataset(institution_id=1, external_code="TURCAT_X", name="Turcat")
+    dataset.dimensions = [
+        DatasetDimension(
+            code="INDICATOR",
+            label="Indicator",
+            position=0,
+            role="other",
+            codes=[
+                DimensionCode(code="1", label="Real row", attributes={"frequency": "monthly"}),
+                DimensionCode(code="2", label="Header", attributes=attributes),
+            ],
+        ),
+        DatasetDimension(code="TIME_PERIOD", label="Time", position=1, role="time", codes=[]),
+    ]
+    return dataset
+
+
+def test_build_series_definition_rejects_a_group_header() -> None:
+    dataset = _dataset_with({"group": True})
+    assert build_series_definition(dataset, {"INDICATOR": "1"}).frequency == "monthly"
+    with pytest.raises(SeriesDefinitionError, match="group header"):
+        build_series_definition(dataset, {"INDICATOR": "2"})
+
+
+def test_build_series_definition_rejects_a_row_without_published_data() -> None:
+    dataset = _dataset_with({"no_data": True})
+    with pytest.raises(SeriesDefinitionError, match="no published value or period"):
+        build_series_definition(dataset, {"INDICATOR": "2"})

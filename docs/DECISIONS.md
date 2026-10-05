@@ -385,6 +385,27 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
     - Canlı doğrulama: katalog yenilemesi sonrası değerler aynı, `checked_at` kaynaktan yenilendi, `tagging`
       883/883; seri kurulamayan işaretsiz veri seti 0; `DF_MEVSIM_TAKVIM_V3` aramada serisiyle çıkıyor.
       Entegrasyon 113/113, birim 1196.
+  - **Turcat düzeltmesi (Task 2.6 bulgusu, 2026-10-05, kullanıcı kararı A):** Ölçüm sırasında
+    `TURCAT_*` göstergelerinin 48'inin frekansı yoktu ve arama bunlarda sessizce seri kuramıyordu.
+    - 18 satır veri taşımayan başlık (`group: true`): seçilemez, üzerinde "bu düzeyde kal" sorusu
+      sorulmaz (içinden geçilir), `build_series_definition` reddeder.
+    - 30 satır SDDS sayfasında yayım tarihsiz listeleniyor (29'unda kaynak yalın `0`, 1'inde boş; dis 25,
+      mali 4, finans 1): frekans çıkarılamaz ve dönemsiz değer saklanamaz. Bağlayıcı bunlara
+      `attributes['no_data'] = true` koyar; arama seçeneklerinden çıkar, `build_series_definition`
+      reddeder. Frekans tahmin edilmedi. Canlıda `turcat` senkronu ile işlendi: 178 gösterge frekanslı,
+      18 başlık, 30 `no_data`, etiketler ve `tagging` korundu.
+    - Etiketler (derleme veri setleri yalnız dal düzeyinde, kaynak `manual`): `TURCAT_MALI` →
+      kamu_maliyesi + finansal_piyasalar (önceki para_kredi_bankacilik yanlıştı), `TURCAT_REEL` →
+      + fiyatlar_enflasyon + isgucu_istihdam_ucretler, `TURCAT_FINANS` → + faiz_para_politikasi.
+    - Etiket tek başına h13/h15'i çözmedi: `TURCAT_MALI` artık aday ama veri seti puanı 0,51 / 0,32
+      (derleme veri setinin metni göstergeleri içermiyor). Bkz. `docs/search-eval/2026-10-05-sonuc.md`.
+    - **Derleme veri seti metni (kullanıcı kararı A):** `cok_konulu_derleme` veri setlerinin puanlama
+      metnine `gostergeler: ...` eklenir (seçilebilir kod sayısı en çok olan boyutun, başlık ve `no_data`
+      dışındaki en fazla 100 farklı etiketi, her biri 50 karakter). Diğer veri setlerinin metni değişmez.
+      Puan 0,51 → 0,99 ve 0,32 → 0,82.
+    - **Turcat hiyerarşisi:** `METAVERI` (IMF SDDS kategori bağlantısı) olan başlık üst düzey bölüm,
+      olmayan başlık bir üstteki bölümün alt başlığı; önceki zincirleme yapı bütçe/tahvil göstergelerini
+      4 seviye derine gömüyordu. Canlıda uygulandı. Sonuç: arama %83 (29/35), h13 ve h15 isabet.
   - Ölçülecekler (Task 2.6): Jev puanlarının koşular arası oynaklığı (aynı veri seti 0,58 ↔ 0,77),
     düşük güvenli kırılımların ('KONUT_ISYERI_GSTERGE' 0,23-0,40) doğruluğu, "il GSYH" sorgusu.
 

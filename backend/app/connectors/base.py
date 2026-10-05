@@ -681,6 +681,18 @@ def build_series_definition(dataset: Dataset, codes: dict[str, str]) -> SeriesDe
                 f"code {code!r} is not valid for dimension {dimension.code!r} of "
                 f"dataset {dataset.external_code!r}"
             )
+        row = next(row for row in dimension.codes if row.code == code)
+        row_attributes = row.attributes or {}
+        if row_attributes.get("group"):
+            raise SeriesDefinitionError(
+                f"code {code!r} of dataset {dataset.external_code!r} is a group header "
+                "that holds no data"
+            )
+        if row_attributes.get("no_data"):
+            raise SeriesDefinitionError(
+                f"code {code!r} of dataset {dataset.external_code!r} has no published "
+                "value or period at the source"
+            )
     frequency = _frequency_from_codes(non_time, codes, dataset)
     unit = _unit_from_codes(non_time, codes)
     breakdown = {

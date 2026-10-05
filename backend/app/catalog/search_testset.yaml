@@ -1,0 +1,257 @@
+# Catalog search test set (Task 2.6, DECISIONS §7).
+#
+# Each query is what the first agent would send to ``find_series``. ``expected`` is
+# the list of ACCEPTABLE series (user decision 2026-10-05, option B): the query
+# succeeds when a ``strong`` result matches ANY entry. An entry matches a result
+# when institution and dataset are equal and every code listed in ``codes`` equals
+# the result's code for that dimension (an entry without ``codes`` accepts any
+# series of the dataset).
+#
+# group: haber  = phrased from real news in ``news_articles`` (2026-10-03..05)
+#        agac   = written from the concept tree to cover branches the news skips
+#        olumsuz = data the catalog does NOT hold; expected is empty and a strong
+#                  result counts as a false positive (reported apart from the hit rate)
+#
+# Corrections made after seeing run 1 are marked "added after run 1"; the report
+# prints the score before and after them (``outcome_at_run``), so the first,
+# pre-registered number is never lost.
+#
+# ``python -m app.catalog.search_eval validate`` checks every entry against the
+# live catalog, so a typo or a removed dataset cannot silently lower the score.
+
+version: 1
+# Success threshold on the hit rate of the positive groups (user decision #4,
+# 2026-10-05: 70%).
+threshold: 0.70
+
+queries:
+  # ---------------------------------------------------------------- haber
+  - id: h01
+    group: haber
+    request: "Eylül ayı yıllık TÜFE enflasyonu"
+    expected:
+      - {institution: tuik, dataset: DF_TUFE_SDMX_TT02}
+      - {institution: tuik, dataset: DF_TUFE_SDMX_2003}
+      - {institution: tuik, dataset: DF_TUFE_SDMX_TT03}
+  - id: h02
+    group: haber
+    request: "Aylık tüketici fiyat endeksi değişimi"
+    expected:
+      - {institution: tuik, dataset: DF_TUFE_SDMX_TT02}
+      - {institution: tuik, dataset: DF_TUFE_SDMX_2003}
+      - {institution: tuik, dataset: DF_TUFE_SDMX_TT03}
+  - id: h03
+    group: haber
+    request: "Piyasa katılımcıları anketine göre yıl sonu yıllık TÜFE beklentisi"
+    expected:
+      - {institution: tcmb, dataset: bie_pkauo, codes: {SERIE: TP.PKAUO.S01.D.U}}
+  - id: h04
+    group: haber
+    request: "Yıl sonu TCMB politika faiz oranı beklentisi"
+    expected:
+      - {institution: tcmb, dataset: bie_pkauo, codes: {SERIE: TP.PKAUO.S04.H.U}}
+  - id: h05
+    group: haber
+    request: "Dolar kuru, ABD doları döviz alış"
+    expected:
+      - {institution: tcmb, dataset: bie_dkdovizgn, codes: {SERIE: TP.DK.USD.A}}
+      # added after run 1 (test-set error: bie_dkdovizgn is the archive; this is the current series)
+      - {institution: tcmb, dataset: bie_dkdovytl, codes: {SERIE: TP.DK.USD.A.YTL}}
+  - id: h06
+    group: haber
+    request: "Euro döviz alış kuru"
+    expected:
+      - {institution: tcmb, dataset: bie_dkdovizgn, codes: {SERIE: TP.DK.EUR.A}}
+      # added after run 1 (same reason as h05)
+      - {institution: tcmb, dataset: bie_dkdovytl, codes: {SERIE: TP.DK.EUR.A.YTL}}
+  - id: h07
+    group: haber
+    request: "Merkez Bankası toplam uluslararası rezervleri"
+    expected:
+      - {institution: tcmb, dataset: bie_abreserv}
+      - {institution: tcmb, dataset: bie_abres2}
+      - {institution: tcmb, dataset: bie_ulusdovlkd}
+  - id: h08
+    group: haber
+    request: "Aylık konut satış sayısı"
+    expected:
+      - {institution: tuik, dataset: DF_SATIS_SEKLI_SATIS_DURUMU_V3}
+      - {institution: tuik, dataset: DF_MEVSIM_TAKVIM_V3}
+      - {institution: tuik, dataset: CIP_INS-GK055-O006}
+  - id: h09
+    group: haber
+    request: "Kira artışı, yeni kiracı kira endeksi"
+    expected:
+      - {institution: tcmb, dataset: bie_ykke}
+      - {institution: tcmb, dataset: bie_bk}
+  - id: h10
+    group: haber
+    request: "Konut fiyat endeksi, Türkiye geneli"
+    expected:
+      - {institution: tcmb, dataset: bie_kfe, codes: {SERIE: TP.KFE.TR}}
+  - id: h11
+    group: haber
+    request: "İmalat sanayi kapasite kullanım oranı"
+    expected:
+      - {institution: tcmb, dataset: bie_kko2, codes: {SERIE: TP.KKO2.IS.TOP}}
+      - {institution: tcmb, dataset: bie_kkoisma}
+  - id: h12
+    group: haber
+    request: "Türkiye'nin brüt dış borç stoku"
+    expected:
+      - {institution: tcmb, dataset: bie_brutdbsdds}
+      - {institution: tcmb, dataset: bie_brutdbborclu}
+      - {institution: tcmb, dataset: bie_brutdbalacaklitp}
+  - id: h13
+    group: haber
+    request: "Merkezi yönetim bütçe dengesi"
+    expected:
+      - {institution: tuik, dataset: TURCAT_MALI, codes: {INDICATOR: "61"}}
+      - {institution: tuik, dataset: TURCAT_MALI, codes: {INDICATOR: "69"}}
+  - id: h14
+    group: haber
+    request: "Toplam ihracat tutarı, dolar cinsinden"
+    expected:
+      - {institution: tuik, dataset: TURCAT_DIS, codes: {INDICATOR: "175"}}
+      - {institution: tuik, dataset: TUIK_BI_GTS, codes: {FLOW: X}}
+      - {institution: tuik, dataset: TUIK_BI_OTS, codes: {FLOW: X}}
+  - id: h15
+    group: haber
+    request: "Devlet tahvili ihracı"
+    expected:
+      - {institution: tuik, dataset: TURCAT_MALI, codes: {INDICATOR: "129"}}
+      - {institution: tuik, dataset: TURCAT_MALI, codes: {INDICATOR: "83"}}
+  - id: h16
+    group: haber
+    request: "Havayolu ile giren yabancı ziyaretçi sayısı"
+    expected:
+      - {institution: tuik, dataset: TUIK_TURIZM_SINIR_MILLIYET, codes: {YOL: Havayolu}}
+      - {institution: tuik, dataset: TUIK_TURIZM_SINIR_KAPI, codes: {YOL: Havayolu}}
+  - id: h17
+    group: haber
+    request: "Kişi başına elektrik tüketimi"
+    expected:
+      - {institution: tuik, dataset: CIP_ENR-GK054-O0015}
+  - id: h18
+    group: haber
+    request: "Açık piyasa repo ve ters repo işlemleri"
+    expected:
+      - {institution: tcmb, dataset: bie_pyrepo}
+      - {institution: tcmb, dataset: bie_rtrnr}
+
+  # ----------------------------------------------------------------- agac
+  - id: a01
+    group: agac
+    request: "Aylık işsizlik oranı"
+    expected:
+      - {institution: tuik, dataset: DF_ISGUCU_AYLIK_TAMAMLAYICI_GOSTERGE_C, codes: {ISGUCU_GOSTERGE: "8"}}
+      - {institution: tuik, dataset: DF_ISGUCU_AYLIK_TAMAMLAYICI_GOSTERGE_O, codes: {ISGUCU_GOSTERGE: "8"}}
+  - id: a02
+    group: agac
+    request: "Sanayi üretim endeksi"
+    expected:
+      - {institution: tuik, dataset: DF_SANAYI_URETIM_ENDEKS_ANA_C, codes: {INDICATOR: II_SUE}}
+      - {institution: tuik, dataset: DF_SANAYI_URETIM_ENDEKS_ANA_O, codes: {INDICATOR: II_SUE}}
+  - id: a03
+    group: agac
+    request: "Ekonomik güven endeksi"
+    expected:
+      - {institution: tuik, dataset: DF_EKONOMIK_GUVEN_SDMX_C, codes: {INDICATOR: MI_EGE}}
+  - id: a04
+    group: agac
+    request: "Tüketici güven endeksi"
+    expected:
+      - {institution: tuik, dataset: DF_TUKETICI_EGILIM_SDMX}
+  - id: a05
+    group: agac
+    request: "İl bazında kişi başına gayrisafi yurt içi hasıla"
+    expected:
+      - {institution: tuik, dataset: DF_UH_BH_KISI_BASI}
+  - id: a06
+    group: agac
+    request: "İllere göre toplam doğurganlık hızı"
+    expected:
+      - {institution: tuik, dataset: DF_DOGUM_IL_TDH_C, codes: {INDICATOR: NG_TDH}}
+      # added after run 1 (test-set error: the CIP channel publishes the same indicator by region)
+      - {institution: tuik, dataset: CIP_DGM-GK378140487-O40205}
+  - id: a07
+    group: agac
+    request: "İllere göre genel doğurganlık hızı"
+    expected:
+      - {institution: tuik, dataset: DF_DOGUM_GDH_C, codes: {INDICATOR: NG_GDH}}
+  - id: a08
+    group: agac
+    request: "Trafiğe kaydı yapılan motorlu kara taşıtı sayısı"
+    expected:
+      - {institution: tuik, dataset: DF_MOTORLU_KARA_TASIT_KAYDI_V1, codes: {INDICATOR: U_TKYMKTS}}
+      - {institution: tuik, dataset: DF_MOTORLU_KARA_TASIT_KAYDI_YAPILAN_IBBS_V2, codes: {INDICATOR: U_TKYMKTS}}
+  - id: a09
+    group: agac
+    request: "Müze ve ören yerlerini ziyaret eden kişi sayısı"
+    expected:
+      - {institution: tuik, dataset: DF_MUZE_ORENYER_ZYARETCI, codes: {INDICATOR: K_MOYZS}}
+  - id: a10
+    group: agac
+    request: "Belediyelerin atık yönetimi istatistikleri, il bazında"
+    expected:
+      - {institution: tuik, dataset: DF_ATIK_BELEDIYE_ATIKYONETIMI_V1}
+      - {institution: tuik, dataset: DF_ATIK_BELEDIYE_HIZMET_V1}
+      - {institution: tuik, dataset: DF_ATIK_BELEDIYE_HIZMET_YONETIM_GOSTERGE_V1}
+  - id: a11
+    group: agac
+    request: "Öğrenci başına eğitim harcaması, Türk lirası"
+    expected:
+      - {institution: tuik, dataset: DF_EGITIM_HARCAMA_EGITIM_DUZEY_OGRENCI_BASI, codes: {EGITIM_HARCAMA: "2"}}
+  - id: a12
+    group: agac
+    request: "Buğday üretici fiyatı"
+    expected:
+      - {institution: tuik, dataset: DF_TARIM_URUNLERI_UFE_MADDE_FIYAT_V2, codes: {TAORBA_2008_2_678: "01_11_1"}}
+      - {institution: tuik, dataset: DF_TARIM_URUNLERI_GRUP_MADDE_ENDEKS_TAORBA_V2, codes: {TAORBA_2008_2_678: "01_11_1"}}
+  - id: a13
+    group: agac
+    request: "İhracat birim değer endeksi"
+    expected:
+      - {institution: tuik, dataset: DF_IHRACAT_BIRIM_DEGER_V1}
+  - id: a14
+    group: agac
+    request: "Mevsim ve takvim etkisinden arındırılmış ihracat miktar endeksi"
+    expected:
+      - {institution: tuik, dataset: DF_TAKVIM_ETKISINDEN_ARINDIRILMIS_IHRACAT_V2}
+  - id: a15
+    group: agac
+    request: "TÜFE bazlı reel efektif döviz kuru"
+    expected:
+      - {institution: tcmb, dataset: bie_rktufey, codes: {SERIE: TP.RK.T1.Y}}
+  - id: a16
+    group: agac
+    request: "Cari yıl sonu cari işlemler dengesi beklentisi, medyan"
+    expected:
+      - {institution: tcmb, dataset: bie_urbeka, codes: {SERIE: TP.BEKA.S06.A.M}}
+  - id: a17
+    group: agac
+    request: "Reel efektif döviz kuru, birim iş gücü maliyeti bazlı"
+    expected:
+      - {institution: tcmb, dataset: bie_rkbigm, codes: {SERIE: TP.RK.BIGM}}
+
+  # -------------------------------------------------------------- olumsuz
+  - id: o01
+    group: olumsuz
+    request: "Gram altın fiyatı"
+    expected: []
+  - id: o02
+    group: olumsuz
+    request: "Emekli maaşı tutarı"
+    expected: []
+  - id: o03
+    group: olumsuz
+    request: "Spot piyasada elektrik fiyatı"
+    expected: []
+  - id: o04
+    group: olumsuz
+    request: "Avrupa doğalgaz depolarında doluluk oranı"
+    expected: []
+  - id: o05
+    group: olumsuz
+    request: "Bitcoin fiyatı"
+    expected: []

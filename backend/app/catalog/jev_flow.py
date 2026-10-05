@@ -299,7 +299,13 @@ def _code_label(dimension: DatasetDimension) -> Callable[[Any], str]:
 
 
 def _active_codes(dimension: DatasetDimension) -> list[Any]:
-    return [code for code in dimension.codes if not (code.attributes or {}).get("removed_at")]
+    """Codes that can be chosen: not removed at the source and not data-less rows."""
+    return [
+        code
+        for code in dimension.codes
+        if not (code.attributes or {}).get("removed_at")
+        and not (code.attributes or {}).get("no_data")
+    ]
 
 
 def _dimension_instruction(
@@ -374,7 +380,9 @@ def select_dimension_code(
         children = [code for code in codes if code.parent_code == chosen.code]
         if not children:
             break
-        if allow_stop:
+        # A group header (Turcat) only organizes the rows below it; it holds no data,
+        # so the choice may pass through it but never stop on it.
+        if allow_stop and not (chosen.attributes or {}).get("group"):
             question, stay, _descend = _stop_question(request, str(dimension.label), chosen)
             answer = _ask(jev, state, question, prompt_ref=prompt_ref)
             parsed = parse_choice(answer, [stay, _descend])

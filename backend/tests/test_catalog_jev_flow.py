@@ -307,3 +307,37 @@ def test_allow_stop_descend_chunks_more_than_255_children() -> None:
     code_questions = [q for q in jev.questions if not StopFakeJev._is_stop(q)]
     assert len(code_questions) >= 3
     assert all(len(q["criteria"]) <= 255 for q in code_questions)
+
+
+def _turcat_like() -> DatasetDimension:
+    return DatasetDimension(
+        code="INDICATOR",
+        label="Gösterge",
+        position=0,
+        role="other",
+        codes=[
+            DimensionCode(code="G", label="Bütçe", attributes={"group": True}),
+            DimensionCode(code="G1", label="Bütçe dengesi", parent_code="G"),
+            DimensionCode(
+                code="G2", label="Veri yok", parent_code="G", attributes={"no_data": True}
+            ),
+        ],
+    )
+
+
+def test_a_group_header_never_gets_a_stop_question() -> None:
+    """A Turcat group header holds no data, so the choice may not stop on it."""
+    jev = StopFakeJev(pick="G1", stop_at="Bu düzeyde kal")
+    code, _confidence, _label = select_dimension_code(
+        jev, {}, "bütçe dengesi", _turcat_like(), allow_stop=True
+    )
+    assert code == "G1"
+    assert _stop_questions(jev) == []
+
+
+def test_a_no_data_row_is_not_offered_as_an_option() -> None:
+    jev = FakeJev()
+    select_dimension_code(jev, {}, "bütçe", _turcat_like(), allow_stop=False)
+    offered = [option for question in jev.questions for option in question["criteria"]]
+    assert not any("G2" in option for option in offered)
+    assert any("G1" in option for option in offered)

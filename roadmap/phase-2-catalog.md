@@ -236,19 +236,38 @@ yüklenmemiş (`DF_MEVSIM_TAKVIM_V3`) ve yüklü (260 dönem) seri doğru dönd�
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-10-05)
 **Bağımlılıklar:** Task 2.4
 
 **Referanslar:** `docs/DECISIONS.md` §7
 
-**Hedef dosyalar:** Faz 0 yapısına göre belirlenir.
+**Hedef dosyalar:** `backend/app/catalog/search_testset.yaml` (test seti),
+`backend/app/catalog/search_eval.py` (`validate`, `run`, `report`), testler
+`tests/test_catalog_search_eval.py` ve `tests/integration/test_catalog_search_eval_db.py`,
+sonuç `docs/search-eval/` (`2026-10-05-sonuc.md`, `run1/`).
 
 ### Checklist
 
-- [ ] **30-40 sorguluk** test seti: istek → beklenen seri(ler).
-- [ ] Ölçüm: beklenen seri 4-5 alanlar arasında mı.
-- [ ] Sonuç yetersizse embedding sıralaması (OpenRouter
-      `openai/text-embedding-3-large`) ayrı bir karar olarak değerlendirilir.
+- [x] **30-40 sorguluk** test seti: istek → beklenen seri(ler). 40 sorgu: 18 haber, 17 kavram ağacı
+      (olumlu, eşiğe sayılan 35) ve 5 olumsuz (katalogda olmayan veri). Beklenen = kabul edilebilir
+      seri listesi.
+- [x] Ölçüm: beklenen seri 4-5 alanlar arasında mı (`strong`). Tekrarlanabilir komut, ham sonuçlar
+      `results.jsonl`.
+- [x] Sonuç yetersizse embedding sıralaması ayrı karar: **gerekmedi**, eşik geçildi.
 
-**Kabul kriteri:** Test seti kaydedildi, ölçüm tekrar çalıştırılabilir ve sonuç
-raporlandı. Başarı eşiği kullanıcıyla belirlenir (**proje içinde karar** #4).
+**Kullanıcı kararları (2026-10-05):** beklenen seri tek değil, kabul edilebilir seri listesi (en az
+bir `strong` eşleşirse isabet); sorguların yarısı haberlerden yarısı ağaçtan; başarı eşiği **%70**.
+
+**Sonuç:** ilk koşu %74 (26/35); üç liste hatası düzeltilince %83 (29/35). Olumsuz sorgularda yanlış
+pozitif 0/5. Tekrarlanan 10 sınır sorgudan 9'u kararlı. Gerçek arama ıskaları (6): dal/yaprak
+aşamasında Jev'in sert elemesi (h09, a17), `TURCAT_MALI` etiket boşluğu (h13, h15), "illere göre"
+kırılım isteklerinin tek seri doğrulamasına sığmaması (a07), belirsiz sorgu (a10). Ayrıntı ve
+ölçüm sırasında bulunan katalog sorunları `docs/search-eval/2026-10-05-sonuc.md`.
+
+**Sonraki turlar (aynı gün, kullanıcı kararlarıyla):** `TURCAT_*` frekans/etiket/hiyerarşi
+düzeltmeleri, derleme veri seti metnine gösterge adları. Son ölçüm (run4): **%83 (29/35)**, yanlış
+pozitif 0/5. Kalan ıskalar yedeklendi (`BACKLOG.md`); kullanıcı kararı: burada bırakılır, Phase 3
+sorgularıyla optimize edilir.
+
+**Kabul kriteri:** Test seti kaydedildi, ölçüm tekrar çalıştırılabilir ve sonuç raporlandı. Başarı
+eşiği kullanıcıyla belirlendi (%70). Sağlandı.

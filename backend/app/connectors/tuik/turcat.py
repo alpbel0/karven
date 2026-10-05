@@ -253,6 +253,11 @@ class TurcatConnector(SourceConnector):
             attributes = {"page": page}
             if indicator.frequency:
                 attributes["frequency"] = indicator.frequency
+            elif indicator.period is None:
+                # The SDDS page lists the row without a publication date (it shows a
+                # bare 0 or nothing): no frequency can be inferred and a value without a
+                # period cannot be stored, so the row is not a usable series (Task 2.6).
+                attributes["no_data"] = True
             if indicator.unit:
                 attributes["unit"] = indicator.unit
             if indicator.meta_url:

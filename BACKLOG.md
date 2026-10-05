@@ -47,3 +47,35 @@
 - Remaining work: When readers need real sentences, generate Turkish one-sentence descriptions with a text model (EVREN), passing the source description and metadata as input; keep the template as fallback.
 - Resume from: `backend/app/data/models.py` (`Dataset.description`), the Task 2.2 template code
 - Blocked by: None
+
+## Search: a branch or leaf eliminated by Jev ends the search
+
+- Status: Deferred
+- Context: Task 2.6 misses h09 ("Kira artışı, yeni kiracı kira endeksi") and a17 ("Reel efektif döviz kuru, birim iş gücü maliyeti bazlı"). `bie_ykke` is tagged with the right leaf (0.91) and `bie_rkbigm` with `reel_efektif_kur` (1.00), but Jev scored the branch (0.42 / 0.19) or the leaf (0.15) below the 0.60 pass line, so the datasets were never scored and there is no fallback. The user chose to leave it and optimize later (2026-10-05).
+- Remaining work: Design a fallback (e.g. when no strong result exists, score the datasets of the best near-miss branch/leaf, or search the dataset tags of the best leaves directly) and measure it with the Task 2.6 set.
+- Resume from: `docs/search-eval/2026-10-05-sonuc.md`, `backend/app/catalog/search.py` (`search_series`), `python -m app.catalog.search_eval run`
+- Blocked by: None (better judged with Phase 3 real queries)
+
+## Search: "by province" requests do not fit one series
+
+- Status: Deferred
+- Context: a07 ("İllere göre genel doğurganlık hızı") finds the right dataset (`DF_DOGUM_GDH_C`, 1.00) but the series check fails because the tool picks one region (`REF_AREA=TR1`, confidence 0.24) and a single-region series does not match "by province". The same shape hurts a06 and any "il bazında" request.
+- Remaining work: Decide how a request for every value of a breakdown is answered (a dataset-level result with the breakdown named, or one recipe per region), and how the verification question treats it.
+- Resume from: `docs/search-eval/2026-10-05-sonuc.md`, `backend/app/catalog/search.py` (`_choose_dimension_codes`, `_verify_item`)
+- Blocked by: User decision on the result shape
+
+## Search: Jev scores wobble around the 0.60 line
+
+- Status: Deferred
+- Context: Task 2.6 repeated runs: h18 (`bie_pyrepo` 0.64 then 0.44, hit then miss, not caused by tagging: controlled experiment) and a16 (`bie_urbeka` vs `bie_pkauo`, hit then miss). 9 of 10 repeated queries were stable, so the effect is concentrated on queries whose true series sits near the pass line.
+- Remaining work: Measure the wobble over more repeats; consider asking the dataset score twice and taking the mean, or a wider near-miss band, and re-measure.
+- Resume from: `docs/search-eval/2026-10-05-sonuc.md`, `python -m app.catalog.search_eval run --repeat 3`
+- Blocked by: None
+
+## TUIK_TURIZM_SINIR_CATALOG has an unparseable default frequency
+
+- Status: Deferred
+- Context: The dataset carries `default_frequency = 'mixed'` and a `FREKANS` dimension (Yıllık, ...), so `build_series_definition` fails ("unknown default_frequency 'mixed'") and the search logs an error for every border-tourism series it tries. Other datasets of the family still work (h16 hits).
+- Remaining work: Read the frequency from the `FREKANS` code like the SDMX `FREQ` rule (with a Turkish code map), measure which codes exist, and show the rule to the user before applying it live (the 2.4b pattern).
+- Resume from: `backend/app/connectors/tuik/turizm.py`, `backend/app/connectors/base.py` (`_frequency_from_codes`)
+- Blocked by: None

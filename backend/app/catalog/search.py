@@ -193,7 +193,52 @@ def _ordered_non_time(dataset: Dataset) -> list[DatasetDimension]:
 
 
 def _active_dimension_codes(dimension: DatasetDimension) -> list[_Any]:
-    return [code for code in dimension.codes if not (code.attributes or {}).get("removed_at")]
+    return [
+        code
+        for code in dimension.codes
+        if not (code.attributes or {}).get("removed_at")
+        and not (code.attributes or {}).get("no_data")
+    ]
+
+
+#: A multi-topic compilation (Turcat, TCMB survey) is named after its source page, so
+#: the dataset score needs to see which indicators it holds (Task 2.6: "Mali Sektör"
+#: scored 0.51 for "Merkezi yönetim bütçe dengesi" while the indicator list names it).
+COMPILATION_LABEL_LIMIT = 100
+COMPILATION_LABEL_CHARS = 50
+
+
+def compilation_indicator_labels(dataset: Dataset) -> list[str]:
+    """Distinct data-bearing indicator labels of a ``cok_konulu_derleme`` dataset.
+
+    Taken from the dimension with the most selectable codes; group headers and
+    ``no_data`` rows are skipped, duplicates collapse (Turcat repeats "Hibeler"),
+    each label is cut to :data:`COMPILATION_LABEL_CHARS` and the list stops at
+    :data:`COMPILATION_LABEL_LIMIT`. Empty for any other dataset.
+    """
+    if not dataset.cok_konulu_derleme:
+        return []
+    candidates = [
+        [
+            code
+            for code in _active_dimension_codes(dimension)
+            if not (code.attributes or {}).get("group")
+        ]
+        for dimension in dataset.dimensions
+        if dimension.role != ROLE_TIME
+    ]
+    if not candidates:
+        return []
+    labels: list[str] = []
+    seen: set[str] = set()
+    for code in max(candidates, key=len):
+        label = " ".join(str(code.label).split())[:COMPILATION_LABEL_CHARS].strip()
+        if label and label not in seen:
+            seen.add(label)
+            labels.append(label)
+        if len(labels) >= COMPILATION_LABEL_LIMIT:
+            break
+    return labels
 
 
 def _dataset_text(dataset: Dataset, view: rules.DatasetView, institution_code: str) -> str:
@@ -211,6 +256,9 @@ def _dataset_text(dataset: Dataset, view: rules.DatasetView, institution_code: s
     parts.extend(f"{name}: {value}" for name, value in fields.items() if value)
     if source_description:
         parts.append(f"kaynak aciklamasi: {str(source_description)[:300]}")
+    indicators = compilation_indicator_labels(dataset)
+    if indicators:
+        parts.append(f"gostergeler: {'; '.join(indicators)}")
     return " | ".join(parts)
 
 
@@ -1118,6 +1166,8 @@ if __name__ == "__main__":
 
 __all__ = [
     "BEAM_WIDTH",
+    "COMPILATION_LABEL_CHARS",
+    "COMPILATION_LABEL_LIMIT",
     "DIMENSION_SUFFIX",
     "NEAR_MISS_MISMATCH",
     "PHRASE_KEEP",
@@ -1126,6 +1176,7 @@ __all__ = [
     "SEARCH_TOOL_LIMIT",
     "build_parser",
     "build_search_tool",
+    "compilation_indicator_labels",
     "ensure_default_prompts",
     "load_search_prompts",
     "measure_info",

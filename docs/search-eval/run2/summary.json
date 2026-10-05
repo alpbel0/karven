@@ -1,0 +1,34 @@
+{
+  "threshold": 0.7,
+  "queries": 40,
+  "runs": 42,
+  "positive_runs": 37,
+  "hits": 28,
+  "hit_rate": 0.8,
+  "passes_threshold": true,
+  "outcomes": {
+    "hit": 28,
+    "miss": 5,
+    "candidate_only": 4,
+    "correct_empty": 5
+  },
+  "groups": {
+    "haber": {
+      "runs": 20,
+      "hits": 14,
+      "hit_rate": 0.7
+    },
+    "agac": {
+      "runs": 17,
+      "hits": 14,
+      "hit_rate": 0.8235294117647058
+    }
+  },
+  "mean_rank_of_hit": 1.1071428571428572,
+  "negative_runs": 5,
+  "false_positives": 0,
+  "false_positive_rate": 0.0,
+  "failed_runs": 0,
+  "repeated_queries": 1,
+  "flipped_queries": []
+}

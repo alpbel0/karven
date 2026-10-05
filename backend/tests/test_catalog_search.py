@@ -852,3 +852,76 @@ def test_search_asks_the_stop_question_for_a_hierarchical_dimension(
     ]
     assert stop_questions
     assert result["strong"][0]["codes"]["NACE"] == "C"
+
+
+# ---- Task 2.6: compilation datasets show their indicator labels ----------------
+
+
+def _compilation(*, derleme: bool = True) -> Dataset:
+    dataset = Dataset(
+        institution_id=1,
+        external_code="TURCAT_X",
+        name="Turcat Mali Sektör",
+        cok_konulu_derleme=derleme,
+        attributes={},
+    )
+    dataset.dimensions = [
+        DatasetDimension(
+            code="INDICATOR",
+            label="Gösterge",
+            position=0,
+            role="other",
+            codes=[
+                DimensionCode(code="1", label="Gelirler", attributes={"group": True}),
+                DimensionCode(code="2", label="Merkezi Yönetim Bütçe Dengesi"),
+                DimensionCode(code="3", label="Hibeler"),
+                DimensionCode(code="4", label="Hibeler"),  # duplicate label
+                DimensionCode(code="5", label="Veri yok", attributes={"no_data": True}),
+                DimensionCode(code="6", label="Eski", attributes={"removed_at": "2026-01-01"}),
+                DimensionCode(code="7", label="x" * 80),
+            ],
+        ),
+        DatasetDimension(
+            code="FREQ",
+            label="Frekans",
+            position=1,
+            role="frequency",
+            codes=[DimensionCode(code="M", label="Aylık")],
+        ),
+        DatasetDimension(code="TIME_PERIOD", label="Zaman", position=2, role="time", codes=[]),
+    ]
+    return dataset
+
+
+def test_compilation_labels_skip_headers_no_data_removed_and_duplicates() -> None:
+    labels = search.compilation_indicator_labels(_compilation())
+    assert labels == [
+        "Merkezi Yönetim Bütçe Dengesi",
+        "Hibeler",
+        "x" * search.COMPILATION_LABEL_CHARS,
+    ]
+
+
+def test_compilation_labels_are_empty_for_an_ordinary_dataset() -> None:
+    assert search.compilation_indicator_labels(_compilation(derleme=False)) == []
+
+
+def test_compilation_labels_are_capped() -> None:
+    dataset = _compilation()
+    dataset.dimensions[0].codes = [
+        DimensionCode(code=str(index), label=f"Gösterge {index}") for index in range(300)
+    ]
+    assert len(search.compilation_indicator_labels(dataset)) == search.COMPILATION_LABEL_LIMIT
+
+
+def test_dataset_text_carries_the_indicators_only_for_a_compilation() -> None:
+    from app.catalog import enrich
+
+    compilation = _compilation()
+    text = search._dataset_text(
+        compilation, enrich._build_view(compilation, "tuik", "TÜİK"), "tuik"
+    )
+    assert "gostergeler: Merkezi Yönetim Bütçe Dengesi; Hibeler" in text
+    ordinary = _compilation(derleme=False)
+    plain = search._dataset_text(ordinary, enrich._build_view(ordinary, "tuik", "TÜİK"), "tuik")
+    assert "gostergeler" not in plain
