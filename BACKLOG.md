@@ -79,3 +79,11 @@
 - Remaining work: Read the frequency from the `FREKANS` code like the SDMX `FREQ` rule (with a Turkish code map), measure which codes exist, and show the rule to the user before applying it live (the 2.4b pattern).
 - Resume from: `backend/app/connectors/tuik/turizm.py`, `backend/app/connectors/base.py` (`_frequency_from_codes`)
 - Blocked by: None
+
+## Catch value jumps and bad revisions at load time
+
+- Status: Deferred
+- Context: On 2026-10-05 TÜİK's own CSV for `DF_TUFE_SDMX_TT10` (CPI, base 2025) returned `OBS_VALUE=4289.23` for 2026-08 (that is the 2003-base value; the correct value was 134.75). The load stored it as a normal revision and raised no alert; it was only found by comparing two series by hand. Any test using such a series would see a 30x spike.
+- Remaining work: When observations are loaded or an existing period is revised, flag implausible changes (a period-to-period jump far outside the series' own history, or a revision far from the previous value) as an admin-panel alert of the existing data-alert kind. Decide the thresholds with the user. Keep the stored value (observations are append-only); the alert is the output.
+- Resume from: `backend/app/core/alerts.py`, `backend/app/data/observations.py` (`record_observations`), `docs/DECISIONS.md` §5 (data-stop alert rules)
+- Blocked by: None

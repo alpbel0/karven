@@ -424,7 +424,7 @@ Yan kol: gerektiğinde Veri çekme ajanı (birinci ajan ve graph ajanı çağır
 - Her dönemin sonucu: **destekleniyor / desteklenmiyor / veri yetersiz.** İki
   dönemin sonucu da ayrı ayrı saklanır. İlişkinin durumu: ikisi de destekliyorsa
   **destekleniyor**, ikisi de desteklemiyorsa **desteklenmiyor**, farklıysa
-  **zamanla değişmiş**; veri yetersizlikte ilgili dönem "veri yetersiz" kalır.
+  **dönem sonuçları farklı** (dönem sonuçlarının ayrışması, ilişkinin değiştiğinin kanıtı değildir; iki dönem örtüşür); veri yetersizlikte ilgili dönem "veri yetersiz" kalır.
 - **Dönüşüm:** test ham seviyeler üzerinde **yapılmaz** (zamanla artan iki seri
   sahte ilişki verir). Graph ajanı hipotezde, veriyi görmeden, kapalı listeden
   seçer ve kilitler: **yıllık % değişim**, **dönemsel % değişim** (aylık /

@@ -12,7 +12,7 @@ büyür. Ajanlar hiçbir zaman değer görmez; test tamamen koddur.
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı
 **Bağımlılıklar:** Task 0.3, Task 1.1
 
 **Referanslar:** `docs/DECISIONS.md` §9
@@ -21,12 +21,12 @@ büyür. Ajanlar hiçbir zaman değer görmez; test tamamen koddur.
 
 ### Checklist
 
-- [ ] Düğümler: seri, **ilişki** (kendi düğümü), test kaydı, haber.
-- [ ] İlişki: 2+ seriye bağlı; mekanizma, beklenen yön, gecikme aralığı, durum.
-- [ ] Her test ayrı kayıt; üzerine yazılmaz.
-- [ ] İlişki kaynak haberlere bağlanır (bir ilişkiye çok haber).
-- [ ] Reddedilen ilişkiler silinmez.
-- [ ] İlişkiler ve test kayıtları için **asıl kaynak Neo4j**; PostgreSQL'de
+- [x] Düğümler: seri, **ilişki** (kendi düğümü), test kaydı, haber.
+- [x] İlişki: 2+ seriye bağlı; mekanizma, beklenen yön, gecikme aralığı, durum.
+- [x] Her test ayrı kayıt; üzerine yazılmaz.
+- [x] İlişki kaynak haberlere bağlanır (bir ilişkiye çok haber).
+- [x] Reddedilen ilişkiler silinmez.
+- [x] İlişkiler ve test kayıtları için **asıl kaynak Neo4j**; PostgreSQL'de
       ilişki bilgisinin kopyası tutulmaz (seriler, haberler vb. Postgres'te).
 
 **Kabul kriteri:** Bir ilişki, iki test kaydı ve iki kaynak haber yazılıp Neo4j
@@ -61,7 +61,7 @@ Browser'da görülebiliyor; aynı ilişki ikinci kez yazılınca kopya oluşmuyo
       çıkarsa desteklenmiyor.
 - [ ] İki dönemin sonucu ayrı saklanır; ilişki durumu: ikisi de destekliyorsa
       destekleniyor, ikisi de desteklemiyorsa desteklenmiyor, farklıysa
-      **zamanla değişmiş**.
+      **dönem sonuçları farklı**.
 
 **Kabul kriteri:** Bilinen sonuçlu yapay veriyle birim testleri geçiyor
 (güçlü ilişki → destekleniyor, gürültü → desteklenmiyor, kısa seri → veri

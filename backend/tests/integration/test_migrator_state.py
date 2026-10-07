@@ -54,8 +54,12 @@ def test_neo4j_migration_node_and_constraint() -> None:
     finally:
         driver.close()
 
-    assert versions == ["0001"]
+    assert versions == ["0001", "0002"]
     assert "migration_version_unique" in constraint_names
+    assert "series_key_unique" in constraint_names
+    assert "relation_key_unique" in constraint_names
+    assert "news_id_unique" in constraint_names
+    assert "relation_test_id_unique" in constraint_names
 
 
 def test_minio_bucket_exists() -> None:

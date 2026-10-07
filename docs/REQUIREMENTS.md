@@ -136,7 +136,7 @@ TÜFE ile reelleştirilir. [§8]
 
 **FR-15 — Test sonucu.** Her dönem: destekleniyor / desteklenmiyor / veri
 yetersiz. İlişki durumu: ikisi destekliyorsa destekleniyor, ikisi de
-desteklemiyorsa desteklenmiyor, farklıysa zamanla değişmiş. Sonuç okuyucuya
+desteklemiyorsa desteklenmiyor, farklıysa dönem sonuçları farklı. Sonuç okuyucuya
 gösterilmez, admin ekranında görünür. [§8]
 
 **FR-16 — Yeniden test.** Aynı ilişki yeni haberle tekrar gelirse ve son sonuç
