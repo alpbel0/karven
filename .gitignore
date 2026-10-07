@@ -22,3 +22,6 @@ coverage/
 Thumbs.db
 .vscode/
 .idea/
+
+# calibration study raw records (large, reproducible from the seeds)
+backend/calibration_runs/

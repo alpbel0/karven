@@ -1,0 +1,168 @@
+{
+ "records": 1480200,
+ "failed": {},
+ "pass1": {
+  "region_families": [
+   "iid",
+   "ar05",
+   "ma11",
+   "sar12_05",
+   "seasonal_weak"
+  ],
+  "gated_families": [
+   "seasonal_indep",
+   "seasonal_common",
+   "sar12_08",
+   "seasonal_mid",
+   "sar12_065"
+  ],
+  "methods": {
+   "chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "chain_24": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "shift": {
+    "eligible": false,
+    "gate": null,
+    "stats": null
+   },
+   "shift+chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "shift+chain_24": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "stationary_pw": {
+    "eligible": false,
+    "gate": null,
+    "stats": null
+   },
+   "stationary_pw+chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   }
+  },
+  "selected": null
+ },
+ "pass2_sar12_05_gated": {
+  "region_families": [
+   "iid",
+   "ar05",
+   "ma11",
+   "seasonal_weak"
+  ],
+  "gated_families": [
+   "seasonal_indep",
+   "seasonal_common",
+   "sar12_08",
+   "seasonal_mid",
+   "sar12_065",
+   "sar12_05"
+  ],
+  "methods": {
+   "chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "chain_24": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "shift": {
+    "eligible": false,
+    "gate": null,
+    "stats": null
+   },
+   "shift+chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "shift+chain_24": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "stationary_pw": {
+    "eligible": false,
+    "gate": null,
+    "stats": null
+   },
+   "stationary_pw+chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   }
+  },
+  "selected": null
+ },
+ "selected": null,
+ "sar12_05_moved": false,
+ "final": {
+  "region_families": [
+   "iid",
+   "ar05",
+   "ma11",
+   "sar12_05",
+   "seasonal_weak"
+  ],
+  "gated_families": [
+   "seasonal_indep",
+   "seasonal_common",
+   "sar12_08",
+   "seasonal_mid",
+   "sar12_065"
+  ],
+  "methods": {
+   "chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "chain_24": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "shift": {
+    "eligible": false,
+    "gate": null,
+    "stats": null
+   },
+   "shift+chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "shift+chain_24": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   },
+   "stationary_pw": {
+    "eligible": false,
+    "gate": null,
+    "stats": null
+   },
+   "stationary_pw+chain_12": {
+    "eligible": true,
+    "gate": null,
+    "stats": null
+   }
+  },
+  "selected": null
+ }
+}

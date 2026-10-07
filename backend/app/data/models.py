@@ -61,6 +61,12 @@ _MEASURE_COMBINATION_AGGREGATION_CHECK = (
 _MEASURE_COMBINATION_METHOD_CHECK = "type_method IN ('rule', 'jev', 'manual')"
 _MEASURE_COMBINATION_NATURE_METHOD_CHECK = "nature_method IN ('rule', 'jev', 'manual')"
 _MEASURE_COMBINATION_STATUS_CHECK = "status IN ('pending', 'accepted', 'review')"
+# First agent (Task 3.3).
+_FIRST_RUN_STATUS_CHECK = "status IN ('ok', 'agent_error')"
+_FIRST_VISUAL_STATUS_CHECK = "status IN ('candidate', 'catalog_gap')"
+_FIRST_IDEA_STATUS_CHECK = "status IN ('ready', 'catalog_gap', 'tautological')"
+_CATALOG_GAP_KIND_CHECK = "item_kind IN ('visual', 'idea')"
+_CATALOG_GAP_STATUS_CHECK = "status IN ('open', 'resolved')"
 _JSON_OBJECT_DEFAULT = text("'{}'::jsonb")
 _JSON_ARRAY_DEFAULT = text("'[]'::jsonb")
 _EMPTY_OBJECT = dict
@@ -1134,4 +1140,162 @@ class MeasureCombination(Base):
         CheckConstraint(_MEASURE_COMBINATION_STATUS_CHECK, name="ck_measure_combinations_status"),
         Index("ix_measure_combinations_measure_type", "measure_type"),
         Index("ix_measure_combinations_status", "status"),
+    )
+
+
+class FirstAgentRun(Base):
+    """One run of the first agent over one news article (Task 3.3).
+
+    ``status`` is ``ok`` (the agent finished and its final selection was valid) or
+    ``agent_error`` (the LLM or the final output failed; ``error`` says why and the
+    candidates registered before the failure are kept for diagnosis). ``llm_attempts``
+    counts every chat request including the empty-output retries; ``tool_calls`` is
+    the count that the 60-call limit applies to.
+    """
+
+    __tablename__ = "first_agent_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    news_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("news_articles.id", name="fk_first_agent_runs_news"), nullable=False
+    )
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    selection: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    prompt_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    prompt_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    prompt_checksum: Mapped[str | None] = mapped_column(Text, nullable=True)
+    llm_provider: Mapped[str | None] = mapped_column(Text, nullable=True)
+    llm_model: Mapped[str | None] = mapped_column(Text, nullable=True)
+    llm_usage: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_OBJECT_DEFAULT, default=_EMPTY_OBJECT
+    )
+    llm_attempts: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0"), default=0
+    )
+    tool_calls: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0"), default=0
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        CheckConstraint(_FIRST_RUN_STATUS_CHECK, name="ck_first_agent_runs_status"),
+        Index("ix_first_agent_runs_news", "news_id"),
+    )
+
+
+class FirstAgentVisual(Base):
+    """A news-visual candidate: a series the news itself describes (list (a)).
+
+    ``series`` is the recipe plus the metadata the code verified (``null`` for a
+    ``catalog_gap``); ``news_value`` holds the figure and period the news states,
+    shown on the chart as a "stated in the news" note, never compared.
+    """
+
+    __tablename__ = "first_agent_visuals"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    run_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("first_agent_runs.id", name="fk_first_agent_visuals_run", ondelete="CASCADE"),
+        nullable=False,
+    )
+    local_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    series: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    news_value: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    selected: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    selection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("run_id", "local_id", name="uq_first_agent_visuals_run_local"),
+        CheckConstraint(_FIRST_VISUAL_STATUS_CHECK, name="ck_first_agent_visuals_status"),
+    )
+
+
+class FirstAgentIdea(Base):
+    """A relation idea (list (b)): drivers -> target with a mechanism.
+
+    ``target`` and ``drivers`` are series slots (a verified recipe or a catalog-gap
+    description). ``status`` is ``ready`` (all series found, transform fits, not
+    tautological: may go to the graph agent), ``catalog_gap`` (a series is missing)
+    or ``tautological`` (the series belong to the same concept family). ``graph_*``
+    keep the graph agent's answer.
+    """
+
+    __tablename__ = "first_agent_ideas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    run_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("first_agent_runs.id", name="fk_first_agent_ideas_run", ondelete="CASCADE"),
+        nullable=False,
+    )
+    local_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    mechanism: Mapped[str] = mapped_column(Text, nullable=False)
+    direction_hint: Mapped[str | None] = mapped_column(Text, nullable=True)
+    transform: Mapped[str] = mapped_column(Text, nullable=False)
+    target: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    drivers: Mapped[list[Any]] = mapped_column(JSONB, nullable=False)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    status_detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    graph_status: Mapped[str | None] = mapped_column(Text, nullable=True)
+    graph_answer: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    selected: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false"), default=False
+    )
+    selection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("run_id", "local_id", name="uq_first_agent_ideas_run_local"),
+        CheckConstraint(_FIRST_IDEA_STATUS_CHECK, name="ck_first_agent_ideas_status"),
+    )
+
+
+class CatalogGap(Base):
+    """A series a news item needed that the catalog search could not find.
+
+    One row per missing series slot; the admin list (Task 5.3) shows which series
+    to add to the catalog. ``searches`` lists the requests the agent tried.
+    """
+
+    __tablename__ = "catalog_gaps"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    run_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("first_agent_runs.id", name="fk_catalog_gaps_run", ondelete="CASCADE"),
+        nullable=False,
+    )
+    news_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("news_articles.id", name="fk_catalog_gaps_news"), nullable=False
+    )
+    item_kind: Mapped[str] = mapped_column(Text, nullable=False)
+    item_local_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    searches: Mapped[list[Any]] = mapped_column(
+        JSONB, nullable=False, server_default=_JSON_ARRAY_DEFAULT, default=_EMPTY_LIST
+    )
+    status: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'open'"), default="open"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        CheckConstraint(_CATALOG_GAP_KIND_CHECK, name="ck_catalog_gaps_kind"),
+        CheckConstraint(_CATALOG_GAP_STATUS_CHECK, name="ck_catalog_gaps_status"),
+        Index("ix_catalog_gaps_status", "status"),
     )

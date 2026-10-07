@@ -17,6 +17,10 @@ dependencies = [
     "celery[redis]",
     "trafilatura>=2.3.0",
     "pyyaml>=6",
+    "pandas>=3.0.6",
+    "statsmodels>=0.15.0",
+    "scipy>=1.18.1",
+    "arch>=8.0.0",
 ]
 
 [dependency-groups]

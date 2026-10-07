@@ -36,7 +36,7 @@ Browser'da görülebiliyor; aynı ilişki ikinci kez yazılınca kopya oluşmuyo
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Motor altyapısı tamamlandı; **istatistiksel doğrulama açık** (bkz. `docs/calibration/RESULT.md`)
 **Bağımlılıklar:** Task 1.1
 
 **Referanslar:** `docs/DECISIONS.md` §8
@@ -45,23 +45,27 @@ Browser'da görülebiliyor; aynı ilişki ikinci kez yazılınca kopya oluşmuyo
 
 ### Checklist
 
-- [ ] İki seri: korelasyon + gecikme araması (hipotezdeki gecikme aralığında).
-- [ ] 3+ seri: regresyon; her açıklayıcının gecikmesi kendi ikili gecikme
+- [x] İki seri: korelasyon + gecikme araması (hipotezdeki gecikme aralığında).
+- [x] 3+ seri: regresyon; her açıklayıcının gecikmesi kendi ikili gecikme
       aramasından gelir; en az gözlem = frekans eşiği × açıklayıcı sayısı (ör. 2
       açıklayıcılı aylıkta 72).
-- [ ] Eldeki **tüm veri** kullanılır; haber tarihinden bağımsız.
-- [ ] Test ham seviyede yapılmaz; hipotezdeki dönüşüm uygulanır: yıllık %
+- [x] Eldeki **tüm veri** kullanılır; haber tarihinden bağımsız.
+- [x] Test ham seviyede yapılmaz; hipotezdeki dönüşüm uygulanır: yıllık %
       değişim, dönemsel % değişim ya da fark.
-- [ ] Frekans eşleştirme: düşük frekansa inilir; fiyat/oran/endeks → dönem
+- [x] Frekans eşleştirme: düşük frekansa inilir; fiyat/oran/endeks → dönem
       ortalaması, akım → dönem toplamı (tür katalogdan gelir).
-- [ ] Hipotezde nominal TL tutarı işaretli seriler TÜFE ile reel hale getirilir.
-- [ ] İki dönem: **bütün yıllar** ve **2017–2026**.
-- [ ] En az gözlem: aylık 36, üç aylık 12, yıllık 10; altında "veri yetersiz".
-- [ ] Sonuç: destekleniyor / desteklenmiyor / veri yetersiz; beklenen yön ters
+- [x] Hipotezde nominal TL tutarı işaretli seriler TÜFE ile reel hale getirilir.
+- [x] İki dönem: **bütün yıllar** ve **2017–2026**.
+- [x] En az gözlem: aylık 36, üç aylık 12, yıllık 10; altında "veri yetersiz".
+- [x] Sonuç: destekleniyor / desteklenmiyor / veri yetersiz; beklenen yön ters
       çıkarsa desteklenmiyor.
-- [ ] İki dönemin sonucu ayrı saklanır; ilişki durumu: ikisi de destekliyorsa
+- [x] İki dönemin sonucu ayrı saklanır; ilişki durumu: ikisi de destekliyorsa
       destekleniyor, ikisi de desteklemiyorsa desteklenmiyor, farklıysa
       **dönem sonuçları farklı**.
+
+- [ ] **Anlamlılık yönteminin bağımsız doğrulaması: AÇIK.** Kalibrasyon (protokol v1.5) kabul için aday
+      belirleyemedi, doğrulama yapılmadı; motor deneysel yöntemle (`calibrated=False`) teslim edildi, her sonuç
+      `reliable=False`. Yeniden deneme yeni protokol sürümü ve kullanıcı kararı (risk tavanı) gerektirir.
 
 **Kabul kriteri:** Bilinen sonuçlu yapay veriyle birim testleri geçiyor
 (güçlü ilişki → destekleniyor, gürültü → desteklenmiyor, kısa seri → veri
@@ -71,7 +75,7 @@ yetersiz); gerçek iki seriyle test uçtan uca çalışıyor.
 
 **Repo:** `karven`
 **Alan:** `backend`
-**Durum:** Başlamadı
+**Durum:** Tamamlandı (2026-10-07; canlıda doğrulandı, graph ajanı stub)
 **Bağımlılıklar:** Task 2.4, Task 2.5, Task 1.6, Task 1.7
 
 **Referanslar:** `docs/DECISIONS.md` §2, §4.1
@@ -80,20 +84,25 @@ yetersiz); gerçek iki seriyle test uçtan uca çalışıyor.
 
 ### Checklist
 
-- [ ] Haberin tam metnini okur; "ekonomik değil" diye haber elenmez.
-- [ ] **(a) Haber görselleri** listesi: haberde anlatılan seriler; haberde geçen
+- [x] Haberin tam metnini okur; "ekonomik değil" diye haber elenmez.
+- [x] **(a) Haber görselleri** listesi: haberde anlatılan seriler; haberde geçen
       rakam ve dönemi ile birlikte.
-- [ ] **(b) İlişki fikirleri** listesi.
-- [ ] Sınırlar: en fazla 8 ilişki fikri, 8 görsel adayı, 60 araç çağrısı.
-- [ ] Araçlar: kavram ağacı, katalog arama, veri durumu, graf okuma, graph
+- [x] **(b) İlişki fikirleri** listesi.
+- [x] Sınırlar: en fazla 8 ilişki fikri, 8 görsel adayı, 60 araç çağrısı.
+- [x] Araçlar: kavram ağacı, katalog arama, veri durumu, graf okuma, graph
       ajanına sorma, veri çekme ajanıyla konuşma.
-- [ ] Değer görmez.
-- [ ] Haber yeni bir dönemden söz ediyor ama veri yoksa veri çekme ajanına sorar.
-- [ ] Graph ajanının cevaplarından sonra görselleştirilecek son listeyi yapar.
+- [x] Değer görmez.
+- [x] Haber yeni bir dönemden söz ediyor ama veri yoksa veri çekme ajanına sorar.
+- [x] Graph ajanının cevaplarından sonra görselleştirilecek son listeyi yapar.
 
 **Kabul kriteri:** Gerçek bir haberde (ör. benzin zammı) doğru haber görseli
 (benzin fiyatı serisi) ve en az bir anlamlı ilişki fikri çıkıyor; sınırlar
 aşılmıyor; ajana hiçbir değer gitmiyor.
+
+**Teslim notları (2026-10-07):** `backend/app/first_agent/`; kayıtlar `first_agent_runs/visuals/ideas` ve
+`catalog_gaps` (migration 0021). Graph ajanı arayüzü (`GraphAgentPort`) hazır, içi stub (`queued`); gerçek ajan
+Task 3.4. Katalogda olmayan seri için fikir düşmez, "katalog açığı" olarak kaydedilir; hedef-sürücü aynı kavram
+ailesindeyse fikir `tautological` işaretlenir ve graph ajanına gitmez; dönüşüm uyumsuzluğu ajana hata olarak döner.
 
 ## Task 3.4 — Knowledge graph ajanı
 

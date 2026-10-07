@@ -87,3 +87,27 @@
 - Remaining work: When observations are loaded or an existing period is revised, flag implausible changes (a period-to-period jump far outside the series' own history, or a revision far from the previous value) as an admin-panel alert of the existing data-alert kind. Decide the thresholds with the user. Keep the stored value (observations are append-only); the alert is the output.
 - Resume from: `backend/app/core/alerts.py`, `backend/app/data/observations.py` (`record_observations`), `docs/DECISIONS.md` §5 (data-stop alert rules)
 - Blocked by: None
+
+## Decide the mixed-frequency and annual-series policy of the relation test engine
+
+- Status: Deferred
+- Context: The engine reduces every relation to its lowest frequency (monthly into quarterly or annual with the catalog rule: mean, sum or last; incomplete periods dropped). The user decided on 2026-10-07 to keep this as it is and revisit after production. Known consequences: a relation with an annual series can never be decided (the 2017-2026 window has at most 9 annual points, 10 are required, so the relation ends `insufficient_data`); the calibration covered monthly data only, so mixed-frequency and annual error rates are unknown; a lag written as 1-3 months becomes 1-3 years in an annual match.
+- Remaining work: Choose the policy with the user (same frequency only; monthly with quarterly allowed and annual only with annual; or the current behavior) and the minimum window rule for annual series; extend the calibration to quarterly and mixed cases if they are supported; make the first agent state lags in the units of the lowest frequency.
+- Resume from: `backend/app/analysis/frequency.py`, `backend/app/analysis/engine.py` (`prepare`, `EngineConfig.min_obs`), `docs/calibration/RESULT.md`
+- Blocked by: User decision after the production launch
+
+## Measure and refine the first agent's tautology rule and idea quality
+
+- Status: Deferred
+- Context: Task 3.3 flags an idea `tautological` when target and a driver share an accepted leaf concept tag AND the same measure type AND data nature (`backend/app/first_agent/checks.py`). It is coarse: two non-hierarchical series of one family (exports and imports tagged with one leaf) are flagged too. Live review (2026-10-07, 6 real news runs) also showed weak points: generic macro ideas repeat in almost every economic news (exchange rate -> CPI), ideas can be loosely tied to the news (a news comparing bank deposit rates gave no idea about the banks' rates), and `direction_hint` can contradict the mechanism text.
+- Remaining work: Count `tautological` ideas over more stored runs (`first_agent_ideas.status`) and check them by hand for false positives; narrow the rule if needed (for example dimension-code subsumption inside the same dataset). Add prompt rules for news-specific ideas and for direction/mechanism consistency, activate as a new prompt version, re-run the same news and compare.
+- Resume from: `backend/app/first_agent/checks.py`, `backend/app/first_agent/prompts/first_agent_system.md`, `python -m app.first_agent show --run-id N`
+- Blocked by: None
+
+## Fill the catalog gaps the first agent recorded
+
+- Status: Deferred
+- Context: The first agent records every series it needed and the catalog search could not find in `catalog_gaps` (`python -m app.first_agent gaps`). Live gaps so far: Brent oil price, pump fuel prices (only the CPI "fuels and lubricants" index and the TÜİK average-prices dataset exist), net minimum wage, bank deposit interest rate.
+- Remaining work: Review the open gaps with the user, decide which sources to add (new connector channels vs. existing datasets that were just hard to find), and mark rows `resolved` when added. The admin list is Task 5.3.
+- Resume from: `catalog_gaps` table, `python -m app.first_agent gaps`, `docs/DECISIONS.md` §5
+- Blocked by: Task 5.3 for the admin view; adding sources needs a user decision

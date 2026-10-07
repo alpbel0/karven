@@ -193,6 +193,16 @@ class RelationRecord:
     news_links: tuple[NewsLink, ...] = ()
     tests: tuple[TestRecord, ...] = ()
 
+    @property
+    def is_reliable_support(self) -> bool:
+        """True only for a ``supported`` relation whose latest test is reliable.
+
+        Consumers (the graph agent, the admin screen) must use this instead of reading ``status``
+        alone: a ``supported`` status with ``reliable`` False or unknown is experimental statistical
+        support, never established knowledge (Codex review, 2026-10-07).
+        """
+        return self.status == "supported" and self.reliable is True
+
 
 def normalize_relation(target: SeriesRef, drivers: Any) -> tuple[SeriesRef, tuple[SeriesRef, ...]]:
     """Validate the relation shape and return deduplicated, sorted drivers.
